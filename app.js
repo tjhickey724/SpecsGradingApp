@@ -32,7 +32,7 @@ const MongoStore = require('connect-mongo')(session)
 
 const mongoose = require( 'mongoose' );
 
-mongoose.connect( 'mongodb://localhost/pra_V2_0', { useNewUrlParser: true } );
+mongoose.connect( 'mongodb://localhost/sga_v_1_0', { useNewUrlParser: true } );
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -151,26 +151,31 @@ function isLoggedIn(req, res, next) {
 
 app.get('/',
     async ( req, res, next ) => {
+     try{
 
+          if (!req.user) next()
 
-      if (!req.user) next()
+          let coursesOwned =
+              await Course.find({ownerId:req.user._id},'name')
+          res.locals.coursesOwned = coursesOwned
+          res.locals.coursesTAing = []
 
-      let coursesOwned =
-          await Course.find({ownerId:req.user._id},'name')
-      res.locals.coursesOwned = coursesOwned
-      res.locals.coursesTAing = []
+          let registrations =
+              await  CourseMember.find({studentId:req.user._id},'courseId')
+          res.locals.registeredCourses = registrations.map((x)=>x.courseId)
 
-      let registrations =
-          await  CourseMember.find({studentId:req.user._id},'courseId')
-      res.locals.registeredCourses = registrations.map((x)=>x.courseId)
+          let coursesTaken =
+              await Course.find({_id:{$in:res.locals.registeredCourses}},'name')
+          res.locals.coursesTaken = coursesTaken
 
-      let coursesTaken =
-          await Course.find({_id:{$in:res.locals.registeredCourses}},'name')
-      res.locals.coursesTaken = coursesTaken
-
-      res.locals.title = "PRA"
-      res.render('index');
+          res.locals.title = "PRA"
+          res.render('index');
+      } catch(e){
+      console.log('error in index page ')
+      console.dir(e)
+      next(e)
     }
+  }
 
 )
 

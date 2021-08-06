@@ -1,0 +1,89 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+
+    <script type="text/javascript" src="/js/clickThumb.js"></script>
+
+    <h3><%= problem.description %></h3>
+    <div class="bg-default"
+         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+       ><%= problem.problemText %></div>
+    <hr>
+    <% if (canView) { %>
+    <h2>All Answers with their Reviews</h2>
+    <% for(let i=0; i<answers.length; i++){ %>
+        <div class="row">
+          <div class="col-md-12">
+            <%= answers[i].createdAt %>
+            <br>
+            <%= answers[i]._id %>
+            <pre class="bg-warning"
+                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+                    ><%= answers[i].answer %></pre>
+          </div>
+        </div>
+
+        <% for (let j=0; j<reviews.length; j++){ %>
+
+          <% if (reviews[j].answerId.equals(answers[i]._id)) {
+             let rev=reviews[j]
+             let numLikesU = reviews[j].upvoters.length
+             let userLikesU = reviews[j].upvoters.includes(user._id)
+             let fa_prefixU = userLikesU?"fas":"far"
+             let numLikesD = reviews[j].downvoters.length
+             let userLikesD = reviews[j].downvoters.includes(user._id)
+             let fa_prefixD = userLikesD?"fas":"far"
+             %>
+
+            <div class="row">
+              <div class="col-md-1">
+              </div>
+               <div class="col">
+                  <i  class="<%= fa_prefixU %> fa-thumbs-up"
+                               id='<%= "reviewU"+j %>'
+                               onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
+
+                  <i  class="<%= fa_prefixD %> fa-thumbs-down"
+                              id='<%= "reviewD"+j %>'
+                              onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
+
+                  <i>
+
+                    likes: <span id='<%="likes"+ j %>'>
+                             <%= numLikesU-numLikesD %>
+                           </span>
+                       .... grade:
+                     <%= rev.points %>/<%= problem.points %>pts
+                  </i>
+                   <% if (rev.reviewerId.equals(user._id)) {%>
+                       <span style="color:rgb(220,120,255);">YOUR REVIEW!!</span>
+                       <div style="background:rgb(220,120,255);
+                   <% } else { %>
+                       <div style="background:rgb(120,220,255);
+                   <% } %>
+                           padding:5px; margin-bottom:10px;border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+                           ><%= rev.review
+                   %></div>
+
+              </div>
+            </div>
+              <% }%>
+              <% } %>
+
+      <%} %>
+    <% } else {%>
+      <h1>More Reviews Needed</h1>
+      You have reviewed <%= numReviews %> answers,
+      but must review at least 5 before you can see
+      all of the answers and reviews for this problem.
+    <% } %>
+
+
+    <hr>
+            <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
+            <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your Reviews of other's answers</a>
+            <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
+            <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+
+
+
+<%- include('bootfooter') -%>

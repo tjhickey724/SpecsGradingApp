@@ -1,0 +1,65 @@
+<%- include('bootheader') -%>
+<% if (loggedIn) { %>
+   <%- include('menubar') -%>
+<% } %>
+
+    <div class="jumbotron">
+        <h1>Peer Review App</h1>
+
+        <h2>Promoting Engaged Learning</h2>
+    </div>
+    <% if (!loggedIn){ %>
+        <h2>You must login to use the Peer Review App:
+         <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
+         </h2>
+    <% } else {%>
+        <form method="post" action="/joinCourse">
+        Enroll in a course:
+        <input type="input" name="coursePin" placeholder="7 digit pin"s>
+        </form>
+        <hr>
+        <div class="row">
+            <div class="col bg-warning">
+                <h2>Courses I'm taking</h2>
+                <ul>
+                <% for(i = 0; i<= coursesTaken.length-1; i++){  %>
+                    <li>
+                        <a href="/showCourse/<%= coursesTaken[i]._id %>">
+                            <%= coursesTaken[i].name %>
+                        </a>
+                    </li>
+                <% } %>
+                </ul>
+            </div>
+            <div class="col bg-primary">
+                <h2>Courses I'm TAing</h2>
+                <ul>
+                <% for(i = 0; i<= coursesTAing.length-1; i++){  %>
+                    <li>
+                        <a href="/showCourse/<%= coursesTAing[i]._id %>">
+                            <%= coursesTAing[i].name %>
+                        </a>
+                    </li>
+                <% } %>
+                </ul>
+            </div>
+            <div class="col bg-danger">
+                <h2>Courses I'm Teaching</h2>
+                <ul>
+                <% for(i = 0; i<= coursesOwned.length-1; i++){  %>
+                    <li>
+                        <a href="/showCourse/<%= coursesOwned[i]._id %>">
+                            <%= coursesOwned[i].name %>
+                        </a>
+                    </li>
+                <% } %>
+                </ul>
+            </div>
+        </div>
+
+
+
+    <%} %>
+<br>
+
+<%- include('bootfooter') -%>

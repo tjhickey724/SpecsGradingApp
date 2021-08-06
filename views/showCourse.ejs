@@ -1,0 +1,46 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+    <h1><%= courseInfo.name %></h1>
+    studentPin: <%= courseInfo.coursePin %>
+    <br>
+    
+
+
+
+
+
+<hr>
+<b>Problem Sets</b>
+    <ul>
+    <% for(i = 0; i<= problemSets.length-1; i++){  %>
+        <li>
+
+            <a href="/showProblemSet/<%= problemSets[i]._id %>">
+                <%= problemSets[i].name %>
+            </a>
+                <i><small><%= problemSets[i].createdAt %></small></i>
+        </li>
+    <% } %>
+    </ul>
+<hr>
+    <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+            Add Problem Set
+        </a>
+
+        <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+            Show Summarized Student Info
+        </a>
+    <% } else { %>
+
+    <%} %>
+
+    <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Show TAs
+    </a>
+    <a href="/" class="btn btn-sm btn-danger">
+        Back to Home
+    </a>
+
+
+<%- include('bootfooter') -%>

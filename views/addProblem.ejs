@@ -1,0 +1,24 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+    <div class="jumbotron">
+        <h1>Add Problem</h1>
+    </div>
+
+    <form method="post" action="/saveProblem/<%= psetId %>">
+        Problem Title:<br>
+        <input type="text" name="description">
+        <br>
+        Problem Description:<br>
+        <textarea name="problemText" cols="100" rows="10"></textarea>
+        <br>
+        Rubric:<br>
+        Points: <input type="text" name="points"><br>
+        <textarea name="rubric" cols="100" rows="10"></textarea>
+        <br>
+        <input class="btn btn-lg btn-primary" type="submit">
+    </form>
+
+    <%= psetId %>
+
+
+<%- include('bootfooter') -%>

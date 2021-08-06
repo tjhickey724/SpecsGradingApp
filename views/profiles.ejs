@@ -1,0 +1,15 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+    <div class="jumbotron">
+        <h1>Profiles</h1>
+    </div>
+    <ol>
+    <% for(i = 0; i<profiles.length; i++){  %>
+        <li>
+            <a href="/showProfile/<%= profiles[i]._id %>">
+              user: <%= profiles[i].googlename %>
+            </a>
+        </li>
+    <% } %>
+    </ol>
+<%- include('bootfooter') -%>

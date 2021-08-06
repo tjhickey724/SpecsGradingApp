@@ -1,0 +1,47 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<% console.log("in showTAs.ejs");
+   console.log(courseInfo.name) %>
+    <h1><%= courseInfo.name %></h1>
+    studentPin: <%= courseInfo.coursePin %>
+    <br>
+
+
+
+
+<hr>
+<b>Teaching Assistants</b>
+  <form method="post" action="/removeTAs/<%=courseInfo._id%>">
+    <ul>
+    <% for(i = 0; i< tas.length; i++){  %>
+        <li>
+            <% if (user._id.equals(courseInfo.ownerId)) { %>
+                <input type="checkbox" name="ta" value="<%= tas[i]._id %>">
+            <% } %>
+            <b><%= tas[i].googlename %> </b>
+            <i><%= tas[i].googleemail %></i>
+
+        </li>
+    <% } %>
+    </ul>
+    <% if (user._id.equals(courseInfo.ownerId)) { %>
+        <input class="btn btn-primary" type="submit" value="remove selected TAs">
+    <% } %>
+  </form>
+<hr>
+    <% if (user._id.equals(courseInfo.ownerId)) { %>
+        <h2>Add a Teaching Assistant</h2>
+        <form method="post" action="/addTA/<%= courseInfo._id%>">
+            email: <input type="text" name="email">
+            <input class="btn btn-warning" type="submit" value="add specified TA">
+        </form>
+    <% } else { %>
+
+    <%} %>
+    <hr>
+    <a href="/" class="btn btn-sm btn-danger">
+        Back to Home
+    </a>
+
+
+<%- include('bootfooter') -%>

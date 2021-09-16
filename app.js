@@ -44,7 +44,8 @@ db.once('open', function() {
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 // here we set up authentication with passport
 const passport = require('passport')
-const configPassport = require('./config/passport')
+const configPassport = require('./config/passport');
+const Skill = require('./models/Skill');
 configPassport(passport)
 
 
@@ -253,6 +254,20 @@ app.get('/showCourse/:courseId',
 )
 
 
+app.get('/showSkills/:courseId',
+  async (req, res, next) => {
+    try {
+      res.locals.skills = await Skill.find({courseId:req.params.courseId})
+      res.locals.courseId = req.params.courseId
+      res.render('showSkills')
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+
 
 
 app.post('/joinCourse',
@@ -352,8 +367,17 @@ app.get('/showProblemSet/:psetId',
 )
 
 app.get('/addProblem/:psetId',
-      (req,res) => res.render("addProblem",{psetId:req.params.psetId})
-    )
+  async (req,res,next) => {
+    try {
+      const pset = await ProblemSet.findOne({_id:req.params.psetId})
+      res.locals.psetId = req.params.psetId
+      res.locals.skills = await Skill.find({courseId:pset.courseId})
+      res.render("addProblem")
+    }
+    catch(e){
+        next(e)
+    }
+  })
 
 
 app.post('/saveProblem/:psetId',
@@ -362,6 +386,13 @@ app.post('/saveProblem/:psetId',
         const psetId = req.params.psetId
         res.locals.psetId = psetId
         res.locals.problemSet = await ProblemSet.findOne({_id:psetId})
+        let skills = req.body.skills
+        console.log("skills="+JSON.stringify(skills))
+        console.log("typeof(skills="+typeof(skills))
+        if (typeof(skills)=='string'){
+          skills = [skills]
+        }
+        let skillObjs = await Skill.find({id:{$in:skills}})
         let newProblem = new Problem(
            {
             courseId: res.locals.problemSet.courseId,
@@ -370,6 +401,7 @@ app.post('/saveProblem/:psetId',
             problemText: req.body.problemText,
             points: req.body.points,
             rubric: req.body.rubric,
+            skills: skills,
             pendingReviews: [],
             createdAt: new Date()
            }
@@ -414,6 +446,7 @@ app.post('/updateProblem/:probId',
   }
 )
 
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
 app.get('/showProblem/:probId',
       async (req, res, next) => {
@@ -430,6 +463,10 @@ app.get('/showProblem/:probId',
           res.locals.averageReview=
               reviews.reduce((t,x)=>t+x.points,0)/reviews.length
           res.locals.answers = await Answer.find({problemId:probId,studentId:res.locals.user._id})
+
+          res.locals.skills =
+              await Skill.find({_id: {$in:res.locals.problem.skills}})
+
 
           res.render("showProblem")
         } catch (e) {
@@ -476,6 +513,10 @@ app.get('/editProblem/:probId',
     const id = req.params.probId
     res.locals.probId = id
     res.locals.problem = await Problem.findOne({_id:id})
+    res.locals.skills =
+        await Skill.find({_id: {$in:res.locals.problem.skills}})
+    res.locals.allSkills =
+            await Skill.find({courseId:res.locals.problem.courseId})
     res.locals.course =
         await Course.findOne({_id:res.locals.problem.courseId},'ownerId')
     res.render("editProblem")
@@ -999,7 +1040,93 @@ app.get('/resetNumReviews',
   }
 )
 
+app.get('/addSkill/:courseId',
+      (req,res) => {
+        res.locals.courseId = req.params.courseId
+        res.render('addSkill')
+      })
 
+
+app.post('/addSkill',
+  async ( req, res, next ) => {
+    try {
+      let newSkill = new Skill(
+       {
+        name: req.body.name,
+        description: req.body.description,
+        createdAt: new Date(),
+        courseId: req.body.courseId
+       }
+      )
+
+      await newSkill.save()
+      res.redirect('/showCourse/'+req.body.courseId);
+      }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+app.get('/showSkill/:skillId',
+      async (req, res, next) => {
+        try {
+          const skillId = req.params.skillId
+          res.locals.skillId = skillId
+          res.locals.skill =
+               await Skill.findOne({_id:skillId})
+          let courseId = res.locals.skill.courseId
+          res.locals.courseInfo =
+               await Course.findOne({_id:courseId},'name ownerId')
+          res.locals.isOwner = (res.locals.courseInfo.ownerId == req.user.id)
+          res.render("showSkill")
+        } catch (e) {
+              console.log("Error in showSkill: "+e)
+              next(e)
+        }
+      }
+)
+
+app.get('/editSkill/:skillId',
+  async ( req, res, next ) => {
+    try {
+      const id = req.params.skillId
+      res.locals.skillId = id
+      res.locals.skill = await Skill.findOne({_id:id})
+      res.render("editSkill")
+    } catch(e) {
+      next(e)
+    }
+  }
+)
+
+
+app.post('/editSkill/:skillId',
+  async ( req, res, next ) => {
+    try {
+      const skill =
+          await Skill.findOne({_id:req.params.skillId})
+
+      skill.name = req.body.name
+      skill.description = req.body.description
+      skill.createdAt = new Date()
+
+      await skill.save()
+
+      res.redirect("/showSkill/"+req.params.skillId)
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+// app.delete('/skills/:skillId',
+//   Skill.deleteOne({_id: req.params.skillID})
+// )
+
+// THIS NEEDS TO GO AFTER ALL OTHER ROUTES
+// OR ELSE THEY WILL BE REPLACED WITH 404 RESPONSES
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -1063,5 +1190,8 @@ function createGradeSheet(students, problems, answers, reviews){
 
   return {grades:gradeSheet,problems:problemList,answers:answerList}
 }
+
+
+
 
 module.exports = app;

@@ -18,6 +18,19 @@
         Points: <input type="text" name="points" value="<%= problem.points %>"><br>
         <textarea name="rubric" cols="100" rows="10"><%= problem.rubric %></textarea>
         <br>
+
+        <% let skillIds=skills.map((x)=>x.id); console.log(skillIds) %>
+
+        <% for(let i=0;i<allSkills.length;i++){%>
+        <input type="checkbox"
+               name="skill"
+               value="<%= allSkills[i]._id%>"
+               <% if (skillIds.includes(allSkills[i].id)) {%> checked <%}%>
+               >
+        <%= allSkills[i].name %><br>
+
+        <% } %>
+        <hr>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>
 

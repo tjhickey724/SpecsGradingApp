@@ -20,13 +20,21 @@
                      Edit
                 </a>
             </div>
+
         </div>
     <% } %>
+<hr>
+		<%= skills.length %> Skills: 
+		<ul>
+				<% for(let i=0;i<skills.length;i++){%>
+					<li><%= skills[i].name %> </li>
+				<% } %>
+		</ul>
 
-
+<hr>
     <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
     <hr>
-    
+
     <% if (answers.length > 0 || (answers.length==-1 && course.ownerId.equals(user._id))) { %>
         <% if (!course.ownerId.equals(user._id)) { %>
             <h2>Your Answer</h2>

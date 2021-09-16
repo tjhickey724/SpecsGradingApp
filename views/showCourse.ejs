@@ -3,7 +3,7 @@
     <h1><%= courseInfo.name %></h1>
     studentPin: <%= courseInfo.coursePin %>
     <br>
-    
+
 
 
 
@@ -34,6 +34,14 @@
     <% } else { %>
 
     <%} %>
+
+    <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Add a Skill
+    </a>
+
+    <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Show Skills
+    </a>
 
     <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show TAs

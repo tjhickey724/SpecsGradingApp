@@ -30,6 +30,16 @@
                             <option> <%= j %> </option>
                         <% } %>
                     </select><br>
+
+                    <% for(let i=0;i<skills.length;i++){%>
+                        <input type="checkbox"
+                               name="skill"
+                               value="<%= skills[i]._id%>"
+                               >
+                        <%= skills[i].name %><br>
+                    <% } %>
+
+
                       <div class="form-group">
                           <label for="review">Enter your review below:</label>
                           <textarea class="form-control rounded-0" id="review" name="review" rows="10"></textarea>

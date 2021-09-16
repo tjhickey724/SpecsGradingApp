@@ -1,6 +1,7 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
     <h1><%= problemSet.name %></h1>
+
     <ul>
     <% for(i = 0; i<= problems.length-1; i++){  %>
         <li>
@@ -13,8 +14,12 @@
     <hr>
     <% if (courseInfo.ownerId.equals(user._id)){ %>
         <a class="btn btn-small btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+        <a href="/editProblemSet/<%= psetId %>" class="btn btn-small btn-info">
+            Edit Problem Set</a>
     <% } %>
     <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-small btn-primary">Back to List of Problem Sets</a>
+
+
 
 
 <%- include('bootfooter') -%>

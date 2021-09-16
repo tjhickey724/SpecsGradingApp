@@ -31,21 +31,24 @@
         <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
             Show Summarized Student Info
         </a>
+
+        <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+            Add a Skill
+        </a>
+
+
+
+        <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+            Show TAs
+        </a>
     <% } else { %>
 
     <%} %>
-
-    <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Add a Skill
-    </a>
 
     <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show Skills
     </a>
 
-    <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show TAs
-    </a>
     <a href="/" class="btn btn-sm btn-danger">
         Back to Home
     </a>

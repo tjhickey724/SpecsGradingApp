@@ -11,6 +11,7 @@ var reviewSchema = Schema( {
   answerId: {type:ObjectId,index:true},
   review: String,
   points: Number,
+  skills:[ObjectId],
   upvoters: [Schema.Types.ObjectId],
   downvoters: [Schema.Types.ObjectId],
   createdAt: Date,

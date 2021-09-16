@@ -23,13 +23,7 @@
 
         </div>
     <% } %>
-<hr>
-		<%= skills.length %> Skills: 
-		<ul>
-				<% for(let i=0;i<skills.length;i++){%>
-					<li><%= skills[i].name %> </li>
-				<% } %>
-		</ul>
+
 
 <hr>
     <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
@@ -64,6 +58,14 @@
                     <input class="btn btn-lg btn-warning" type="submit">
             </form>
     <% } %>
+
+		<hr>
+				<%= skills.length %> Skills:
+				<ul>
+						<% for(let i=0;i<skills.length;i++){%>
+							<li><%= skills[i].name %> </li>
+						<% } %>
+				</ul>
 
 
 

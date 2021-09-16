@@ -355,8 +355,9 @@ app.post('/updateProblemSet/:psetId',
   async ( req, res, next ) => {
     try {
       const id = req.params.psetId
-      const pset = await ProblemSet.findOne({_id:id})
+      const pset = ProblemSet.findOne({_id:id})
       console.log('id='+id)
+      console.dir(pset.courseId)
       pset.name=req.body.name
       await pset.save()
 
@@ -702,9 +703,6 @@ async (req,res,next) => {
         await Review.find({problemId:problem._id,
                            reviewerId:req.user._id}).length
 
-    // get the skills for this problem
-    res.locals.skills =
-        await Skill.find({_id: {$in:res.locals.problem.skills}})
 
     res.render("reviewAnswer")
   }
@@ -740,7 +738,6 @@ app.post('/saveReview/:probId/:answerId',
         answerId:req.params.answerId,
         review:req.body.review,
         points:req.body.points,
-        skills:req.body.skill,
         upvoters: [],
         downvoters: [],
         createdAt: new Date()

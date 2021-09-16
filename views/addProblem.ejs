@@ -17,7 +17,7 @@
         <textarea name="rubric" cols="100" rows="10"></textarea>
         <br>
         Skills:
-          <select name="skills" required multiple size="5">
+          <select name="skills" multiple size="5">
             <% for(let i=0; i<skills.length; i++){ %>
             <option value="<%= skills[i].id %>"> <%= skills[i].name %> </option>
             <% } %>

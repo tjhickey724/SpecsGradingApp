@@ -243,8 +243,17 @@ app.get('/showCourse/:courseId',
           req.user.taFor &&
           req.user.taFor.includes(res.locals.courseInfo._id)
 
+      let answers = await Answer.find({studentId:req.user._id, courseId:id})
+      answers = answers.map((x) => x._id)
+      let taIds = (await User.find({taFor:id})).map((x)=> x._id)
 
-
+      let reviews =
+         await Review.find({answerId:{$in:answers},reviewerId:{$in:taIds}})
+      let skillLists = reviews.map((x)=>x.skills)
+      let skillIds= Array.from(new Set(skillLists.flat()))
+      res.locals.skills = await Skill.find({_id:{$in:skillIds}})
+      res.locals.allSkills = await Skill.find({courseId:id})
+      res.locals.skillIds = skillIds
       res.render('showCourse')
     }
     catch(e){
@@ -813,6 +822,7 @@ app.get('/showReviewsOfAnswer/:answerId',
       res.locals.reviews =
           await Review.find({answerId:id})
                       .sort({points:'asc',review:'asc'})
+
 
       res.render("showReviewsOfAnswer")
       }

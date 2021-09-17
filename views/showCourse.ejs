@@ -52,6 +52,37 @@
     <a href="/" class="btn btn-sm btn-danger">
         Back to Home
     </a>
+    <hr>
+    <h2>Skills Mastered</h2>
+    <ul>
+    <% for(i = 0; i< skills.length; i++){  %>
+        <li>
+
+            <a href="/showSkill/<%= skills[i]._id %>">
+                <%= skills[i].name %>
+            </a>
+                <i><small><%= skills[i].createdAt %></small></i>
+        </li>
+    <% } %>
+    </ul>
+    <%
+    skillIds = skills.map((x)=>x.id)
+    %>
+    <h2>Skill still be developed </h2>
+    <ul>
+    <% for(i = 0; i< allSkills.length; i++){
+
+         if (skillIds.includes(allSkills[i].id)) continue; %>
+        <li>
+
+            <a href="/showSkill/<%= allSkills[i]._id %>">
+                <%= allSkills[i].name %>
+            </a>
+                <i><small><%= allSkills[i].createdAt %></small></i>
+        </li>
+    <% } %>
+    </ul>
+
 
 
 <%- include('bootfooter') -%>

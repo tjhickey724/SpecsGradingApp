@@ -9,6 +9,7 @@
         You own this course<br>
         <form method="post" action="/saveProblemSet/<%= courseId %>">
             Problem Set Name: <input type="text" name="name"><br>
+            Visible:<input type='checkbox' name="visible" value="visible"><br>
             <input class="btn btn-primary" type="submit" value="Save">
         </form>
     <% } else { %>

@@ -12,8 +12,14 @@
 <hr>
 <b>Problem Sets</b>
     <ul>
-    <% for(i = 0; i<= problemSets.length-1; i++){  %>
-        <li>
+    <% for(i = 0; i<= problemSets.length-1; i++){ %>
+
+        <%
+         if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
+         else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
+             %> <li> HIDDEN
+         <% } else { %> <li>
+         <%}%>
 
             <a href="/showProblemSet/<%= problemSets[i]._id %>">
                 <%= problemSets[i].name %>
@@ -68,7 +74,7 @@
     <%
     skillIds = skills.map((x)=>x.id)
     %>
-    <h2>Skill still be developed </h2>
+    <h2>Skills being developed </h2>
     <ul>
     <% for(i = 0; i< allSkills.length; i++){
 

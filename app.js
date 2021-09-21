@@ -339,7 +339,8 @@ app.post('/saveProblemSet/:courseId',
          {
           name: req.body.name,
           courseId:id,
-          createdAt: new Date()
+          createdAt: new Date(),
+          visible: req.body.visible=='visible',
          }
       )
 
@@ -367,6 +368,8 @@ app.post('/updateProblemSet/:psetId',
       const pset = await ProblemSet.findOne({_id:id})
       console.log('id='+id)
       pset.name=req.body.name
+      pset.visible = (req.body.visible=='visible')
+      pset.reviewable = (req.body.reviewable=='yes')
       await pset.save()
 
       res.redirect("/showProblemSet/"+id)
@@ -476,6 +479,7 @@ app.post('/updateProblem/:probId',
 
       problem.description= req.body.description
       problem.problemText= req.body.problemText
+      problem.visible = (req.body.visible=='visible')
       problem.points= req.body.points
       problem.rubric= req.body.rubric
       problem.createdAt =  new Date()

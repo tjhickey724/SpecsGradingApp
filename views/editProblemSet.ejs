@@ -7,6 +7,11 @@
             Problem Set Name:
             <input type="text" name="name" value="<%= problemSet.name %>">
             <br>
+            visible: <input type="checkbox" name="visible"
+                   <% if (problemSet.visible) {%> checked <% } %>
+                   value="visible"
+               >
+            <br>
             <input class="btn btn-primary" type="submit" value="Save">
         </form>
     <% } else { %>

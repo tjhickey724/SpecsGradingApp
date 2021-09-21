@@ -2,6 +2,10 @@
 <%- include('menubar') -%>
 
     <h3><%= problem.description %></h3>
+		<% if (course.ownerId ==user.id ) {%>
+		Visible: <%= problem.visible %><br>
+		Reviewable: <%= problem.reviewable %> <br>
+		<% } %>
     <% if (true || course.ownerId.equals(user._id)) { %>
         <div class="row">
             <div class="col-md">

@@ -2,8 +2,10 @@
 <%- include('menubar') -%>
     <h1><%= problemSet.name %></h1>
 
+
     <ul>
-    <% for(i = 0; i<= problems.length-1; i++){  %>
+    <% for(i = 0; i<= problems.length-1; i++){
+        if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) { continue } else %>
         <li>
             <a href="/showProblem/<%= problems[i]._id %>">
                 <%= problems[i].description %>

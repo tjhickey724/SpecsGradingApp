@@ -8,15 +8,6 @@
     </div>
 
     <form method="post" action="/updateProblem/<%= problem._id %>">
-        <br>
-        Visible: <input type="checkbox" name='visible'
-                        <% if (problem.visible) {%> checked <% }%>
-                        value='visible'> <br>
-
-        Reviewable: <input type="checkbox" name='reviewable'
-                        <% if (problem.reviewable) {%> checked <% }%>
-                        value='reviewable'> <br>
-        <hr>
         Problem Title:<br>
         <input type="text" name="description" value="<%= problem.description %>">
         <br>
@@ -26,21 +17,7 @@
         Rubric:<br>
         Points: <input type="text" name="points" value="<%= problem.points %>"><br>
         <textarea name="rubric" cols="100" rows="10"><%= problem.rubric %></textarea>
-
-        <h2>Skills</h2>
-
-        <% let skillIds=skills.map((x)=>x.id); console.log(skillIds) %>
-
-        <% for(let i=0;i<allSkills.length;i++){%>
-        <input type="checkbox"
-               name="skill"
-               value="<%= allSkills[i]._id%>"
-               <% if (skillIds.includes(allSkills[i].id)) {%> checked <%}%>
-               >
-        <%= allSkills[i].name %><br>
-
-        <% } %>
-        <hr>
+        <br>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>
 

@@ -2,11 +2,7 @@
 <%- include('menubar') -%>
 
     <h3><%= problem.description %></h3>
-		<% if (course.ownerId ==user.id ) {%>
-		Visible: <%= problem.visible %><br>
-		Reviewable: <%= problem.reviewable %> <br>
-		<% } %>
-    <% if (course.ownerId.equals(user._id)) { %>
+    <% if (true || course.ownerId.equals(user._id)) { %>
         <div class="row">
             <div class="col-md">
                 Answers: <%= answerCount %>
@@ -24,69 +20,52 @@
                      Edit
                 </a>
             </div>
-
         </div>
     <% } %>
 
 
-<hr>
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%=
+			problem.problemText %><% } else {%>
+				This problem is not active at the moment.<% }
+%>	</div>
     <hr>
-    problem.reviewable: <%= problem.reviewable %><br>
 
-    <% if (answers.length > 0 && problem.reviewable) {
-			 // if the user has answered the question, or the user is the instructor
-		%>
+    <% if (answers.length > 0 ||(answers.length==0 && course.ownerId.equals(user._id))) { %>
         <% if (!course.ownerId.equals(user._id)) { %>
             <h2>Your Answer</h2>
             <small>Submission time and date:<%= problem.createdAt %> </small>
             <pre class="bg-success      "><%= answers[0].answer %></pre>
-            <br>
         <% } %>
         <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
         <% if (!course.ownerId.equals(user._id)) {%>
             <a href="/showReviewsOfAnswer/<%= answers[0]._id %>" class="btn btn-small btn-info">Reviews of your answer</a>
         <% } %>
         <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your Reviews of other's answers</a>
-        <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+				<a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
         <% if (true || course.ownerId.equals(user._id)) { %>
-            <br>
             <a href="/showAllAnswers/<%= problem._id %>" class="btn btn-small btn-danger">Show all answers</a>
-        <%} %>
+				<%} %>
+				<% if (course.ownerId.equals(user._id)) {
+					    if (problem.allowAnswers) { %>
+						      <a href="/stopProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Stop Problem</a>
+						<% } else { %>
+								  <a href="/startProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Start Problem</a>
+					  <% } %>
+				<%} %>
 
-    <% } else {
-			let theAnswer = (answers.length>0?answers[0]:{})
-
-			%>
+    <% } else if (!problem.allowAnswers) { %>
+			<h4>This question has been closed. </h4>
+		<% } else { %>
             <form method="post" action="/saveAnswer/<%= problem._id %>">
                     <div class="form-group">
                         <label for="answer">Enter your answer below:</label>
                         <textarea class="form-control rounded-0" id="answer" name="answer" rows="10"
-				  style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= theAnswer.answer %>  </textarea>
+				  style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"></textarea>
                     </div>
                     <br>
-							 <% if (problem.reviewable) {%>
-                    <input class="btn btn-lg btn-danger"
-													type="submit" value="submit">
-							 <% } else {%>
-								 		<input class="btn btn-lg btn-warning"
-													type="submit" value="save">
-							 <% } %>
-							 <% if (theAnswer.createdAt) {%>
-								 <br> Last save at <%= theAnswer.createdAt %>
-								 <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return to Problem Set without saving</a>
-								 <% } %>
+                    <input class="btn btn-lg btn-warning" type="submit">
             </form>
     <% } %>
-
-
-		<hr>
-				<%= skills.length %> Skills:
-				<ul>
-						<% for(let i=0;i<skills.length;i++){%>
-							<li><%= skills[i].name %> </li>
-						<% } %>
-				</ul>
 
 
 

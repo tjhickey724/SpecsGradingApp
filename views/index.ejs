@@ -4,19 +4,24 @@
 <% } %>
 
     <div class="jumbotron">
-        <h1>Specs Grading App</h1>
+        <h1>Peer Review App</h1>
 
         <h2>Promoting Engaged Learning</h2>
     </div>
     <% if (!loggedIn){ %>
-        <h2>You must login to use the Specs Grading App:
+        <h2>You must login through Brandeis to use the Peer Review App:
          <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
          </h2>
     <% } else {%>
         <form method="post" action="/joinCourse">
         Enroll in a course:
         <input type="input" name="coursePin" placeholder="7 digit pin"s>
+        or
+        <a href="/createCourse">Create a new course</a>
+        or
+        <a href="/stats">View usage statistics</a>
         </form>
+
         <hr>
         <div class="row">
             <div class="col bg-warning">

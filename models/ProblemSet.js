@@ -7,7 +7,6 @@ var problemSetSchema = Schema( {
   courseId: {type:ObjectId,index:true},
   name: String,
   createdAt: Date,
-  visible: Boolean,
 } );
 
 module.exports = mongoose.model( 'ProblemSet', problemSetSchema );

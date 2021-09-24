@@ -1,0 +1,24 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+    <div class="jumbotron">
+        <h1>Statistics</h1>
+    </div>
+    <ul>
+
+        <li> <%= userCount %> users registered </li>
+        <li> <%= problemCount %> problems created </li>
+        <li> <%= answerCount %> answers submitted </li>
+        <li> <%= reviewCount %> answers reviewed </li>
+        <li> <%= courseCount %> courses created
+            <%
+                if (googleemail=="tjhickey@brandeis.edu"){ %>
+                <ol>
+                    <% for(let i=0; i<courses.length; i++){ %>
+                        <li> <%= courses[i].name %>  </li>
+                    <% } %>
+
+                </ol>
+            <% } %>
+        </li>
+    </ul>
+<%- include('bootfooter') -%>

@@ -12,9 +12,7 @@ var problemSchema = Schema( {
   rubric: String,
   pendingReviews: mongoose.Schema.Types.Mixed,
   createdAt: Date,
-  skills:[ObjectId],
-  visible: {type:Boolean, default: true}, // does it appear on students screens?
-  reviewable: {type:Boolean,default:true}, // can students review others after they submit?
+  allowAnswers: Boolean,
 } );
 /*
   pendingReviews is a list of JSON objects of the form:

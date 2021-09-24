@@ -7,6 +7,7 @@ var courseMemberSchema = Schema( {
   studentId: {type:ObjectId,index:true},
   courseId: {type:ObjectId,index:true},
   createdAt: Date,
+  status: String,
 } );
 
 module.exports = mongoose.model( 'CourseMember', courseMemberSchema );

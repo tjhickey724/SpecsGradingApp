@@ -48,8 +48,8 @@
                            r =>{
                                let zz = (r.problemId && r.problemId.equals(problems[j]._id))
                                    && (r.studentId && r.studentId.equals(studentsInfo[i]._id))
-                                   console.log(`${zz} ${i} ${j}  ${problems[j]._id} ${r.problemId} ${studentsInfo[i]._id} ${r.studentId}`)
-                                   console.log(JSON.stringify(r,null,5))
+                                   //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
+
                                return(zz)
                            })
                            answerId = null

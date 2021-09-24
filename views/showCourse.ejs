@@ -12,22 +12,31 @@
 <hr>
 <b>Problem Sets</b>
     <ul>
-    <% for(i = 0; i<= problemSets.length-1; i++){ %>
+    <% for(i = 0; i<= problemSets.length-1; i++){  %>
+        <li>
 
-        <%
-         if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
-         else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
-             %> <li> HIDDEN
-         <% } else { %> <li>
-         <%}%>
+            <a href="/showProblemSet/<%= problemSets[i]._id %>"
+                <% if ( answerMap.get(problemSets[i]._id.toString()) >=
+                       problemMap.get(problemSets[i]._id.toString())
+                ) {%>
+                style="color:green"
+                <% } else {%>
+                style="color:red"
+                <% } %>
+            >
 
-            <a href="/showProblemSet/<%= problemSets[i]._id %>">
-                <%= problemSets[i].name %>
+                <%= problemSets[i].name.trim() || "problem set" %>
             </a>
-                <i><small><%= problemSets[i].createdAt %></small></i>
+
+                (<%= answerMap.get(problemSets[i]._id.toString()) || 0
+                  %>/<%=
+                     problemMap.get(problemSets[i]._id.toString()) || 0 %>)
+
+
         </li>
     <% } %>
     </ul>
+
 <hr>
     <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
         <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
@@ -37,58 +46,21 @@
         <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
             Show Summarized Student Info
         </a>
-
-        <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-            Add a Skill
-        </a>
-
-
-
-        <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-            Show TAs
-        </a>
     <% } else { %>
 
     <%} %>
+    <br>
+    Number of reviews I've made: <%= myReviews.length %>
+    with <%= thumbsUp %> thumbs up and
+    <%= thumbsDown %> thumb downs <br>
+    <br><hr><br>
 
-    <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show Skills
+    <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Show TAs
     </a>
-
     <a href="/" class="btn btn-sm btn-danger">
         Back to Home
     </a>
-    <hr>
-    <h2>Skills Mastered</h2>
-    <ul>
-    <% for(i = 0; i< skills.length; i++){  %>
-        <li>
-
-            <a href="/showSkill/<%= skills[i]._id %>">
-                <%= skills[i].name %>
-            </a>
-                <i><small><%= skills[i].createdAt %></small></i>
-        </li>
-    <% } %>
-    </ul>
-    <%
-    skillIds = skills.map((x)=>x.id)
-    %>
-    <h2>Skills being developed </h2>
-    <ul>
-    <% for(i = 0; i< allSkills.length; i++){
-
-         if (skillIds.includes(allSkills[i].id)) continue; %>
-        <li>
-
-            <a href="/showSkill/<%= allSkills[i]._id %>">
-                <%= allSkills[i].name %>
-            </a>
-                <i><small><%= allSkills[i].createdAt %></small></i>
-        </li>
-    <% } %>
-    </ul>
-
 
 
 <%- include('bootfooter') -%>

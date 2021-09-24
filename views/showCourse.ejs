@@ -9,11 +9,20 @@
 
 
 
+
+
+
 <hr>
 <b>Problem Sets</b>
     <ul>
-    <% for(i = 0; i<= problemSets.length-1; i++){  %>
-        <li>
+        <% for(i = 0; i<= problemSets.length-1; i++){ %>
+            <%
+             if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
+             else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
+                 %> <li> HIDDEN
+             <% } else { %> <li>
+             <%}%>
+
 
             <a href="/showProblemSet/<%= problemSets[i]._id %>"
                 <% if ( answerMap.get(problemSets[i]._id.toString()) >=

@@ -551,6 +551,7 @@ app.post('/updateProblemSet/:psetId',
       const pset = await ProblemSet.findOne({_id:id})
       console.log('id='+id)
       pset.name=req.body.name
+      pset.visible = (req.body.visible=='visible')
       await pset.save()
 
       res.redirect("/showProblemSet/"+id)
@@ -561,6 +562,7 @@ app.post('/updateProblemSet/:psetId',
     }
   }
 )
+
 
 app.get('/showProblemSet/:psetId',
   async ( req, res, next ) => {
@@ -701,6 +703,11 @@ app.post('/updateProblem/:probId',
       problem.points= req.body.points
       problem.rubric= req.body.rubric
       problem.createdAt =  new Date()
+
+      problem.visible = (req.body.visible=='visible')
+      problem.reviewable = (req.body.reviewable=='reviewable')
+
+      console.log('in updateProblem',problem.visible,req.body.visible, problem.reviewable,req.body.reviewable)
 
       let skills = req.body.skill
       console.log("skills="+JSON.stringify(skills))
@@ -848,12 +855,8 @@ app.post('/saveAnswer/:probId',
        problemId:problem._id}
      )
 
-    newAnswer.save()
-      .then( (a) => {
-          res.locals.answered = true
-          res.locals.answer = a
-      }
-    )
+    await newAnswer.save()
+
 
     res.redirect("/showProblem/"+id)
   }

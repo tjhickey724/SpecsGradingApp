@@ -1,29 +1,34 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-    <h1><%= problemSet.name.trim() || "Problem Set" %></h1>
-    <ul>
-    <% for(i = 0; i<= problems.length-1; i++){  %>
-        <li>
-            <a href="/showProblem/<%= problems[i]._id %>"
-                <% if (pids.includes(problems[i]._id.toString())) {%>
-                    style="color:green"
-                 <% } else { %>
-                    style="color:red"
-                 <% }%>
-                 >
-                <%= problems[i].description || "no name" %>
+<h1><%= problemSet.name.trim() || "Problem Set" %></h1>
 
-            </a>
-        </li>
-    <% } %>
-    </ul>
+
+<ul>
+<% for(i = 0; i<= problems.length-1; i++){
+    if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) {
+        %>
+      <li>Problem Hidden </li>
+    <% } else {%>
+    <li>
+
+        <a href="/showProblem/<%= problems[i]._id %>">
+            <%= problems[i].description || "no name"%>
+        </a>
+    </li>
+<% }} %>
+</ul>
+
+
     <hr>
     <% if (courseInfo.ownerId.equals(user._id)){ %>
         <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+
+        <a href="/editProblemSet/<%= psetId %>" class="btn btn-small btn-info">Edit Problem Set</a>
     <% } %>
     <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
     <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
     <% } %>
+
 
 <%- include('bootfooter') -%>

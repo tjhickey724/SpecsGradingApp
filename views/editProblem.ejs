@@ -29,6 +29,14 @@
         <% } %>
         <hr>
         <br>
+       Visible: <input type="checkbox" name='visible'
+                       <% if (problem.visible) {%> checked <% }%>
+                       value='visible'> <br>
+       Reviewable: <input type="checkbox" name='reviewable'
+                       <% if (problem.reviewable) {%> checked <% }%>
+                       value='reviewable'> <br>
+       <hr>
+        <br>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>
 

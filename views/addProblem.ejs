@@ -5,6 +5,12 @@
     </div>
 
     <form method="post" action="/saveProblem/<%= psetId %>">
+        <br>
+        Visible: <input type="checkbox" name='visible'
+                        value='visible'> <br>
+        Reviewable: <input type="checkbox" name='reviewable'
+                        value='reviewable'>
+        <hr>
         Problem Title:<br>
         <input type="text" name="description">
         <br>
@@ -21,6 +27,7 @@
            <option value="<%= skills[i].id %>"> <%= skills[i].name %> </option>
            <% } %>
           </select>
+<hr>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>
 

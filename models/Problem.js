@@ -13,6 +13,9 @@ var problemSchema = Schema( {
   pendingReviews: mongoose.Schema.Types.Mixed,
   createdAt: Date,
   allowAnswers: Boolean,
+  skills:[ObjectId],
+  visible: {type:Boolean, default: true},
+  reviewable: {type:Boolean,default:true}, 
 } );
 /*
   pendingReviews is a list of JSON objects of the form:

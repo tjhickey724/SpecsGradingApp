@@ -43,6 +43,10 @@
             Add Problem Set
         </a>
 
+        <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+           Add a Skill
+       </a>
+
         <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
             Show Summarized Student Info
         </a>
@@ -50,6 +54,8 @@
 
     <%} %>
     <br>
+
+
     Number of reviews I've made: <%= myReviews.length %>
     with <%= thumbsUp %> thumbs up and
     <%= thumbsDown %> thumb downs <br>
@@ -58,6 +64,40 @@
     <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show TAs
     </a>
+    <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+       Show Skills
+   </a>
+   <br>
+   <hr>
+    <h2>Skills Mastered</h2>
+    <ul>
+    <% for(i = 0; i< skills.length; i++){  %>
+        <li>
+            <a href="/showSkill/<%= skills[i]._id %>">
+                <%= skills[i].name %>
+            </a>
+                <i><small><%= skills[i].createdAt %></small></i>
+        </li>
+    <% } %>
+    </ul>
+    <%
+    skillIds = skills.map((x)=>x.id)
+    %>
+    <h2>Skills being developed </h2>
+    <ul>
+    <% for(i = 0; i< allSkills.length; i++){
+         if (skillIds.includes(allSkills[i].id)) continue; %>
+        <li>
+            <a href="/showSkill/<%= allSkills[i]._id %>">
+                <%= allSkills[i].name %>
+            </a>
+                <i><small><%= allSkills[i].createdAt %></small></i>
+        </li>
+    <% } %>
+    </ul>
+    <hr>
+
+
     <a href="/" class="btn btn-sm btn-danger">
         Back to Home
     </a>

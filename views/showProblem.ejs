@@ -67,6 +67,14 @@
             </form>
     <% } %>
 
+		<hr>
+				<%= skills.length %> Skills:
+				<ul>
+						<% for(let i=0;i<skills.length;i++){%>
+							<li><%= skills[i].name %> </li>
+						<% } %>
+				</ul>
+
 
 
 <%- include('bootfooter') -%>

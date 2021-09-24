@@ -17,6 +17,7 @@ const Answer = require('./models/Answer')
 const Review = require('./models/Review')
 const User = require('./models/User')
 const CourseMember = require('./models/CourseMember')
+const Skill = require('./models/Skill');
 
 //const mongoose = require( 'mongoose' );
 //const ObjectId = mongoose.Schema.Types.ObjectId;
@@ -36,7 +37,7 @@ const MongoStore = require('connect-mongo')(session)
 
 const mongoose = require( 'mongoose' );
 
-mongoose.connect( 'mongodb://localhost/pra_V2_0', { useNewUrlParser: true } );
+mongoose.connect( 'mongodb://localhost/sga_v_1_0', { useNewUrlParser: true } );
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -330,7 +331,17 @@ app.get('/showCourse/:courseId',
           req.user.taFor &&
           req.user.taFor.includes(res.locals.courseInfo._id)
 
+      let answers = await Answer.find({studentId:req.user._id, courseId:id})
+      answers = answers.map((x) => x._id)
+      let taIds = (await User.find({taFor:id})).map((x)=> x._id)
 
+      let reviews =
+         await Review.find({answerId:{$in:answers},reviewerId:{$in:taIds}})
+      let skillLists = reviews.map((x)=>x.skills)
+      let skillIds= Array.from(new Set(skillLists.flat()))
+      res.locals.skills = await Skill.find({_id:{$in:skillIds}})
+      res.locals.allSkills = await Skill.find({courseId:id})
+      res.locals.skillIds = skillIds
 
       res.render('showCourse')
     }
@@ -379,12 +390,106 @@ app.post('/joinCourse',
   }
 )
 
+app.get('/showSkills/:courseId',
+  async (req, res, next) => {
+    try {
+      res.locals.skills = await Skill.find({courseId:req.params.courseId})
+      res.locals.courseId = req.params.courseId
+      res.render('showSkills')
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+app.get('/addSkill/:courseId',
+      (req,res) => {
+        res.locals.courseId = req.params.courseId
+        res.render('addSkill')
+      })
+
+
+app.post('/addSkill',
+  async ( req, res, next ) => {
+    try {
+      let newSkill = new Skill(
+       {
+        name: req.body.name,
+        description: req.body.description,
+        createdAt: new Date(),
+        courseId: req.body.courseId
+       }
+      )
+
+      await newSkill.save()
+      res.redirect('/showCourse/'+req.body.courseId);
+      }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+app.get('/showSkill/:skillId',
+      async (req, res, next) => {
+        try {
+          const skillId = req.params.skillId
+          res.locals.skillId = skillId
+          res.locals.skill =
+               await Skill.findOne({_id:skillId})
+          let courseId = res.locals.skill.courseId
+          res.locals.courseInfo =
+               await Course.findOne({_id:courseId},'name ownerId')
+          res.locals.isOwner = (res.locals.courseInfo.ownerId == req.user.id)
+          res.render("showSkill")
+        } catch (e) {
+              console.log("Error in showSkill: "+e)
+              next(e)
+        }
+      }
+)
+
+app.get('/editSkill/:skillId',
+  async ( req, res, next ) => {
+    try {
+      const id = req.params.skillId
+      res.locals.skillId = id
+      res.locals.skill = await Skill.findOne({_id:id})
+      res.render("editSkill")
+    } catch(e) {
+      next(e)
+    }
+  }
+)
+
+
+app.post('/editSkill/:skillId',
+  async ( req, res, next ) => {
+    try {
+      const skill =
+          await Skill.findOne({_id:req.params.skillId})
+
+      skill.name = req.body.name
+      skill.description = req.body.description
+      skill.createdAt = new Date()
+
+      await skill.save()
+
+      res.redirect("/showSkill/"+req.params.skillId)
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
 
 
 
 app.get('/addProblemSet/:courseId',
   async ( req, res, next ) => {
       const id = req.params.courseId
+
       const courseInfo =
           await Course.findOne({_id:id},'name ownerId')
       res.render("addProblemSet",
@@ -416,6 +521,39 @@ app.post('/saveProblemSet/:courseId',
         await ProblemSet.find({courseId:res.locals.courseInfo._id})
 
       res.redirect("/showCourse/"+res.locals.courseInfo._id)
+
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+app.get('/editProblemSet/:psetId',
+  async ( req, res, next ) => {
+    const psetId = req.params.psetId
+    res.locals.psetId = psetId
+    res.locals.problemSet =
+        await ProblemSet.findOne({_id:psetId})
+    res.locals.problems =
+        await Problem.find({psetId:psetId})
+    res.locals.courseInfo =
+        await Course.findOne({_id:res.locals.problemSet.courseId},
+                              'ownerId')
+    res.render('editProblemSet')
+  }
+)
+
+app.post('/updateProblemSet/:psetId',
+  async ( req, res, next ) => {
+    try {
+      const id = req.params.psetId
+      const pset = await ProblemSet.findOne({_id:id})
+      console.log('id='+id)
+      pset.name=req.body.name
+      await pset.save()
+
+      res.redirect("/showProblemSet/"+id)
 
     }
     catch(e){
@@ -488,9 +626,19 @@ app.get('/gradeProblemSet/:psetId',
   }
 )
 
+
 app.get('/addProblem/:psetId',
-      (req,res) => res.render("addProblem",{psetId:req.params.psetId})
-    )
+  async (req,res,next) => {
+    try {
+      const pset = await ProblemSet.findOne({_id:req.params.psetId})
+      res.locals.psetId = req.params.psetId
+      res.locals.skills = await Skill.find({courseId:pset.courseId})
+      res.render("addProblem")
+    }
+    catch(e){
+        next(e)
+    }
+  })
 
 
 app.post('/saveProblem/:psetId',
@@ -499,6 +647,16 @@ app.post('/saveProblem/:psetId',
         const psetId = req.params.psetId
         res.locals.psetId = psetId
         res.locals.problemSet = await ProblemSet.findOne({_id:psetId})
+
+        let skills = req.body.skills
+        console.log("skills="+JSON.stringify(skills))
+        console.log("typeof(skills="+typeof(skills))
+        if (typeof(skills)=='undefined'){
+          skills = []
+        } else if (typeof(skills)=='string'){
+          skills = [skills]
+        }
+
         let newProblem = new Problem(
            {
             courseId: res.locals.problemSet.courseId,
@@ -507,6 +665,7 @@ app.post('/saveProblem/:psetId',
             problemText: req.body.problemText,
             points: req.body.points,
             rubric: req.body.rubric,
+            skills: skills,
             pendingReviews: [],
             allowAnswers:true,
             createdAt: new Date()
@@ -543,6 +702,17 @@ app.post('/updateProblem/:probId',
       problem.rubric= req.body.rubric
       problem.createdAt =  new Date()
 
+      let skills = req.body.skill
+      console.log("skills="+JSON.stringify(skills))
+      console.log("typeof(skills="+typeof(skills))
+      if (typeof(skills)=='undefined'){
+        skills = []
+      }else if (typeof(skills)=='string'){
+        skills = [skills]
+      }
+      problem.skills = skills
+
+
       await problem.save()
 
       res.redirect("/showProblem/"+req.params.probId)
@@ -569,6 +739,9 @@ app.get('/showProblem/:probId',
           res.locals.averageReview=
               reviews.reduce((t,x)=>t+x.points,0)/reviews.length
           res.locals.answers = await Answer.find({problemId:probId,studentId:res.locals.user._id})
+
+          res.locals.skills =
+                       await Skill.find({_id: {$in:res.locals.problem.skills}})
 
           res.render("showProblem")
         } catch (e) {
@@ -642,6 +815,10 @@ app.get('/editProblem/:probId',
     res.locals.problem = await Problem.findOne({_id:id})
     res.locals.course =
         await Course.findOne({_id:res.locals.problem.courseId},'ownerId')
+    res.locals.skills =
+            await Skill.find({_id: {$in:res.locals.problem.skills}})
+    res.locals.allSkills =
+            await Skill.find({courseId:res.locals.problem.courseId})
     res.render("editProblem")
   }
 )
@@ -665,6 +842,11 @@ app.post('/saveAnswer/:probId',
           createdAt: new Date()
          }
         )
+
+    await Answer.deleteMany(
+      {studentId:req.user._id,
+       problemId:problem._id}
+     )
 
     newAnswer.save()
       .then( (a) => {
@@ -831,6 +1013,10 @@ async (req,res,next) => {
 
 
     //res.render("reviewAnswer")
+
+    // get the skills for this problem
+
+
     if (answer) {
       res.redirect('/showReviewsOfAnswer/'+answer._id)
     } else {
@@ -958,6 +1144,15 @@ async ( req, res, next ) => {
     const answer =
         await Answer.findOne({_id:req.params.answerId})
 
+    let skills = req.body.skill
+        console.log("skills="+JSON.stringify(skills))
+        console.log("typeof(skills="+typeof(skills))
+        if (typeof(skills)=='undefined'){
+          skills = []
+        } else if (typeof(skills)=='string'){
+          skills = [skills]
+        }
+
     const newReview = new Review(
      {
       reviewerId:req.user._id,
@@ -968,6 +1163,7 @@ async ( req, res, next ) => {
       studentId:answer.studentId,
       review:req.body.review,
       points:req.body.points,
+      skills:skills,
       upvoters: [],
       downvoters: [],
       createdAt: new Date()
@@ -1099,6 +1295,10 @@ app.get('/showReviewsOfAnswer/:answerId',
                             .sort({points:'asc',review:'asc'})
       const taList = await User.find({taFor:res.locals.problem.courseId})
       res.locals.taList = taList.map(x => x._id)
+
+      res.locals.skills =
+          await Skill.find({_id: {$in:res.locals.problem.skills}})
+
       res.render("showReviewsOfAnswer")
       }
     catch(e){

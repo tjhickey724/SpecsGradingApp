@@ -2,8 +2,14 @@
 <%- include('menubar') -%>
 
 <script type="text/javascript" src="/js/clickThumb.js"></script>
-
-
+    <hr>
+    <h3 class="bg-danger">
+    <% let userIsTA = false && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
+       if (userIsTA) {
+           %>
+          <%= student.googlename %> <%= student.googleemail %>
+    <% } %>
+    </h3>
     <h1>Problem</h1>
     <h3><%= problem.description %></h3>
     <b>The Question</b>
@@ -18,8 +24,10 @@
 
 
     <h2>All Reviews of this Answer</h2>
+    <form method="post" action="/removeReviews">
     <ul>
-    <% for(i = 0; i<= reviews.length-1; i++){
+    <% let youReviewed = false
+       for(i = 0; i<= reviews.length-1; i++){
         console.log("in reviews i= "+i)
         console.log(reviews[i].upvoters)
         console.log(user._id)
@@ -29,9 +37,17 @@
         let numLikesD = reviews[i].downvoters.length
         let userLikesD = reviews[i].downvoters.includes(user._id)
         let fa_prefixD = userLikesD?"fas":"far"
-
+        let yourReview = reviews[i].reviewerId.equals(user._id)
+        youReviewed = youReviewed || yourReview
+        let taReviewer = taList.filter(x=> (x.equals(reviews[i].reviewerId)))
+        let isTAreview = taReviewer.length==1
         %>
-        <li>
+        <li><% if (isTAreview) {%>
+            <b>REVIEW by TA</b>
+            <% } %>
+            <% if (userIsTA){%>
+            <input type="checkbox" name='deletes' value="<%= reviews[i]._id%>">
+            <% } %>
             <i  class="<%= fa_prefixU %> fa-thumbs-up"
                    id='<%= "reviewU"+i %>'
                    onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','U')"></i>
@@ -47,17 +63,60 @@
                </span>
             .... grade:
             <%= reviews[i].points %>/<%= problem.points %>pts
-            <% if (reviews[i].reviewerId.equals(user._id)){%>
+            <% if (yourReview){%>
                 <b>Your Review!</b>
+
+
             <% } %>
             </i>
             <br>
-            <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"
-            ><%= reviews[i].review %></div>
+            <% if (yourReview){%>
+                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+            <% } else if (isTAreview) {%>
+                <b>TA Review</b>
+                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+            <% } else {%>
+                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+            <% } %>
+            <%= reviews[i].review %></div>
             <br>
         </li>
     <% } %>
     </ul>
+    <hr>
+    <% if (userIsTA){%>
+    <input type="submit" value="Delete checked reviews">
+    <% } %>
+    </form>
+    <% if (!youReviewed) { %>
+        <h1> You didn't review this one </h1>
+        <div class="row">
+            <div class="col-md-6">
+
+                <form method="post" action="/saveReview2/<%= problem._id %>/<%= answer._id %>">
+                    Points:
+                    <select name="points">
+                        <% for(let j = 0;j<=problem.points; j++) { %>
+                            <option> <%= j %> </option>
+                        <% } %>
+                    </select><br>
+                      <div class="form-group">
+                          <label for="review">Enter your review below:</label>
+                          <textarea class="form-control rounded-0" id="review" name="review" rows="10"></textarea>
+                      </div>
+                      <br>
+                      <input class="btn btn-lg btn-warning" type="submit">
+                </form>
+            </div>
+            <div class="col-md-6">
+                <b>Rubric</b>
+                <hr>
+                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.rubric %>
+                </div>
+
+            </div>
+        <div>
+    <% } %>
     <hr>
     <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
     <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>

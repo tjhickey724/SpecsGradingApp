@@ -6,7 +6,7 @@
 		Visible: <%= problem.visible %><br>
 		Reviewable: <%= problem.reviewable %> <br>
 		<% } %>
-    <% if (true || course.ownerId.equals(user._id)) { %>
+    <% if (course.ownerId.equals(user._id)) { %>
         <div class="row">
             <div class="col-md">
                 Answers: <%= answerCount %>
@@ -32,8 +32,11 @@
 <hr>
     <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
     <hr>
+    problem.reviewable: <%= problem.reviewable %><br>
 
-    <% if (answers.length > 0 || (answers.length==-1 && course.ownerId.equals(user._id))) { %>
+    <% if (answers.length > 0 && problem.reviewable) {
+			 // if the user has answered the question, or the user is the instructor
+		%>
         <% if (!course.ownerId.equals(user._id)) { %>
             <h2>Your Answer</h2>
             <small>Submission time and date:<%= problem.createdAt %> </small>
@@ -51,17 +54,31 @@
             <a href="/showAllAnswers/<%= problem._id %>" class="btn btn-small btn-danger">Show all answers</a>
         <%} %>
 
-    <% } else { %>
+    <% } else {
+			let theAnswer = (answers.length>0?answers[0]:{})
+
+			%>
             <form method="post" action="/saveAnswer/<%= problem._id %>">
                     <div class="form-group">
                         <label for="answer">Enter your answer below:</label>
                         <textarea class="form-control rounded-0" id="answer" name="answer" rows="10"
-				  style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"></textarea>
+				  style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= theAnswer.answer %>  </textarea>
                     </div>
                     <br>
-                    <input class="btn btn-lg btn-warning" type="submit">
+							 <% if (problem.reviewable) {%>
+                    <input class="btn btn-lg btn-danger"
+													type="submit" value="submit">
+							 <% } else {%>
+								 		<input class="btn btn-lg btn-warning"
+													type="submit" value="save">
+							 <% } %>
+							 <% if (theAnswer.createdAt) {%>
+								 <br> Last save at <%= theAnswer.createdAt %>
+								 <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return to Problem Set without saving</a>
+								 <% } %>
             </form>
     <% } %>
+
 
 		<hr>
 				<%= skills.length %> Skills:

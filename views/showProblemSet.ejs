@@ -5,8 +5,13 @@
 
     <ul>
     <% for(i = 0; i<= problems.length-1; i++){
-        if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) { continue } else %>
+        if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) {
+
+            %>
+          <li>skip <%= i %> </li>
+        <% } else %>
         <li>
+            <%= i %>
             <a href="/showProblem/<%= problems[i]._id %>">
                 <%= problems[i].description %>
             </a>
@@ -18,6 +23,9 @@
         <a class="btn btn-small btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
         <a href="/editProblemSet/<%= psetId %>" class="btn btn-small btn-info">
             Edit Problem Set</a>
+    <% } %>
+    <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
     <% } %>
     <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-small btn-primary">Back to List of Problem Sets</a>
 

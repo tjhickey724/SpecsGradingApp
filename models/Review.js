@@ -9,6 +9,7 @@ var reviewSchema = Schema( {
   psetId: ObjectId,
   problemId: {type:ObjectId,index:true}, // should also track reviwerId!
   answerId: {type:ObjectId,index:true},
+  studentId: {type:ObjectId,index:true},
   review: String,
   points: Number,
   skills:[ObjectId],

@@ -243,17 +243,8 @@ app.get('/showCourse/:courseId',
           req.user.taFor &&
           req.user.taFor.includes(res.locals.courseInfo._id)
 
-      let answers = await Answer.find({studentId:req.user._id, courseId:id})
-      answers = answers.map((x) => x._id)
-      let taIds = (await User.find({taFor:id})).map((x)=> x._id)
 
-      let reviews =
-         await Review.find({answerId:{$in:answers},reviewerId:{$in:taIds}})
-      let skillLists = reviews.map((x)=>x.skills)
-      let skillIds= Array.from(new Set(skillLists.flat()))
-      res.locals.skills = await Skill.find({_id:{$in:skillIds}})
-      res.locals.allSkills = await Skill.find({courseId:id})
-      res.locals.skillIds = skillIds
+
       res.render('showCourse')
     }
     catch(e){
@@ -339,8 +330,7 @@ app.post('/saveProblemSet/:courseId',
          {
           name: req.body.name,
           courseId:id,
-          createdAt: new Date(),
-          visible: req.body.visible=='visible',
+          createdAt: new Date()
          }
       )
 
@@ -365,11 +355,11 @@ app.post('/updateProblemSet/:psetId',
   async ( req, res, next ) => {
     try {
       const id = req.params.psetId
-      const pset = await ProblemSet.findOne({_id:id})
+      const pset = ProblemSet.findOne({_id:id})
       console.log('id='+id)
+      console.dir(pset.courseId)
       pset.name=req.body.name
-      pset.visible = (req.body.visible=='visible')
-      pset.reviewable = (req.body.reviewable=='yes')
+      pset.visible = req.body.visible=='visible'
       await pset.save()
 
       res.redirect("/showProblemSet/"+id)
@@ -385,17 +375,13 @@ app.get('/showProblemSet/:psetId',
   async ( req, res, next ) => {
     const psetId = req.params.psetId
     res.locals.psetId = psetId
-    console.log('psetId= '+psetId)
-    console.log('........')
     res.locals.problemSet =
         await ProblemSet.findOne({_id:psetId})
-    console.log('problemSet='+res.locals.problemSet)
     res.locals.problems =
         await Problem.find({psetId:psetId})
-    console.log('problemSet= '+res.locals.problemSet)
-    console.dir(res.locals.problemSet)
     res.locals.courseInfo =
-        await Course.findOne({_id:res.locals.problemSet.courseId})
+        await Course.findOne({_id:res.locals.problemSet.courseId},
+                              'ownerId')
     res.render('showProblemSet')
   }
 )
@@ -414,91 +400,6 @@ app.get('/editProblemSet/:psetId',
     res.render('editProblemSet')
   }
 )
-
-app.get('/gradeProblemSet/:psetId',
-  async ( req, res, next ) => {
-    const psetId = req.params.psetId
-    res.locals.psetId = psetId
-    res.locals.problemSet =
-        await ProblemSet.findOne({_id:psetId})
-    res.locals.problems =
-        await Problem.find({psetId:psetId})
-    res.locals.answers =
-        await Answer.find({psetId:psetId})
-    res.locals.courseInfo =
-        await Course.findOne({_id:res.locals.problemSet.courseId},
-                              'ownerId')
-    //console.log("looking up students")
-    const memberList =
-        await CourseMember.find({courseId:res.locals.courseInfo._id})
-    res.locals.students = memberList.map((x)=>x.studentId)
-    //console.log(res.locals.students)
-    //console.log("getting student info")
-    res.locals.studentsInfo =
-        await User.find({_id:{$in:res.locals.students}},{},{sort:{googleemail:1}})
-    //console.log(res.locals.studentsInfo)
-    const taList =
-       await User.find({taFor:res.locals.courseInfo._id})
-    const taIds = taList.map(x => x._id)
-    console.log('taIds='+JSON.stringify(taIds))
-    const taReviews =
-       await Review.find({psetId:psetId,reviewerId:{$in:taIds}})
-    console.log("found "+taReviews.length+" reviews by "+taList.length+" tas")
-
-    res.locals.taReviews = taReviews
-    //console.log(JSON.stringify(req.user._id))
-    //console.log(JSON.stringify(taIds))
-    if (taIds.filter(x=>x.equals(req.user._id)).length>0){
-      res.render('gradeProblemSet')
-    } else {
-      res.send("You are not allowed to grade problem sets.")
-    }
-  }
-)
-
-app.get('/gradeProblem/:probId/:studentId',
-async (req,res,next) => {
-  try{
-    const probId = req.params.probId
-    const studentId = req.params.studentId
-
-    let problem = await Problem.findOne({_id:probId})
-    res.locals.student = await User.findOne({_id:studentId})
-
-
-    let answer =
-        await Answer.findOne({problemId:probId,studentId:studentId})
-
-    //console.log("answer= "+JSON.stringify(answer))
-    // and we need to add it to the problem.pendingReviews
-    res.locals.answer = answer
-    res.locals.problem = problem
-
-    let myReviews = []
-    if (answer!=undefined){
-      myReviews =
-        await Review.find({problemId:problem._id,
-                           answerId:answer._id,
-                           reviewerId:req.user._id})
-    }
-    res.locals.numReviewsByMe = myReviews.length
-    res.locals.alreadyReviewed = (myReviews.length>0)
-
-
-    //console.log('\n\n\nmy reviews='+JSON.stringify(myReviews))
-    //console.log(res.locals.numReviewsByMe)
-    if (true || res.locals.alreadyReviewed){
-      res.redirect('/showReviewsOfAnswer/'+answer._id)
-    } else {
-      res.render("reviewAnswer")
-    }
-  }
-  catch(e){
-    next(e)
-  }
- }
-)
-
 
 app.get('/addProblem/:psetId',
   async (req,res,next) => {
@@ -568,8 +469,6 @@ app.post('/updateProblem/:probId',
 
       problem.description= req.body.description
       problem.problemText= req.body.problemText
-      problem.visible = (req.body.visible=='visible')
-      problem.reviewable = (req.body.reviewable=='reviewable')
       problem.points= req.body.points
       problem.rubric= req.body.rubric
       problem.createdAt =  new Date()
@@ -675,7 +574,6 @@ app.post('/saveAnswer/:probId',
   async ( req, res, next ) => {
     const id = req.params.probId
     res.locals.problem = await Problem.findOne({_id:id})
-    await Answer.deleteMany({problemId:res.locals.problem._id,studentId:req.user.id})
     const problem = res.locals.problem
 
     let newAnswer = new Answer(
@@ -692,19 +590,13 @@ app.post('/saveAnswer/:probId',
          }
         )
 
-    await Answer.deleteMany(
-      {studentId:req.user._id,
-       problemId:problem._id}
-     )
-
     newAnswer.save()
       .then( (a) => {
           res.locals.answered = true
           res.locals.answer = a
       }
     )
-    console.log('in saveAnswer')
-    //res.redirect("/showProblemSet/"+problem.psetId)
+
     res.redirect("/showProblem/"+id)
   }
 )
@@ -812,9 +704,6 @@ async (req,res,next) => {
         await Review.find({problemId:problem._id,
                            reviewerId:req.user._id}).length
 
-    // get the skills for this problem
-    res.locals.skills =
-        await Skill.find({_id: {$in:res.locals.problem.skills}})
 
     res.render("reviewAnswer")
   }
@@ -848,10 +737,8 @@ app.post('/saveReview/:probId/:answerId',
         psetId:problem.psetId,
         problemId:problem._id,
         answerId:req.params.answerId,
-        studentId:answer.studentId,
         review:req.body.review,
         points:req.body.points,
-        skills:req.body.skill,
         upvoters: [],
         downvoters: [],
         createdAt: new Date()
@@ -924,7 +811,6 @@ app.get('/showReviewsOfAnswer/:answerId',
       res.locals.reviews =
           await Review.find({answerId:id})
                       .sort({points:'asc',review:'asc'})
-
 
       res.render("showReviewsOfAnswer")
       }

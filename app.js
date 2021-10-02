@@ -270,7 +270,63 @@ async function getCoursePin(){
   return coursePin
 }
 
+app.get('/showRoster/:courseId',
+  async ( req, res, next ) => {
+    try {
+      const id = req.params.courseId
+      res.locals.courseInfo = await Course.findOne({_id:id},'name coursePin ownerId')
 
+      const memberList = await CourseMember.find({courseId:res.locals.courseInfo._id})
+      const memberIds = memberList.map((x)=>x.studentId)
+      //console.log("memberIds = "+JSON.stringify(memberIds))
+      res.locals.members = await User.find({_id:{$in:memberIds}})
+      //console.dir(res.locals.members)
+
+      res.render('showRoster')
+    }
+    catch(e){
+      next(e)
+    }
+  }
+)
+
+app.post('/addStudents/:courseId',
+    async ( req, res, next ) => {
+      try {
+        const id = req.params.courseId
+        res.locals.courseInfo = await Course.findOne({_id:id},'name coursePin ownerId')
+
+        console.log("emails=")
+        let emails = req.body.emails.split('\n').map((x)=>x.trim())
+        //console.log(emails)
+        for (let e of emails){
+          let z = await User.findOneAndUpdate(
+                       {googleemail:e},{googleemail:e},{upsert:true,new:true})
+          console.log(e,z.googlename)
+          let registration =
+            {
+              studentId: z._id,
+              courseId: id,
+              createdAt: new Date(),
+            }
+          let cm = await CourseMember.findOneAndUpdate(
+              {studentId:z._id, courseId:id},
+              registration,
+              {upsert:true,new:true}
+          )
+
+          console.log('inserted '+JSON.stringify(registration))
+        }
+        let users = await User.find({googleemail:{$in:emails}})
+        console.log('number of users is '+users.length)
+
+        res.redirect('/showRoster/'+id)
+      }
+      catch(e){
+        next(e)
+      }
+    }
+)
 
 app.get('/showCourse/:courseId',
   async ( req, res, next ) => {

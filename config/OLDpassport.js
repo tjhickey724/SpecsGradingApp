@@ -50,30 +50,14 @@ module.exports = function(passport) {
         process.nextTick(function() {
            console.log("looking for userid")
             // try to find the user based on their google id
-            // User.findOne({ 'googleid' : profile.id }, function(err,
-            // CHANGED!  lookup via their email!
-            User.findOne({'googleemail': profile.emails[0].value},
-              function(err, user) {
+            User.findOne({ 'googleid' : profile.id }, function(err, user) {
                 if (err)
                     return done(err);
 
                 if (user) {
                     console.log(`the user was found ${user}`)
                     // if a user is found, log them in
-                    if (!user.googleid){
-                        user.googleid=profile.id
-                        user.googletoken=token
-                        user.googlename=profile.displayName
-                        user.save(function(err){
-                            console.log("first login for user!")
-                              if (err)
-                                  throw err;
-                              return done(null, user);
-                        })
-                    } else {
-                        return done(null, user);
-                    }
-
+                    return done(null, user);
                 } else {
                     console.log(`we need to create a new user`)
                     console.dir(profile)

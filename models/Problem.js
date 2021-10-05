@@ -8,6 +8,7 @@ var problemSchema = Schema( {
   psetId: {type:ObjectId,index:true},
   description: String,
   problemText: String,
+  problemTemplate: String,
   points: Number,
   rubric: String,
   pendingReviews: mongoose.Schema.Types.Mixed,
@@ -15,7 +16,7 @@ var problemSchema = Schema( {
   allowAnswers: Boolean,
   skills:[ObjectId],
   visible: {type:Boolean, default: true},
-  reviewable: {type:Boolean,default:true}, 
+  reviewable: {type:Boolean,default:true},
 } );
 /*
   pendingReviews is a list of JSON objects of the form:

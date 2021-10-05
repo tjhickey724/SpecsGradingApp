@@ -6,6 +6,8 @@
 		<% if (course.ownerId ==user.id ) {%>
 			Visible: <%= problem.visible %><br>
 			Reviewable: <%= problem.reviewable %> <br>
+			<a href="/uploadGrades/problem_id">upload grades</a>
+			<hr>
 			<% } %>
 			<% if (course.ownerId.equals(user._id)) { %>
         <div class="row">
@@ -61,7 +63,8 @@
 			<h4>This question has been closed. </h4>
 
 			<% } else {
-		 let theAnswer = (answers.length>0?answers[0]:{})
+		 let theAnswer = (answers.length>0?answers[0]:{answer:problem.problemTemplate||""})
+		 console.log('template='+problem.problemTemplate)
 		 %>
             <form method="post" action="/saveAnswer/<%= problem._id %>">
                     <div class="form-group">

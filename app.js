@@ -721,7 +721,6 @@ app.post('/saveProblem/:psetId',
             psetId: res.locals.problemSet._id,
             description: req.body.description,
             problemText: req.body.problemText,
-            problemTemplate: req.body.problemTemplate,
             points: req.body.points,
             rubric: req.body.rubric,
             skills: skills,
@@ -757,7 +756,6 @@ app.post('/updateProblem/:probId',
 
       problem.description= req.body.description
       problem.problemText= req.body.problemText
-      problem.problemTemplate= req.body.problemTemplate
       problem.points= req.body.points
       problem.rubric= req.body.rubric
       problem.createdAt =  new Date()

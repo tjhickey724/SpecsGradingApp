@@ -1,4 +1,4 @@
-# Mastery (Specs) Grading App
+# Mastery (Specs Grading) App
 
 
 ## Installation

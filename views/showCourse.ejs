@@ -87,6 +87,7 @@
     <ul>
     <% for(i = 0; i< skills.length; i++){  %>
         <li>
+            <%= skillCount[skills[i].id]||0 %>
             <a href="/showSkill/<%= skills[i]._id %>">
                 <%= skills[i].name %>
             </a>

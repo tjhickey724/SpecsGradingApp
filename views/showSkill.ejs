@@ -11,7 +11,11 @@
 <h3>Course: <%= courseInfo.name %> </h3>
 <h3>Name: <%= skill.name %></h3>
 <h3>Description:</h3>
+<pre class="bg-default"
+         style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"
+         >
 <%= skill.description %>
+</div>
 <hr>
 <a class="btn btn-danger" href="/showCourse/<%= skill.courseId %>">back to course</a><br>
 <br>

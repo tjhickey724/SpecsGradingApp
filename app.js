@@ -394,6 +394,14 @@ app.get('/showCourse/:courseId',
       let reviews =
          await Review.find({answerId:{$in:answers},reviewerId:{$in:taIds}})
       let skillLists = reviews.map((x)=>x.skills)
+      let skillCount = {}
+      for(slist of skillLists){
+        for (s of slist){
+          skillCount[s] = (skillCount[s]||0)+1
+        }
+      }
+      console.dir(skillCount)
+      res.locals.skillCount = skillCount
       let skillIds= Array.from(new Set(skillLists.flat()))
       res.locals.skills = await Skill.find({_id:{$in:skillIds}})
       res.locals.allSkills = await Skill.find({courseId:id})

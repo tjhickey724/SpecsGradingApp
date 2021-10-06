@@ -1,7 +1,10 @@
 // Start/restart this with
-// pm2 start bin/www -i 3
-// pm2 restart all
-// config data on google at ...
+// pm2 start bin/www -n mastery -i 3
+// restart with
+// pm2 restart mastery
+// get help with
+// pm2
+
 
 
 var createError = require('http-errors');

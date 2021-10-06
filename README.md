@@ -1,4 +1,4 @@
-# Specs Grading App
+# Mastery (Specs) Grading App
 
 
 ## Installation
@@ -17,7 +17,7 @@ module.exports = {
     'googleAuth' : {
         'clientID': 'your user clientID',
         'clientSecret': 'your Secret',
-        'callbackURL'   : 'http://127.0.0.1:6500/login/authorized'
+        'callbackURL'   : 'http://127.0.0.1:5500/login/authorized'
     }
 };
 ```

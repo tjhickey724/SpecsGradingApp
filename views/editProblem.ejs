@@ -8,6 +8,29 @@
     </div>
 
     <form method="post" action="/updateProblem/<%= problem._id %>">
+        <br>
+        <input type="checkbox" name='visible'
+                       <% if (problem.visible) {%> checked <% }%>
+                       value='visible'>
+        Visible:
+        <br>
+        <input type="checkbox" name='answerable'
+                      <% if (problem.answerable) {%> checked <% }%>
+                      value='answerable'>
+        Answerable:
+        <br>
+        <input type="checkbox" name='submitable'
+                       <% if (problem.submitable) {%> checked <% }%>
+                       value='submitable'>
+        Submitable:
+        <br>
+        <input type="checkbox" name='peerReviewable'
+                      <% if (problem.peerReviewable) {%> checked <% }%>
+                      value='peerReviewable'>
+        Peer Reviewable:
+        <br>
+        <hr>
+
         Problem Title:<br>
         <input type="text" name="description" value="<%= problem.description %>">
         <br>
@@ -31,14 +54,7 @@
         <%= allSkills[i].name %><br>
         <% } %>
         <hr>
-        <br>
-       Visible: <input type="checkbox" name='visible'
-                       <% if (problem.visible) {%> checked <% }%>
-                       value='visible'> <br>
-       Reviewable: <input type="checkbox" name='reviewable'
-                       <% if (problem.reviewable) {%> checked <% }%>
-                       value='reviewable'> <br>
-       <hr>
+
         <br>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>

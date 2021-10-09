@@ -83,30 +83,31 @@
    </a>
    <br>
    <hr>
-    <h2>Skills Mastered</h2>
+    <h2>Skills Mastery Evidence</h2>
     <ul>
     <% for(i = 0; i< skills.length; i++){  %>
         <li>
-            <%= skillCount[skills[i].id]||0 %>
+
             <a href="/showSkill/<%= skills[i]._id %>">
                 <%= skills[i].name %>
             </a>
-                <i><small><%= skills[i].createdAt %></small></i>
+            <span style="color:red">
+            times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
+            </span>
         </li>
     <% } %>
-    </ul>
+
     <%
     skillIds = skills.map((x)=>x.id)
     %>
-    <h2>Skills being developed </h2>
-    <ul>
+
     <% for(i = 0; i< allSkills.length; i++){
          if (skillIds.includes(allSkills[i].id)) continue; %>
         <li>
             <a href="/showSkill/<%= allSkills[i]._id %>">
                 <%= allSkills[i].name %>
             </a>
-                <i><small><%= allSkills[i].createdAt %></small></i>
+            mastery not yet demonstrated
         </li>
     <% } %>
     </ul>

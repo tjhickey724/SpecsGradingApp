@@ -15,7 +15,9 @@ var problemSchema = Schema( {
   allowAnswers: Boolean,
   skills:[ObjectId],
   visible: {type:Boolean, default: true},
-  reviewable: {type:Boolean,default:true},
+  submitable: {type:Boolean,default:true},
+  answerable: {type:Boolean, default:true},
+  peerReviewable:{type:Boolean, default:true}
 } );
 /*
   pendingReviews is a list of JSON objects of the form:

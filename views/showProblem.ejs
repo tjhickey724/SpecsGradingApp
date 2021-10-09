@@ -5,7 +5,10 @@
 
 		<% if (course.ownerId ==user.id ) {%>
 			Visible: <%= problem.visible %><br>
-			Reviewable: <%= problem.reviewable %> <br>
+			Answerable: <%= problem.answerable %> <br>
+			Submitable: <%= problem.submitable %> <br>
+			Peer Reviewable: <%= problem.peerReviewable %>
+			<hr>
 			<a href="/uploadGrades/problem_id">upload grades</a>
 			<hr>
 			<% } %>
@@ -36,19 +39,23 @@
 				This problem is not active at the moment.<% }
 %>	</div>
     <hr>
-    <% if (answers.length > 0 && problem.reviewable) { %>
+    <% if (answers.length > 0 && problem.submitable
+						|| course.ownerId.equals(user._id) ) { %>
         <% if (!course.ownerId.equals(user._id)) { %>
             <h2>Your Answer</h2>
             <small>Submission time and date:<%= problem.createdAt %> </small>
             <pre class="bg-success      "><%= answers[0].answer %></pre>
         <% } %>
+				<% if (problem.peerReviewable || course.ownerId.equals(user._id) { %>
         <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
+				<% } %>
+
         <% if (!course.ownerId.equals(user._id)) {%>
             <a href="/showReviewsOfAnswer/<%= answers[0]._id %>" class="btn btn-small btn-info">Reviews of your answer</a>
         <% } %>
         <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your Reviews of other's answers</a>
 				<a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
-        <% if (true || course.ownerId.equals(user._id)) { %>
+        <% if ( true|| course.ownerId.equals(user._id)) { %>
             <a href="/showAllAnswers/<%= problem._id %>" class="btn btn-small btn-danger">Show all answers</a>
 				<%} %>
 				<% if (course.ownerId.equals(user._id)) {
@@ -74,7 +81,7 @@
                     </div>
                     <br>
 
-										<% if (problem.reviewable) {%>
+										<% if (problem.submitable) {%>
 		                     <input class="btn btn-lg btn-danger"
 		 													type="submit" value="submit">
 		 							 <% } else {%>

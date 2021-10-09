@@ -6,10 +6,24 @@
 
     <form method="post" action="/saveProblem/<%= psetId %>">
         <br>
-        Visible: <input type="checkbox" name='visible'
-                        value='visible'> <br>
-        Reviewable: <input type="checkbox" name='reviewable'
-                        value='reviewable'>
+         <input type="checkbox" name='visible' checked
+                        value='visible'>
+        Visible: students can see the problem.
+        <br>
+        <input type="checkbox" name='answerable' checked
+                        value='answerable'>
+        Answerable: students can type in an answer to the problem and either
+        save it or submit it.
+        <br>
+        <input type="checkbox" name='submitable' checked
+                        value='submitable'>
+        Submitable: students can submit their answer (otherwise they can only save)
+        <br>
+
+        <input type="checkbox" name='peerReviewable' checked
+                        value='peerReviewable'>
+        Peer Reviewable: students who have submitted their answer can review the
+        answers of their peers in a doubly blind anonymous fashion
         <hr>
         Problem Title:<br>
         <input type="text" name="description">
@@ -17,18 +31,18 @@
         Problem Description:<br>
         <textarea name="problemText" cols="100" rows="10"></textarea>
         <br>
-        
+
         Rubric:<br>
         Points: <input type="text" name="points"><br>
         <textarea name="rubric" cols="100" rows="10"></textarea>
-        <br>
-        Skills:
-         <select name="skills" multiple size="5">
-           <% for(let i=0; i<skills.length; i++){ %>
-           <option value="<%= skills[i].id %>"> <%= skills[i].name %> </option>
-           <% } %>
-          </select>
-<hr>
+        <hr>
+        <h2>Skills required to fully solve this problem</h2>
+        Check all that apply.
+        <hr>
+          <% for(let i=0; i<skills.length; i++){ %>
+          <input type="checkbox" value="<%= skills[i].id %>"> <%= skills[i].name %> <br>
+          <% } %>
+        <hr>
         <input class="btn btn-lg btn-primary" type="submit">
     </form>
 

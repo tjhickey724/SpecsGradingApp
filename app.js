@@ -739,6 +739,10 @@ app.post('/saveProblem/:psetId',
             skills: skills,
             pendingReviews: [],
             allowAnswers:true,
+            visible:(req.body.visible=='visible'),
+            reviewable:(req.body.reviewable=='reviewable'),
+            answerable:(req.body.answerable=='answerable'),
+            peeReviewable:(req.body.peerReviewable=='peerReviewable'),
             createdAt: new Date()
            }
           )
@@ -774,9 +778,12 @@ app.post('/updateProblem/:probId',
       problem.createdAt =  new Date()
 
       problem.visible = (req.body.visible=='visible')
-      problem.reviewable = (req.body.reviewable=='reviewable')
+      problem.answerable = (req.body.answerable=='answerable')
+      problem.submitable = (req.body.submitable=='submitable')
+      problem.peerReviewable =
+          (req.body.peerReviewable=='peerReviewable')
 
-      console.log('in updateProblem',problem.visible,req.body.visible, problem.reviewable,req.body.reviewable)
+      console.log('in updateProblem',problem.visible,req.body.visible, problem.submitable,req.body.submitable,problem.answerable,req.body.answerable,problem.peerReviewable,req.body.peerReviewable)
 
       let skills = req.body.skill
       console.log("skills="+JSON.stringify(skills))

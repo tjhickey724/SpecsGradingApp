@@ -46,7 +46,7 @@
             <small>Submission time and date:<%= problem.createdAt %> </small>
             <pre class="bg-success      "><%= answers[0].answer %></pre>
         <% } %>
-				<% if (problem.peerReviewable || course.ownerId.equals(user._id) { %>
+				<% if (problem.peerReviewable || course.ownerId.equals(user._id)) { %>
         <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
 				<% } %>
 

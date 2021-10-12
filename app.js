@@ -407,7 +407,7 @@ app.get('/showCourse/:courseId',
       }
       console.dir(skillCount)
       res.locals.skillCount = skillCount
-      let skillIds= Array.from(new Set(skillLists.flat()))
+      let skillIds= Array.from(new Set(flatten(skillLists)))
       res.locals.skills = await Skill.find({_id:{$in:skillIds}})
       res.locals.allSkills = await Skill.find({courseId:id})
       res.locals.skillIds = skillIds
@@ -419,6 +419,14 @@ app.get('/showCourse/:courseId',
     }
   }
 )
+
+const flatten = (vals) => {
+  let flist = []
+  for (x of vals) {
+    flist = flist.concat(x)
+  }
+  return flist
+}
 
 
 

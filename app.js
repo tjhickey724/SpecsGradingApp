@@ -863,6 +863,15 @@ app.get('/updateSchema',
   }
 )
 
+function getElementBy_id(id,vals){
+  for(let i=0; i<vals.length;i++){
+    if ((vals[i]['_id']+"")==id){
+      return vals[i]
+    }
+  }
+  return null
+}
+
 
 app.get('/showAllAnswers/:probId',
     async (req, res, next ) => {
@@ -873,6 +882,9 @@ app.get('/showAllAnswers/:probId',
             await Course.findOne({_id:res.locals.problem.courseId})
           const userReviews =
             await Review.find({problemId:id,reviewerId:req.user._id})
+          res.locals.allSkills =
+            await Skill.find({courseId:res.locals.problem.courseId})
+          res.locals.getSkill = (id,vals) => getElementBy_id(id,vals)
           res.locals.numReviews = userReviews.length
           res.locals.canView =
               ((res.locals.numReviews>=2) ||

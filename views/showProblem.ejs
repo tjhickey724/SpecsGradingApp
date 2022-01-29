@@ -73,6 +73,9 @@
 		 let theAnswer = (answers.length>0?answers[0]:{answer:problem.problemTemplate||""})
 		 console.log('template='+problem.problemTemplate)
 		 %>
+		 <% if (!problem.answerable){%>
+			 <h1>You may not submit answers at this time </h1>
+			<% } else { %>
             <form method="post" action="/saveAnswer/<%= problem._id %>">
                     <div class="form-group">
                         <label for="answer">Enter your answer below:</label>
@@ -96,6 +99,7 @@
 
 
             </form>
+				<% } %>
     <% } %>
 
 		<hr>

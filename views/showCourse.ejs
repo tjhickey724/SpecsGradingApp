@@ -113,6 +113,13 @@
     </ul>
     <hr>
 
+    <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <a href="/showRegradeRequests/<%= courseInfo.id %>">
+            <%= regradeRequests.length %> regrade requests outstanding
+        </a>
+    <% } %>
+    <hr>
+
 
     <a href="/" class="btn btn-sm btn-danger">
         Back to Home

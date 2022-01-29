@@ -413,6 +413,8 @@ app.get('/showCourse/:courseId',
       res.locals.allSkills = await Skill.find({courseId:id})
       res.locals.skillIds = skillIds
 
+      res.locals.regradeRequests =
+         await RegradeRequest.find({courseId:id,completed:false})
       res.render('showCourse')
     }
     catch(e){
@@ -1448,6 +1450,7 @@ app.get('/showRegradeRequests/:courseId',
       const regradeRequests =
         await RegradeRequest.find({courseId:req.params.courseId})
       res.locals.regradeRequests = regradeRequests
+      res.locals.courseId =req.params.courseId
       res.render('showRegradeRequests')
       //res.json([req.params.courseId,regradeRequests])
     } catch (e){

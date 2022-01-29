@@ -55,6 +55,7 @@
                      <input type="checkbox" name='deletes'
                      value="<%= reviews[i]._id%>"/>
                      <input type="submit" class="btn btn-sm btn-danger" value="delete"/>
+                     check box and press delete button to delete
                  </form>
             <% } %>
             <i  class="<%= fa_prefixU %> fa-thumbs-up"
@@ -102,7 +103,7 @@
                     <textarea name="reason"></textarea>
                     Response: "None yet"
                     <br>
-                    
+
 
                     <input type="submit" value="request regrade">
                 </form>
@@ -113,9 +114,7 @@
     </ul>
     <hr>
 
-    <% if (userIsTA){%>
-    <input type="submit" value="Delete checked reviews">
-    <% } %>
+
 
     <% if (!youReviewed) { %>
         <h1> You didn't review this one </h1>

@@ -18,11 +18,12 @@ var logger = require('morgan');
 const Course = require('./models/Course' );
 const ProblemSet = require('./models/ProblemSet' );
 const Problem = require('./models/Problem' );
-const Answer = require('./models/Answer')
-const Review = require('./models/Review')
-const User = require('./models/User')
-const CourseMember = require('./models/CourseMember')
+const Answer = require('./models/Answer');
+const Review = require('./models/Review');
+const User = require('./models/User');
+const CourseMember = require('./models/CourseMember');
 const Skill = require('./models/Skill');
+const RegradeRequest = require('./models/RegradeRequest');
 
 //const mongoose = require( 'mongoose' );
 //const ObjectId = mongoose.Schema.Types.ObjectId;
@@ -1399,6 +1400,8 @@ app.get('/showReviewsOfAnswer/:answerId',
           await Skill.find({_id: {$in:res.locals.problem.skills}})
       res.locals.allSkills =
           await Skill.find({courseId:res.locals.answer.courseId})
+      res.locals.regradeRequests =
+          await RegradeRequest.find({answerId:id})
 
       res.render("showReviewsOfAnswer")
       }
@@ -1406,6 +1409,82 @@ app.get('/showReviewsOfAnswer/:answerId',
         next(e)
       }
     }
+)
+
+app.post('/requestRegrade/:reviewId',
+  async (req,res,next) => {
+    try{
+      const reviewId = req.params.reviewId
+      const review =
+         await Review.findOne({_id:reviewId})
+      const regradeRequest = new RegradeRequest(
+        {
+         reviewId: reviewId,
+         answerId:review.answerId,
+         problemId:review.problemId,
+         psetId:review.psetId,
+         courseId:review.courseId,
+         studentId:review.studentId,
+         reason:req.body.reason,
+         reply:'none yet',
+         completed:false,
+         createdAt: new Date()
+       }
+      )
+      await regradeRequest.save()
+      console.log("The Review is:")
+      console.dir(review)
+      console.log('ci'+review.courseId)
+      res.redirect('/showRegradeRequests/'+review.courseId)
+    } catch (e){
+      next(e)
+    }
+  }
+)
+
+app.get('/showRegradeRequests/:courseId',
+  async (req,res,next) => {
+    try{
+      const regradeRequests =
+        await RegradeRequest.find({courseId:req.params.courseId})
+      res.locals.regradeRequests = regradeRequests
+      res.render('showRegradeRequests')
+      //res.json([req.params.courseId,regradeRequests])
+    } catch (e){
+      next(e)
+    }
+  }
+)
+
+app.get('/showRegradeRequest/:requestId',
+  async (req,res,next) => {
+    try{
+      const regradeRequest =
+        await RegradeRequest.findOne({_id:req.params.requestId})
+      res.locals.regradeRequest = regradeRequest
+      res.redirect('/showReviewsOfAnswer/'+regradeRequest.answerId)
+      //res.json([req.params.requestId,regradeRequest])
+    } catch (e){
+      next(e)
+    }
+  }
+)
+
+app.post('/updateRegradeRequest/:regradeRequestId',
+  async (req,res,next) => {
+    try{
+
+      let regradeRequest =
+        await RegradeRequest.findOne({_id:req.params.regradeRequestId})
+      regradeRequest.reply = req.body.reply
+      regradeRequest.completed = true
+      await regradeRequest.save()
+      res.redirect('/showReviewsOfAnswer/'+regradeRequest.answerId)
+      //res.json([req.params.regradeRequestId,regradeRequest])
+    } catch (e){
+      next(e)
+    }
+  }
 )
 
 app.post('/giveGoodGrade/:probId/:answerId',

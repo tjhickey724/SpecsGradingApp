@@ -24,7 +24,7 @@
 
 
     <h2>All Reviews of this Answer</h2>
-    <form method="post" action="/removeReviews">
+
     <ul>
     <% let youReviewed = false
        for(i = 0; i<= reviews.length-1; i++){
@@ -46,12 +46,16 @@
             <!-- if this is the user's answer and a TA review
                  post a request a regrade button -->
 
-            <button class="btn btn-sm btn-danger">Request a regrade</button>
+
             <b>REVIEW by TA</b>
             <% } %>
             (user is a TA? <%= userIsTA %>)
             <% if (userIsTA){%>
-            <input type="checkbox" name='deletes' value="<%= reviews[i]._id%>">
+                <form method="post" action="/removeReviews">
+                     <input type="checkbox" name='deletes'
+                     value="<%= reviews[i]._id%>"/>
+                     <input type="submit" class="btn btn-sm btn-danger" value="delete"/>
+                 </form>
             <% } %>
             <i  class="<%= fa_prefixU %> fa-thumbs-up"
                    id='<%= "reviewU"+i %>'
@@ -90,6 +94,19 @@
             <% } %>
             <%= reviews[i].review %></div>
             <br>
+            <!-- allow user to request regrades of their answers -->
+            <% if (answer.studentId==user.id) {%>
+                <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
+                    Regrade request:
+                    Reason:
+                    <textarea name="reason"></textarea>
+                    Response: "None yet"
+                    <br>
+                    
+
+                    <input type="submit" value="request regrade">
+                </form>
+            <% } %>
 
         </li>
     <% } %>
@@ -99,7 +116,7 @@
     <% if (userIsTA){%>
     <input type="submit" value="Delete checked reviews">
     <% } %>
-    </form>
+
     <% if (!youReviewed) { %>
         <h1> You didn't review this one </h1>
         <div class="row">
@@ -137,6 +154,38 @@
             </div>
         <div>
     <% } %>
+    <h1>Regrade Requests</h1>
+    <ol>
+    <% for(let i=0; i<regradeRequests.length; i++){
+          rr = regradeRequests[i]
+          if (rr.completed) continue %>
+          <li>
+              reason:<%= rr.reason %><br>
+       <% if (userIsTA){%>
+           <form method="post" action="/updateRegradeRequest/<%= rr._id%>">
+
+               reply: <textarea name="reply"></textarea>
+               <input type="submit" value="send reply">
+           </form>
+       <% }%>
+       <hr>
+       </li>
+    <% }%>
+    </ol>
+    <h2> Completed regrade requests </h2>
+    <ul>
+    <% for(let i=0; i<regradeRequests.length; i++){
+          rr = regradeRequests[i]
+          if (!rr.completed) continue %>
+          <li>
+
+               reason:<%= rr.reason %><br>
+               reply: <%= rr.reply %><br>
+               <hr>
+
+       </li>
+    <% }%>
+    </ul>
     <hr>
     <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
     <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>

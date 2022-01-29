@@ -1,0 +1,24 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+
+<hr>
+<b>Outstanding Regrade Requests</b>
+    <ul>
+    <% for(i = 0; i<= regradeRequests.length-1; i++){
+         const r = regradeRequests[i]
+         if (r.completed) continue;
+         %>
+        <li>
+
+            <a href="/showRegradeRequest/<%= r._id %>">
+                view</a><br>
+                Completed? <%= r.completed %><br>
+                Created <%= r.createdAt %>
+        </li>
+    <% } %>
+    </ul>
+<hr>
+
+
+
+<%- include('bootfooter') -%>

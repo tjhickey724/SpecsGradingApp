@@ -4,7 +4,7 @@
 <script type="text/javascript" src="/js/clickThumb.js"></script>
     <hr>
     <h3 class="bg-danger">
-    <% let userIsTA = false && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
+    <% let userIsTA = true && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
        if (userIsTA) {
            %>
           <%= student.googlename %> <%= student.googleemail %>
@@ -43,8 +43,13 @@
         let isTAreview = taReviewer.length==1
         %>
         <li><% if (isTAreview) {%>
+            <!-- if this is the user's answer and a TA review
+                 post a request a regrade button -->
+
+            <button class="btn btn-sm btn-danger">Request a regrade</button>
             <b>REVIEW by TA</b>
             <% } %>
+            (user is a TA? <%= userIsTA %>)
             <% if (userIsTA){%>
             <input type="checkbox" name='deletes' value="<%= reviews[i]._id%>">
             <% } %>
@@ -70,6 +75,11 @@
             <% } %>
             </i>
             <br>
+            <ul>
+            <% skills.map((x) => {%>
+                <li> <%= x['name']%></li>
+             <%}) %>
+             </ul>
             <% if (yourReview){%>
                 <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
             <% } else if (isTAreview) {%>
@@ -80,10 +90,12 @@
             <% } %>
             <%= reviews[i].review %></div>
             <br>
+
         </li>
     <% } %>
     </ul>
     <hr>
+
     <% if (userIsTA){%>
     <input type="submit" value="Delete checked reviews">
     <% } %>

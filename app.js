@@ -1385,6 +1385,8 @@ app.get('/showReviewsOfAnswer/:answerId',
 
       res.locals.skills =
           await Skill.find({_id: {$in:res.locals.problem.skills}})
+      res.locals.allSkills =
+          await Skill.find({courseId:res.locals.answer.courseId})
 
       res.render("showReviewsOfAnswer")
       }

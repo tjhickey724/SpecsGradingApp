@@ -56,6 +56,8 @@
           <% if (reviews[j].answerId.equals(answers[i]._id)) {
              numReviews += 1
              let rev=reviews[j]
+             let skills = reviews[j].skills
+             let skillnames = skills.map((s) => getSkill(s,allSkills)['name'])
              let numLikesU = reviews[j].upvoters.length
              let userLikesU = reviews[j].upvoters.includes(user._id)
              let fa_prefixU = userLikesU?"fas":"far"
@@ -68,6 +70,7 @@
 
 
              %>
+
 
             <div class="row">
               <div class="col-md-1">
@@ -91,7 +94,8 @@
                            </span>
                        .... grade:
                      <%= rev.points %>/<%= problem.points %>pts
-                  </i>
+                  </i><br>
+                  SKILLS Mastered: [[<%= JSON.stringify(skillnames) %>]]<br>
                   <% if (isTAreview){%>
                     <span style="color:rgb(255,0,0);">TA REVIEW!!</span>
                       <% if (rev.points< problem.points) { %>

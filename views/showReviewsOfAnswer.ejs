@@ -141,7 +141,14 @@
                           <textarea class="form-control rounded-0" id="review" name="review" rows="10"></textarea>
                       </div>
                       <br>
-                      <input class="btn btn-lg btn-warning" type="submit">
+                      <input class="btn btn-lg btn-warning"
+                          name="destination"
+                          type="submit"
+                          value="submit and view next">
+                      <input class="btn btn-lg btn-danger"
+                          type="submit" name="destination"
+                          value="submit and view this again">
+
                 </form>
             </div>
             <div class="col-md-6">
@@ -189,7 +196,9 @@
     <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
     <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
     <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
-
+<% if (userIsTA){%>
+<a href="/showRegradeRequests/<%= problem.courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
+    <% } %>
 
 
 

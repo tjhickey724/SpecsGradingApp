@@ -1320,7 +1320,12 @@ async ( req, res, next ) => {
     await problem.save()
 
     //res.redirect('/showReviewsOfAnswer/'+answer._id)
-    res.redirect('/reviewAnswers/'+problem._id)
+    if (req.body.destination=='submit and view this again'){
+      res.redirect('/showReviewsOfAnswer/'+req.params.answerId)
+    } else {
+      res.redirect('/reviewAnswers/'+problem._id)
+    }
+
     // we can now redirect them to review more answers
     // res.redirect('/reviewAnswers/'+req.params.probId)
   }
@@ -1367,7 +1372,8 @@ app.post('/removeReviews',
       answer.reviewers = newReviewerIds
       await answer.save()
       await Review.deleteMany({_id:{$in: deletes}})
-      res.send("just updating answer ...")
+      //res.send("just updating answer ...")
+      res.redirect('/showReviewsOfAnswer/'+answerId)
     }
     catch(e){
       next(e)

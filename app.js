@@ -1404,6 +1404,11 @@ app.get('/showReviewsOfAnswer/:answerId',
       const taList = await User.find({taFor:res.locals.problem.courseId})
       res.locals.taList = taList.map(x => x._id)
 
+      for (rev of res.locals.reviews) {
+        rev.fullskills = await Skill.find({_id: {$in:rev.skills}})
+        for (x of rev.fullskills){console.log(x['name'])}
+      }
+
       res.locals.skills =
           await Skill.find({_id: {$in:res.locals.problem.skills}})
       res.locals.allSkills =

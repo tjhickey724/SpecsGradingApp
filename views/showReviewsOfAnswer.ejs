@@ -41,6 +41,7 @@
         youReviewed = youReviewed || yourReview
         let taReviewer = taList.filter(x=> (x.equals(reviews[i].reviewerId)))
         let isTAreview = taReviewer.length==1
+        let fullskills = reviews[i].fullskills
         %>
         <li><% if (isTAreview) {%>
             <!-- if this is the user's answer and a TA review
@@ -80,11 +81,26 @@
             <% } %>
             </i>
             <br>
+            Skills Mastered:
+            <% if (fullskills.length==0) {%>
+                <ul>
+                    <li>
+                        no skills mastered
+                    </li>
+                </ul>
+            <%}else {%>
+
             <ul>
-            <% skills.map((x) => {%>
-                <li> <%= x['name']%></li>
+            <% fullskills.map((x) => {%>
+                <li>
+                    <span  style="padding:5px;color:red">
+                        <%= x['name']%>
+                    </span>
+                </li>
              <%}) %>
              </ul>
+            <% }%>
+
             <% if (yourReview){%>
                 <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
             <% } else if (isTAreview) {%>

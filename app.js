@@ -1924,6 +1924,41 @@ app.get('/showTAs/:courseId',
     }
   )
 
+  app.get('/updateOfficialReviews',
+    async (req, res, next) => {
+     if (req.user.googleemail != "tjhickey@brandeis.edu"){
+      res.send('you are not allowed to do this!')
+    }else {
+      try {
+        // iterate through all answers
+        // look for reviews a review by a TA
+        // if found, then use it to update the answer
+
+        let answers = await Answer.find()
+        for (let answer of answers){
+          let reviews = await Review.find({answerId:answer._id})
+          for (let review of reviews){
+            let reviewer =
+            await User.findOne({_id:review.reviewerId})
+            if (reviewer && reviewer.taFor && (reviewer?.taFor.includes(answer.courseId))){
+              answer.officialReviewId = review._id
+              answer.points = review.points
+              answer.review = review.review
+              answer.skills = review.skills
+              await answer.save()
+            }
+          }
+        }
+
+      }catch(e){
+        console.log("caught an error: "+e)
+        console.dir(e)
+        next(e)
+      }
+      res.send('all done')
+     }
+    }
+  )
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

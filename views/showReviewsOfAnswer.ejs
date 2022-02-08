@@ -31,6 +31,9 @@
         console.log("in reviews i= "+i)
         console.log(reviews[i].upvoters)
         console.log(user._id)
+        let isOfficial =
+          (reviews[i].id == answer.officialReviewId);
+
         let numLikesU = reviews[i].upvoters.length
         let userLikesU = reviews[i].upvoters.includes(user._id)
         let fa_prefixU = userLikesU?"fas":"far"
@@ -43,14 +46,16 @@
         let isTAreview = taReviewer.length==1
         let fullskills = reviews[i].fullskills
         %>
-        <li><% if (isTAreview) {%>
-            <!-- if this is the user's answer and a TA review
-                 post a request a regrade button -->
 
 
-            <b>REVIEW by TA</b>
-            <% } %>
-            (user is a TA? <%= userIsTA %>)
+        <% if (isOfficial) {%>
+            <li style="border:thick solid green; background:lightgreen;margin:10px;padding:10px">
+                <h1>Review for the Grade</h1>
+            <% }else { %>
+            <li style="border:thick solid black; margin:10px;padding:10px">
+
+        <% } %>
+
             <% if (userIsTA){%>
                 <form method="post" action="/removeReviews">
                      <input type="checkbox" name='deletes'

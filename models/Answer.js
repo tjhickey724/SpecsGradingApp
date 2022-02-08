@@ -13,6 +13,15 @@ var answerSchema = Schema( {
   numReviews: Number,
   pendingReviewers: [Schema.Types.ObjectId],
   createdAt: Date,
+  // when a TA reviews an answer, it becomes
+  // the official review and
+  // the review, points, skills mastered are
+  // copied here. We may need to be careful
+  // when a TAs review is deleted to clear these.
+  officialReviewId: Schema.Types.ObjectId,
+  review: String,
+  points: Number,
+  skills:[ObjectId],
 } );
 
 module.exports = mongoose.model( 'Answer', answerSchema );

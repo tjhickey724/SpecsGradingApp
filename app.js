@@ -43,7 +43,7 @@ const MongoStore = require('connect-mongo')(session)
 
 const mongoose = require( 'mongoose' );
 
-mongoose.connect( 'mongodb://localhost/sga_v_1_0', { useNewUrlParser: true } );
+mongoose.connect( 'mongodb://localhost/sga_v_1_0', { useNewUrlParser: true, useUnifiedTopology: true } );
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -1272,7 +1272,19 @@ async ( req, res, next ) => {
      }
     )
 
-    await newReview.save()
+
+
+    const newReviewDoc = await newReview.save()
+
+    // if the user is a TA, then make their review
+    // the official review 
+    if (req.user.taFor.includes(problem.courseId)){
+       answer.officialReviewId =
+         newReviewDoc._id;
+       answer.review  = req.body.review;
+       answer.points = req.body.points;
+       answer.skills = skills
+    }
 
     // next we update the reviewers info in the answer object
     answer.reviewers.push(req.user._id)

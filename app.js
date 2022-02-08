@@ -393,15 +393,17 @@ app.get('/showCourse/:courseId',
           req.user.taFor &&
           req.user.taFor.includes(res.locals.courseInfo._id)
 
-      let answers = await Answer.find({studentId:req.user._id, courseId:id})
-      answers = answers.map((x) => x._id)
+      let fullAnswers = await Answer.find({studentId:req.user._id, courseId:id})
+      answers = fullAnswers.map((x) => x._id)
       let taIds = (await User.find({taFor:id})).map((x)=> x._id)
 
       let reviews =
          await Review.find({answerId:{$in:answers},reviewerId:{$in:taIds}})
-      let skillLists = reviews.map((x)=>x.skills)
+      let skillListsOLD = reviews.map((x)=>x.skills)
+      let skillLists = fullAnswers.map((x)=> x.skills)
       let skillCount = {}
       for(slist of skillLists){
+        if (!slist) continue;
         for (s of slist){
           skillCount[s] = (skillCount[s]||0)+1
         }
@@ -1277,7 +1279,7 @@ async ( req, res, next ) => {
     const newReviewDoc = await newReview.save()
 
     // if the user is a TA, then make their review
-    // the official review 
+    // the official review
     if (req.user.taFor.includes(problem.courseId)){
        answer.officialReviewId =
          newReviewDoc._id;

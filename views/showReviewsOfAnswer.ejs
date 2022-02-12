@@ -119,10 +119,9 @@
             <% if (answer.studentId==user.id) {%>
                 <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
                     Regrade request:
-                    Reason:
-                    <textarea name="reason"></textarea>
-                    Response: "None yet"
-                    <br>
+                    Reason:<br>
+                    <textarea name="reason" style="width:100%"></textarea>
+                    <hr>
 
 
                     <input type="submit" value="request regrade">
@@ -174,23 +173,27 @@
             <div class="col-md-6">
                 <b>Rubric</b>
                 <hr>
-                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.rubric %>
+                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd"><%= problem.rubric %>
                 </div>
 
             </div>
         <div>
     <% } %>
-    <h1>Regrade Requests</h1>
+    <h1 style="margin-top:20px;border-top:thick solid black">
+        Regrade Requests</h1>
     <ol>
     <% for(let i=0; i<regradeRequests.length; i++){
           rr = regradeRequests[i]
           if (rr.completed) continue %>
           <li>
-              reason:<%= rr.reason %><br>
+              reason:<br>
+              <%= rr.reason %><br>
        <% if (userIsTA){%>
            <form method="post" action="/updateRegradeRequest/<%= rr._id%>">
 
-               reply: <textarea name="reply"></textarea>
+               reply: <br>
+               <textarea name="reply"></textarea>
+               <hr>
                <input type="submit" value="send reply">
            </form>
        <% }%>

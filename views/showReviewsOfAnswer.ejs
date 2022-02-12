@@ -45,7 +45,7 @@
         let isTAreview = taReviewer.length==1
         let fullskills = reviews[i].fullskills
         %>
-        
+
 
         <% if (isOfficial) {%>
             <li style="border:thick solid green; background:lightgreen;margin:10px;padding:10px">
@@ -205,8 +205,10 @@
           if (!rr.completed) continue %>
           <li>
 
-               reason:<%= rr.reason %><br>
-               reply: <%= rr.reply %><br>
+               <div style="padding:5px;background-color:yellow">
+                   reason:<%= rr.reason %></div>
+               <div style="padding:5px;background-color:lightgreen">reply:
+                   <%= rr.reply %></div>
                <hr>
 
        </li>
@@ -218,6 +220,8 @@
     <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
 <% if (userIsTA){%>
 <a href="/showRegradeRequests/<%= problem.courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
+<a href="/gradeProblemSet/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
+
     <% } %>
 
 

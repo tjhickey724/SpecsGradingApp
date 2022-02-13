@@ -645,6 +645,21 @@ app.post('/updateProblemSet/:psetId',
   }
 )
 
+const getStudentSkills =
+  async (studentId) => {
+    try{
+      const skills = await Answer.find({studentId:studentId}).distinct('skills')
+      console.log(skills)
+      return skills.map((c) => c.toString())
+
+    }catch(e){
+      console.log("error in getStudentSkills")
+      console.dir(e)
+      throw(e)
+    }
+
+
+}
 
 app.get('/showProblemSet/:psetId',
   async ( req, res, next ) => {
@@ -662,9 +677,10 @@ app.get('/showProblemSet/:psetId',
         await Answer.find({psetId:psetId,studentId:req.user._id})
     res.locals.pids = res.locals.myAnswers.map((x)=>{
       return x.problemId.toString()
+    })
+    res.locals.skills = await getStudentSkills(req.user._id)
     console.log("pids = ")
     console.dir(res.locals.pids)
-    })
     res.render('showProblemSet')
   }
 )
@@ -838,6 +854,8 @@ app.get('/showProblem/:probId',
 
           res.locals.skills =
                        await Skill.find({_id: {$in:res.locals.problem.skills}})
+          res.locals.skillsMastered =
+                await getStudentSkills(res.locals.user._id)
 
           res.render("showProblem")
         } catch (e) {

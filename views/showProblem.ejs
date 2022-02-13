@@ -106,7 +106,12 @@
 				<%= skills.length %> Skills:
 				<ul>
 						<% for(let i=0;i<skills.length;i++){%>
-							<li><%= skills[i].name %> </li>
+							<%if (skillsMastered.includes(skills[i]._id.toString())) {%>
+								<li style="color:blue"><%= skills[i].name %> -- mastered!</li>
+							<%} else {%>
+								<li style="color:red"><%= skills[i].name %> -- not yet mastered</li>
+							<% } %>
+
 						<% } %>
 				</ul>
 

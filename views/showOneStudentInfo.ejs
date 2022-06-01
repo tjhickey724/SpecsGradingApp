@@ -8,7 +8,9 @@
             %>
     <h1><%= studentInfo.googlename %>/<%= studentInfo.googleemail %> </h1>
 
-      <% for (a in grades.answers) {
+      <% let answeredProblemIds = []
+         for (a in grades.answers) {
+          answeredProblemIds.push(""+grades.answers[a].answer.problemId)
           let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
           let answer = grades.answers[a].answer
           let reviews = grades.answers[a].reviews
@@ -30,6 +32,22 @@
              </div>
            <% } %>
       <% } %>
+      <h1>Problems not attempted</h1>
+      <ol>
+      <% 
+        for (p of problems) {
+          if (!answeredProblemIds.includes(""+p['_id'])){
+            %>
+            <li><a href="/showProblem/<%= p['_id']%>">
+              <%= p.description %></a>
+              <%= JSON.stringify(p.createdAt,null,5) %>
+              <a href="/showProblemSet/<%= p.psetId %>">view problem set</a>
+            
+          </li>
+
+      <% }} %>
+          </ol>
+
 
 
 <%- include('bootfooter') -%>

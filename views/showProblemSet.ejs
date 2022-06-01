@@ -46,6 +46,7 @@
     <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
     <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades </a>
     <% } %>
 
 

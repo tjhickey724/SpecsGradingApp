@@ -685,6 +685,88 @@ app.get('/showProblemSet/:psetId',
   }
 )
 
+app.get('/gradeProblemSet/:psetId/json',
+  async ( req, res, next ) => {
+    const psetId = req.params.psetId
+    const problemSet =
+        await ProblemSet.findOne({_id:psetId})
+    const problems =
+        await Problem.find({psetId:psetId})
+    const answers =
+        await Answer.find({psetId:psetId})
+    const courseInfo =
+        await Course.findOne({_id:problemSet.courseId},
+                              'ownerId')
+    const memberList =
+        await CourseMember.find({courseId:courseInfo._id})
+    const students = memberList.map((x)=>x.studentId)
+
+    const studentsInfo =
+        await User.find({_id:{$in:students}},{},{sort:{googleemail:1}})
+
+    const taList =
+       await User.find({taFor:courseInfo._id})
+    const taIds = taList.map(x => x._id)
+
+    const taReviews =
+       await Review.find({psetId:psetId,reviewerId:{$in:taIds}})
+ 
+    res.locals.taReviews = taReviews
+      jsonGrades = [] 
+      for(i = 0; i< studentsInfo.length; i++){
+                let psetScore = 0
+                let psetCount = 0 // number of problems graded by TAs
+                let jsonRow = {email:studentsInfo[i].googleemail, name:studentsInfo[i].googlename,grades:[]}
+                 for(j = 0; j<= problems.length-1; j++){
+                        // find the scores of the reviews of this problem
+                     const studentAnswers =
+                         answers.filter(a =>{
+                             return a.studentId.equals(studentsInfo[i]._id) &&
+                                    a.problemId.equals(problems[j]._id)
+                         })
+                    
+
+
+                     const grades =
+                        taReviews
+                          .filter(
+                           r =>{
+                               let zz = (r.problemId && r.problemId.equals(problems[j]._id))
+                                   && (r.studentId && r.studentId.equals(studentsInfo[i]._id))
+                                   //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
+
+                               return(zz)
+                           })
+                           answerId = null
+                           if (grades.length>0) {
+                             answerId = grades[0].answerId
+                           }
+
+
+
+                         if (studentAnswers.length == 0){
+                                    jsonRow.grades.push(-1)
+                                   } else if (!answerId) {
+                                    jsonRow.grades.push(0)
+                                   } else { 
+                                       let scores = grades.map((r) => r.points)
+                                       let avgScore =
+                                            Math.ceil(
+                                                scores.reduce((a,b) => a + b, 0)/scores.length
+                                                )
+                                       psetScore += avgScore
+                                       psetCount += 1
+                                       jsonRow.grades.push(avgScore)
+                                    }  } 
+                            jsonRow.grades.push(psetScore)
+                            jsonRow.grades.push(psetCount)
+                            let average = psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
+                            jsonRow.grades.push(average)
+                            jsonGrades.push(jsonRow)
+                         if (psetCount>0){}  } 
+    res.json(jsonGrades)
+})
+
 app.get('/gradeProblemSet/:psetId',
   async ( req, res, next ) => {
     const psetId = req.params.psetId
@@ -720,6 +802,47 @@ app.get('/gradeProblemSet/:psetId',
     //console.log(JSON.stringify(taIds))
     if (taIds.filter(x=>x.equals(req.user._id)).length>0){
       res.render('gradeProblemSet')
+    } else {
+      res.send("You are not allowed to grade problem sets.")
+    }
+  }
+)
+
+app.get('/gradeProblemSetJSON/:psetId',
+  async ( req, res, next ) => {
+    const psetId = req.params.psetId
+    res.locals.psetId = psetId
+    res.locals.problemSet =
+        await ProblemSet.findOne({_id:psetId})
+    res.locals.problems =
+        await Problem.find({psetId:psetId})
+    res.locals.answers =
+        await Answer.find({psetId:psetId})
+    res.locals.courseInfo =
+        await Course.findOne({_id:res.locals.problemSet.courseId},
+                              'ownerId')
+    //console.log("looking up students")
+    const memberList =
+        await CourseMember.find({courseId:res.locals.courseInfo._id})
+    res.locals.students = memberList.map((x)=>x.studentId)
+    //console.log(res.locals.students)
+    //console.log("getting student info")
+    res.locals.studentsInfo =
+        await User.find({_id:{$in:res.locals.students}},{},{sort:{googleemail:1}})
+    //console.log(res.locals.studentsInfo)
+    const taList =
+       await User.find({taFor:res.locals.courseInfo._id})
+    const taIds = taList.map(x => x._id)
+    //console.log('taIds='+JSON.stringify(taIds))
+    const taReviews =
+       await Review.find({psetId:psetId,reviewerId:{$in:taIds}})
+    //console.log("found "+taReviews.length+" reviews by "+taList.length+" tas")
+
+    res.locals.taReviews = taReviews
+    //console.log(JSON.stringify(req.user._id))
+    //console.log(JSON.stringify(taIds))
+    if (taIds.filter(x=>x.equals(req.user._id)).length>0){
+      res.render('gradeProblemSetJSON')
     } else {
       res.send("You are not allowed to grade problem sets.")
     }
@@ -1978,6 +2101,46 @@ app.get('/showTAs/:courseId',
     }
   )
 
+const ObjectId = mongoose.Types.ObjectId;
+
+const masteryAgg = (courseId) => 
+[
+  {
+    '$match': {
+      'courseId': new ObjectId(courseId)
+    }
+  }, {
+    '$group': {
+      '_id': '$studentId', 
+      'numAns': {
+        '$sum': 1
+      }, 
+      'skills': {
+        '$addToSet': {
+          '$arrayElemAt': [
+            '$skills', 0
+          ]
+        }
+      }
+    }
+  }, {
+    '$addFields': {
+      'numSkills': {
+        '$size': '$skills'
+      }
+    }
+  }
+]
+
+app.get('/mastery/:courseId',
+  async (req,res,next) => {
+    const agg = masteryAgg(req.params.courseId)
+    console.dir(agg)
+    const zz = await Answer.aggregate(agg)
+    res.json(zz)
+  })
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -2056,5 +2219,6 @@ function createGradeSheet(students, problems, answers, reviews){
 
   return {grades:gradeSheet,problems:problemList,answers:answerList}
 }
+
 
 module.exports = app;

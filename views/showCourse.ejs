@@ -42,7 +42,7 @@
                                     <% } %>
                         </ul>
 
-                        <hr>
+                        <hr><div class="mb-2">
                         <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
                             <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
                                 Add Problem Set
@@ -61,19 +61,17 @@
                             </a>
                             <% } else { %>
                                 <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
-                                    show all problems and responses
+                                    Show All Problems and Responses
                                 </a>
 
                                 <%} %>
-                                    <br>
-
+                </div>
 
                                     Number of reviews I've made: <%= myReviews.length %>
                                         with <%= thumbsUp %> thumbs up and
                                             <%= thumbsDown %> thumb downs <br>
-                                                <br>
-                                                <hr><br>
-
+                                                
+                                                <hr>
                                                 <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
                                                     Show TAs
                                                 </a>

@@ -3,20 +3,25 @@
         <%- include('menubar') -%>
             <% } %>
 
-                <div class="p-5 mb-3 bg-light border">
+                <div class="p-lg-5 p-4 mb-lg-3 mb-0 bg-light border">
                     <div class="container-fluid">
                         <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
-                        <h2>Promoting Effective and Engaged Learning</h2>
+                        <span class="lead fs-2">Promoting Effective and Engaged Learning</span>
                         <% if (loggedIn){ %>
                             <form method="post" action="/joinCourse">
-                                <div class="mx-3 my-1 row g-3 align-items-center">
+                                <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
                                     <div class="col-auto">
                                         <label for="inputPassword6" class="col-form-label"> Enroll in a course
                                         </label>
                                     </div>
                                     <div class="col-auto">
-                                        <input type="input" id="coursePin" class="form-control"
-                                            aria-describedby="ccInline" placeholder="7 digit pin">
+                                        <div class="input-group">
+                                            <input required type="input" id="coursePin" class="form-control"
+                                                aria-describedby="ccInline" placeholder="7 digit pin">
+                                            <button class="btn btn-primary" type="submit"><i
+                                                    class="bi bi-box-arrow-in-right"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="col-auto">
                                         <span id="ccInline" class="form-text">(or
@@ -37,9 +42,9 @@
                     </h2>
                     <% } else {%>
                         <hr>
-                        <div class="row oldlinkcolor">
-                            <div class="col-lg-4 bg-warning">
-                                <h2>Courses I'm taking</h2>
+                        <div class="card-group">
+                            <div class="card text-bg-warning">
+                                <div class="card-header">Courses I'm taking</div>
                                 <ul>
                                     <% for(i=0; i<=coursesTaken.length-1; i++){ %>
                                         <li>
@@ -50,24 +55,24 @@
                                         <% } %>
                                 </ul>
                             </div>
-                            <div class="col-lg-4 bg-primary">
-                                <h2>Courses I'm TAing</h2>
+                            <div class="card bg-primary">
+                                <div class="card-header">Courses I'm TAing</div>
                                 <ul>
-                                    <% for(i=0; i<=coursesTAing.length-1; i++){ %>
+                                    <% for(i=0; i<=coursesTaken.length-1; i++){ %>
                                         <li>
-                                            <a href="/showCourse/<%= coursesTAing[i]._id %>">
-                                                <%= coursesTAing[i].name %>
+                                            <a class="link-info" href="/showCourse/<%= coursesTaken[i]._id %>">
+                                                <%= coursesTaken[i].name %>
                                             </a>
                                         </li>
                                         <% } %>
                                 </ul>
                             </div>
-                            <div class="col-lg-4 bg-danger">
-                                <h2>Courses I'm Teaching</h2>
+                            <div class="card bg-danger">
+                                <div class="card-header">Courses I'm Teaching</div>
                                 <ul>
                                     <% for(i=0; i<=coursesOwned.length-1; i++){ %>
                                         <li>
-                                            <a href="/showCourse/<%= coursesOwned[i]._id %>">
+                                            <a class="link-info" href="/showCourse/<%= coursesOwned[i]._id %>">
                                                 <%= coursesOwned[i].name %>
                                             </a>
                                         </li>

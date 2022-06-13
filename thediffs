@@ -1484,7 +1484,7 @@ index 071d54e..2749a87 100644
 --- a/views/createCourse.ejs
 +++ b/views/createCourse.ejs
 @@ -2,12 +2,26 @@
- <%- include('menubar') -%>
+<%- include('menubar') -%>
      <div class="jumbotron">
          <h1>Create a Course</h1>
 -        <p> add your info below</p>
@@ -1511,7 +1511,7 @@ index 071d54e..2749a87 100644
 +    </p>
  
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
 diff --git a/views/editProblem.ejs b/views/editProblem.ejs
 index 8459448..56921fc 100644
 --- a/views/editProblem.ejs
@@ -1659,7 +1659,7 @@ index 5f32ad6..53f4459 100644
 --- a/views/login.ejs
 +++ b/views/login.ejs
 @@ -1,7 +1,9 @@
- <%- include('bootheader') -%>
+<%- include('bootheader') -%>
      <div class="jumbotron">
 -        <h1>Login to the Specs Grading App </h1>
 -        <p> You must have a gmail account to login to the Peer Review App </p>
@@ -1698,8 +1698,8 @@ index 4e78472..fa325a7 100644
 --- a/views/reviewAnswer.ejs
 +++ b/views/reviewAnswer.ejs
 @@ -1,12 +1,17 @@
- <%- include('bootheader') -%>
- <%- include('menubar') -%>
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
  
 -
 +  <h2>Grading </h2>
@@ -1970,7 +1970,7 @@ index 346ca8b..fecb39d 100644
 -
  
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
 diff --git a/views/showOneStudentInfo.ejs b/views/showOneStudentInfo.ejs
 index 9cde173..1412f61 100644
 --- a/views/showOneStudentInfo.ejs
@@ -1989,7 +1989,7 @@ index b694d25..7d19f05 100644
 --- a/views/showProblem.ejs
 +++ b/views/showProblem.ejs
 @@ -2,11 +2,7 @@
- <%- include('menubar') -%>
+<%- include('menubar') -%>
  
      <h3><%= problem.description %></h3>
 -		<% if (course.ownerId ==user.id ) {%>
@@ -2090,14 +2090,14 @@ index b694d25..7d19f05 100644
 -
 -
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
 diff --git a/views/showProblemSet.ejs b/views/showProblemSet.ejs
 index 6d5cc50..c1b896d 100644
 --- a/views/showProblemSet.ejs
 +++ b/views/showProblemSet.ejs
 @@ -1,35 +1,29 @@
- <%- include('bootheader') -%>
- <%- include('menubar') -%>
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
 -    <h1><%= problemSet.name %></h1>
 -
 -
@@ -2143,7 +2143,7 @@ index 6d5cc50..c1b896d 100644
 -
 -
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
 diff --git a/views/showSkill.ejs b/views/showSkill.ejs
 deleted file mode 100644
 index b04caad..0000000

@@ -402,7 +402,7 @@ app.post("/joinCourse", async (req, res, next) => {
     let coursePin = req.body.coursePin;
 
     res.locals.courseInfo = await Course.findOne({coursePin: coursePin}, "name coursePin ownerId");
-
+    
     const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
     res.locals.isEnrolled = memberList.length > 0;
 

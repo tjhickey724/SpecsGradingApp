@@ -1,24 +1,26 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
+    <%- include('menubar') -%>
 
-<hr>
-<b>Skills</b>
-    <ul>
-    <% for(i = 0; i<= skills.length-1; i++){  %>
-        <li>
+        <hr>
+        <b>Skills</b>
+        <ul>
+            <% for(i=0; i<=skills.length-1; i++){ %>
+                <li>
 
-            <a href="/showSkill/<%= skills[i]._id %>">
-                <%= skills[i].name %>
-            </a>
-                <i><small><%= skills[i].createdAt %></small></i>
-        </li>
-    <% } %>
-    </ul>
-<hr>
+                    <a href="/showSkill/<%= skills[i]._id %>">
+                        <%= skills[i].name %>
+                    </a>
+                    <i><small>
+                            <%= skills[i].createdAt %>
+                        </small></i>
+                </li>
+                <% } %>
+        </ul>
+        <hr>
 
-<a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-danger">
-    Return Home
-</a>
+        <a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-danger">
+            Return Home
+        </a>
 
 
-<%- include('bootfooter') -%>
+        <%- include('bootfooter') -%>

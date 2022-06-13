@@ -1,19 +1,19 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-<br>
-<% if (isOwner) { %>
-<a href="/editSkill/<%= skill._id %>"
-    class="btn btn-sm btn-info">
-      Edit
- </a>
- <% } %>
-<h1>  Skill Name and Description </h1>
-<h3>Course: <%= courseInfo.name %> </h3>
-<h3>Name: <%= skill.name %></h3>
-<h3>Description:</h3>
-<pre class="bg-default"
-         style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"
-         >
+  <%- include('menubar') -%>
+    <br>
+    <% if (isOwner) { %>
+      <a href="/editSkill/<%= skill._id %>" class="btn btn-sm btn-info">
+        Edit
+      </a>
+      <% } %>
+        <h1> Skill Name and Description </h1>
+        <h3>Course: <%= courseInfo.name %>
+        </h3>
+        <h3>Name: <%= skill.name %>
+        </h3>
+        <h3>Description:</h3>
+        <pre class="bg-default"
+          style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px">
 <%= skill.description %>
 </div>
 <hr>

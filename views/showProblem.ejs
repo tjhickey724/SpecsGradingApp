@@ -1,120 +1,202 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
+	<%- include('menubar') -%>
 
-    <h3><%= problem.description %></h3>
+		<h3>
+			<%= problem.description %>
+		</h3>
 
-		<% if (course.ownerId ==user.id ) {%>
+		<% if (course.ownerId==user.id ) {%>
 			Visible: <%= problem.visible %><br>
-			Answerable: <%= problem.answerable %> <br>
-			Submitable: <%= problem.submitable %> <br>
-			Peer Reviewable: <%= problem.peerReviewable %>
-			<hr>
-			<a href="/uploadGrades/problem_id">upload grades</a>
-			<hr>
-			<% } %>
-			<% if (course.ownerId.equals(user._id)) { %>
-        <div class="row">
-            <div class="col-md">
-                Answers: <%= answerCount %>
-            </div>
-            <div class="col-md">
-                Reviews: <%= reviewCount %>
-            </div>
-            <div class="col-md">
-                Average Review: <%= Math.round(100*averageReview/problem.points) %>%
-                 = <%= averageReview.toFixed(2) %>/<%= problem.points %>
-            </div>
-            <div class="col-md text-right">
-                <a href="/editProblem/<%= problem._id %>"
-                   class="btn btn-sm btn-info">
-                     Edit
-                </a>
-            </div>
-        </div>
-    <% } %>
-
-
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%=
-			problem.problemText %><% } else {%>
-				This problem is not active at the moment.<% }
-%>	</div>
-    <hr>
-    <% if (answers.length > 0 && problem.submitable
-						|| course.ownerId.equals(user._id) ) { %>
-        <% if (!course.ownerId.equals(user._id)) { %>
-            <h2>Your Answer</h2>
-            <small>Submission time and date:<%= problem.createdAt %> </small>
-            <pre class="bg-success      "><%= answers[0].answer %></pre>
-        <% } %>
-				<% if (problem.peerReviewable || course.ownerId.equals(user._id)) { %>
-        <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-				<% } %>
-
-        <% if (!course.ownerId.equals(user._id)) {%>
-            <a href="/showReviewsOfAnswer/<%= answers[0]._id %>" class="btn btn-small btn-info">Reviews of your answer</a>
-        <% } %>
-        <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your Reviews of other's answers</a>
-				<a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
-        <% if ( true|| course.ownerId.equals(user._id)) { %>
-            <a href="/showAllAnswers/<%= problem._id %>" class="btn btn-small btn-danger">Show all answers</a>
-				<%} %>
-				<% if (course.ownerId.equals(user._id)) {
-					    if (problem.allowAnswers) { %>
-						      <a href="/stopProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Stop Problem</a>
-						<% } else { %>
-								  <a href="/startProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Start Problem</a>
-					  <% } %>
-				<%} %>
-
-    <% } else if (!problem.allowAnswers) { %>
-			<h4>This question has been closed. </h4>
-
-			<% } else {
-		 let theAnswer = (answers.length>0?answers[0]:{answer:problem.problemTemplate||""})
-		 console.log('template='+problem.problemTemplate)
-		 %>
-		 <% if (!problem.answerable){%>
-			 <h1>You may not submit answers at this time </h1>
-			<% } else { %>
-            <form method="post" action="/saveAnswer/<%= problem._id %>">
-                    <div class="form-group">
-                        <label for="answer">Enter your answer below:</label>
-                        <textarea class="form-control rounded-0" id="answer" name="answer" rows="10"
-				  style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%=theAnswer.answer%></textarea>
-                    </div>
-                    <br>
-
-										<% if (problem.submitable) {%>
-		                     <input class="btn btn-lg btn-danger"
-		 													type="submit" value="submit">
-		 							 <% } else {%>
-		 								 		<input class="btn btn-lg btn-warning"
-		 													type="submit" value="save">
-		 							 <% } %>
-
-		 							 <% if (theAnswer.createdAt) {%>
-		 								 <br> Last save at <%= theAnswer.createdAt %>
-		 								 <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return to Problem Set without saving</a>
-		 								 <% } %>
-
-
-            </form>
-				<% } %>
-    <% } %>
-
-		<hr>
-				<%= skills.length %> Skills:
-				<ul>
-						<% for(let i=0;i<skills.length;i++){%>
-							<%if (skillsMastered.includes(skills[i]._id.toString())) {%>
-								<li style="color:blue"><%= skills[i].name %> -- mastered!</li>
-							<%} else {%>
-								<li style="color:red"><%= skills[i].name %> -- not yet mastered</li>
+				Answerable: <%= problem.answerable %> <br>
+					Submitable: <%= problem.submitable %> <br>
+						Peer Reviewable: <%= problem.peerReviewable %>
+							<hr>
+							<a href="/uploadGrades/problem_id">upload grades</a>
+							<hr>
 							<% } %>
+								<% if (course.ownerId.equals(user._id)) { %>
+									<div class="row">
+										<div class="col-md">
+											Answers: <%= answerCount %>
+										</div>
+										<div class="col-md">
+											Reviews: <%= reviewCount %>
+										</div>
+										<div class="col-md">
+											Average Review: <%= Math.round(100*averageReview/problem.points) %>%
+												= <%= averageReview.toFixed(2) %>/<%= problem.points %>
+										</div>
+										<div class="col-md text-right">
+											<a href="/editProblem/<%= problem._id %>" class="btn btn-sm btn-info">
+												Edit
+											</a>
+										</div>
+									</div>
+									<% } %>
 
-						<% } %>
-				</ul>
+
+										<div class="bg-default"
+											style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
+											<% if (problem.allowAnswers) { %>
+												<%= problem.problemText %>
+													<% } else {%>
+														This problem is not active at the moment.<% } %>
+										</div>
+										<hr>
+										<% if (answers.length> 0 && problem.submitable
+											|| course.ownerId.equals(user._id) ) { %>
+											<% if (!course.ownerId.equals(user._id)) { %>
+												<h2>Your Answer</h2>
+												<small>Submission time and date:<%= problem.createdAt %> </small>
+												<pre class="bg-success      "><%= answers[0].answer %></pre>
+												<% } %>
+													<% if (problem.peerReviewable || course.ownerId.equals(user._id)) {
+														%>
+														<a href="/reviewAnswers/<%= problem._id %>"
+															class="btn btn-small btn-warning">Review others answers</a>
+														<% } %>
+
+															<% if (!course.ownerId.equals(user._id)) {%>
+																<a href="/showReviewsOfAnswer/<%= answers[0]._id %>"
+																	class="btn btn-small btn-info">Reviews of your
+																	answer</a>
+																<% } %>
+																	<a href="/showReviewsByUser/<%= problem._id %>"
+																		class="btn btn-small btn-info">Your Reviews of
+																		other's answers</a>
+																	<a href="/showProblemSet/<%= problem.psetId %>"
+																		class="btn btn-small btn-primary">Back to the
+																		Problem Set</a>
+																	<% if ( true|| course.ownerId.equals(user._id)) { %>
+																		<a href="/showAllAnswers/<%= problem._id %>"
+																			class="btn btn-small btn-danger">Show all
+																			answers</a>
+																		<%} %>
+																			<% if (course.ownerId.equals(user._id)) { if
+																				(problem.allowAnswers) { %>
+																				<a href="/stopProblem/<%= problem._id %>"
+																					class="btn btn-small btn-secondary">Stop
+																					Problem</a>
+																				<% } else { %>
+																					<a href="/startProblem/<%= problem._id %>"
+																						class="btn btn-small btn-secondary">Start
+																						Problem</a>
+																					<% } %>
+																						<%} %>
+
+																							<% } else if
+																								(!problem.allowAnswers)
+																								{ %>
+																								<h4>This question has
+																									been closed. </h4>
+
+																								<% } else { let
+																									theAnswer=(answers.length>
+																									0?answers[0]:{answer:problem.problemTemplate||""})
+																									console.log('template='+problem.problemTemplate)
+																									%>
+																									<% if
+																										(!problem.answerable){%>
+																										<h1>You may not
+																											submit
+																											answers at
+																											this time
+																										</h1>
+																										<% } else { %>
+																											<form
+																												method="post"
+																												action="/saveAnswer/<%= problem._id %>">
+																												<div
+																													class="form-group">
+																													<label
+																														for="answer">Enter
+																														your
+																														answer
+																														below:</label>
+																													<textarea
+																														class="form-control rounded-0"
+																														id="answer"
+																														name="answer"
+																														rows="10"
+																														style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%=theAnswer.answer%></textarea>
+																												</div>
+																												<br>
+
+																												<% if
+																													(problem.submitable)
+																													{%>
+																													<input
+																														class="btn btn-lg btn-danger"
+																														type="submit"
+																														value="submit">
+																													<% } else
+																														{%>
+																														<input
+																															class="btn btn-lg btn-warning"
+																															type="submit"
+																															value="save">
+																														<% }
+																															%>
+
+																															<% if
+																																(theAnswer.createdAt)
+																																{%>
+																																<br>
+																																Last
+																																save
+																																at
+																																<%= theAnswer.createdAt
+																																	%>
+																																	<a class="btn btn-primary"
+																																		href="/showProblemSet/<%= problem.psetId %>">Return
+																																		to
+																																		Problem
+																																		Set
+																																		without
+																																		saving</a>
+																																	<% }
+																																		%>
+
+
+																											</form>
+																											<% } %>
+																												<% } %>
+
+																													<hr>
+																													<%= skills.length
+																														%>
+																														Skills:
+																														<ul>
+																															<% for(let
+																																i=0;i<skills.length;i++){%>
+																																<%if (skillsMastered.includes(skills[i]._id.toString()))
+																																	{%>
+																																	<li
+																																		style="color:blue">
+																																		<%= skills[i].name
+																																			%>
+																																			--
+																																			mastered!
+																																	</li>
+																																	<%} else
+																																		{%>
+																																		<li
+																																			style="color:red">
+																																			<%= skills[i].name
+																																				%>
+																																				--
+																																				not
+																																				yet
+																																				mastered
+																																		</li>
+																																		<% }
+																																			%>
+
+																																			<% }
+																																				%>
+																														</ul>
 
 
 
-<%- include('bootfooter') -%>
+																														<%- include('bootfooter')
+																															-%>

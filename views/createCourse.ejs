@@ -1,27 +1,29 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <div class="jumbotron">
-        <h1>Create a Course</h1>
-        <p> enter a new course name and hit return</p>
-    </div>
+    <%- include('menubar') -%>
+        <div class="p-5 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1>Create a Course</h1>
+                <p> enter a new course name and hit return</p>
+            </div>
+        </div>
 
-    <form method="post" action="createNewCourse">
-        Course Name: <input type="text" name="courseName" placeholder="enter course name here">
-        <br>
-        <input type="checkbox" name="norobot"> I am not a robot <br>
-        <input type="checkbox" name="robot"> I am a robot<br><br>
-        <input class="btn btn-md btn-danger" type="submit" value="Create the new course">
-    </form>
-    <hr>
-    <p>
-        Select a name which will easily identify your course.
-        For example give the Course id,section and semester, e.g. COSI10a-02 Spr20
-        The course name will only be visible to you and the students who
-        register in your course.
-    </p>
-    <p> Students register using a 7 digit pin number which will be
-        created for you when you make this course.
-    </p>
+        <form method="post" action="createNewCourse">
+            Course Name: <input type="text" name="courseName" placeholder="enter course name here">
+            <br>
+            <input type="checkbox" name="norobot"> I am not a robot <br>
+            <input type="checkbox" name="robot"> I am a robot<br><br>
+            <input class="btn btn-md btn-danger" type="submit" value="Create the new course">
+        </form>
+        <hr>
+        <p>
+            Select a name which will easily identify your course.
+            For example give the Course id,section and semester, e.g. COSI10a-02 Spr20
+            The course name will only be visible to you and the students who
+            register in your course.
+        </p>
+        <p> Students register using a 7 digit pin number which will be
+            created for you when you make this course.
+        </p>
 
 
-<%- include('bootfooter') -%>
+        <%- include('bootfooter') -%>

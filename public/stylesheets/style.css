@@ -1,13 +1,33 @@
-body {
+#appbody {
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  background-color:#ffeedd;
+}
+
+body {
+  /* font: 14px "Lucida Grande", Helvetica, Arial, sans-serif; */
+  font-family: "Segoe UI", "SegoeUI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #ffeedd;
 }
 
 pre {
-  padding:10px;
+  padding: 10px;
 }
 
 a {
-  color: #00B7FF;
+  /* color: #00B7FF; */
+  text-decoration: none;
+}
+
+.oldlinkcolor a,
+a.oldlinkcolor {
+  color: #00b7ff;
+}
+
+.abcRioButtonContents {
+  font-family: Roboto, arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.21px;
+  margin-left: 6px;
+  margin-right: 6px;
+  vertical-align: top;
 }

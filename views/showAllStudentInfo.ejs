@@ -1,54 +1,59 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <script type="text/javascript" src="/js/sort-table.js"></script>
-    <h1>Student Info for <%= courseInfo.name %> </h1>
+    <%- include('menubar') -%>
+        <script type="text/javascript" src="/js/sort-table.js"></script>
+        <h1>Student Info for <%= courseInfo.name %>
+        </h1>
 
-    Number of Students in Class: <%= studentsInfo.length %>
-    <table class1="table table-bordered table-striped"
-           class="js-sort-table"
-           >
-      <thead>
-          <tr>
-              <th>Name/Email</th>
-              <th>Answers and Reviews</th>
-          </tr>
-      </thead>
-      <tbody>
-        <% for(let i=0; i<studentsInfo.length; i++) {
-            let grades = gradeSheet.grades[studentsInfo[i]._id]
-            %>
-          <tr style="border-top: 30px solid red">
-              <td class="align-top text-danger h6">
-                  <%= studentsInfo[i].googlename %>
-                  <br>
-                  <%= studentsInfo[i].googleemail %>
-              </td>
-              <td>
-                  <% for (a in grades.answers) {
-                      let answer = grades.answers[a].answer
-                      let reviews = grades.answers[a].reviews
-                      let reviewScores = reviews.map((x)=>(x.points))
-                      let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
-                      %>
-                      <h4 style="margin-top: 20px; border-top:thick solid blue"> <%= problem.description %> </h4>
-                      <div class="bg-default" style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
-                      <div class="bg-info" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></div>
-                       Review Scores:: <%= JSON.stringify(reviewScores,null,10) %> / <%= problem.points %> =
-                     <%= (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length * problem.points)*100).toFixed(0) %>%
-                     <% for (r in reviews){
-                         review = reviews[r] %>
-                         <div class="bg-warning"
-                              style="border:thin solid black; white-space: pre-wrap; font-family:monospace"
-                              >review: <%= review.points %>/<%= problem.points %> <br> <%= review.review %>
-                         </div>
-                     <% } %>
-                  <% } %>
+        Number of Students in Class: <%= studentsInfo.length %>
+            <table class1="table table-bordered table-striped" class="js-sort-table">
+                <thead>
+                    <tr>
+                        <th>Name/Email</th>
+                        <th>Answers and Reviews</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let i=0; i<studentsInfo.length; i++) { let grades=gradeSheet.grades[studentsInfo[i]._id] %>
+                        <tr style="border-top: 30px solid red">
+                            <td class="align-top text-danger h6">
+                                <%= studentsInfo[i].googlename %>
+                                    <br>
+                                    <%= studentsInfo[i].googleemail %>
+                            </td>
+                            <td>
+                                <% for (a in grades.answers) { let answer=grades.answers[a].answer let
+                                    reviews=grades.answers[a].reviews let reviewScores=reviews.map((x)=>(x.points))
+                                    let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
+                                    %>
+                                    <h4 style="margin-top: 20px; border-top:thick solid blue">
+                                        <%= problem.description %>
+                                    </h4>
+                                    <div class="bg-default"
+                                        style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px">
+                                        <%= problem.problemText %>
+                                    </div>
+                                    <div class="bg-info"
+                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
+                                        <%= answer.answer %>
+                                    </div>
+                                    Review Scores:: <%= JSON.stringify(reviewScores,null,10) %> / <%= problem.points %>
+                                            =
+                                            <%= (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length *
+                                                problem.points)*100).toFixed(0) %>%
+                                                <% for (r in reviews){ review=reviews[r] %>
+                                                    <div class="bg-warning"
+                                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace">
+                                                        review: <%= review.points %>/<%= problem.points %> <br>
+                                                                <%= review.review %>
+                                                    </div>
+                                                    <% } %>
+                                                        <% } %>
 
 
-             </td>
-          </tr>
-        <% } %>
-      </tbody>
-    </table>
+                            </td>
+                        </tr>
+                        <% } %>
+                </tbody>
+            </table>
 
-<%- include('bootfooter') -%>
+            <%- include('bootfooter') -%>

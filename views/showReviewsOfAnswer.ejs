@@ -1,33 +1,36 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
+    <%- include('menubar') -%>
 
-<script type="text/javascript" src="/js/clickThumb.js"></script>
-    <hr>
-    <h3 class="bg-danger">
-    <% let userIsTA = true && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
-       if (userIsTA) {
-           %>
-          <%= student.googlename %> <%= student.googleemail %>
-    <% } %>
-    </h3>
-    <h1>Problem</h1>
-    <h3><%= problem.description %></h3>
-    <b>The Question</b>
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+        <script type="text/javascript" src="/js/clickThumb.js"></script>
+        <hr>
+        <h3 class="bg-danger">
+            <% let userIsTA=true && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
+                if (userIsTA) {
+                %>
+                <%= student.googlename %>
+                    <%= student.googleemail %>
+                        <% } %>
+        </h3>
+        <h1>Problem</h1>
+        <h3>
+            <%= problem.description %>
+        </h3>
+        <b>The Question</b>
+        <div class="bg-default"
+            style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
+            <%= problem.problemText %>
+        </div>
 
-    <b>Their Answer</b>
-    <small>Submission time and date:<%= answer.createdAt %> </small>
-    <pre class="bg-warning"
-         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
-         ><%= answer.answer %></pre>
-    <br>
+        <b>Their Answer</b>
+        <small>Submission time and date:<%= answer.createdAt %> </small>
+        <pre class="bg-warning"
+            style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></pre>
+        <br>
 
-    <h2>All Reviews of this Answer</h2>
+        <h2>All Reviews of this Answer</h2>
 
-    <ul>
-    <% let youReviewed = false
-       for(i = 0; i<= reviews.length-1; i++){
-        console.log("in reviews i= "+i)
+        <ul>
+            <% let youReviewed=false for(i=0; i<=reviews.length-1; i++){ console.log("in reviews i="+i)
         console.log(reviews[i].upvoters)
         console.log(user._id)
         let isOfficial =
@@ -35,198 +38,203 @@
 
         let numLikesU = reviews[i].upvoters.length
         let userLikesU = reviews[i].upvoters.includes(user._id)
-        let fa_prefixU = userLikesU?"fas":"far"
-        let numLikesD = reviews[i].downvoters.length
-        let userLikesD = reviews[i].downvoters.includes(user._id)
-        let fa_prefixD = userLikesD?"fas":"far"
-        let yourReview = reviews[i].reviewerId.equals(user._id)
-        youReviewed = youReviewed || yourReview
-        let taReviewer = taList.filter(x=> (x.equals(reviews[i].reviewerId)))
-        let isTAreview = taReviewer.length==1
-        let fullskills = reviews[i].fullskills
-        %>
+        let fa_prefixU = userLikesU?" fas":"far" let numLikesD=reviews[i].downvoters.length let
+                userLikesD=reviews[i].downvoters.includes(user._id) let fa_prefixD=userLikesD?"fas":"far" let
+                yourReview=reviews[i].reviewerId.equals(user._id) youReviewed=youReviewed || yourReview let
+                taReviewer=taList.filter(x=> (x.equals(reviews[i].reviewerId)))
+                let isTAreview = taReviewer.length==1
+                let fullskills = reviews[i].fullskills
+                %>
 
 
-        <% if (isOfficial) {%>
-            <li style="border:thick solid green; background:lightgreen;margin:10px;padding:10px">
-                <h1>Review for the Grade</h1>
-            <% }else { %>
-            <li style="border:thick solid black; margin:10px;padding:10px">
+                <% if (isOfficial) {%>
+                    <li style="border:thick solid green; background:lightgreen;margin:10px;padding:10px">
+                        <h1>Review for the Grade</h1>
+                        <% }else { %>
+                    <li style="border:thick solid black; margin:10px;padding:10px">
 
-        <% } %>
-
-            <% if (userIsTA){%>
-                <form method="post" action="/removeReviews">
-                     <input type="checkbox" name='deletes'
-                     value="<%= reviews[i]._id%>"/>
-                     <input type="submit" class="btn btn-sm btn-danger" value="delete"/>
-                     check box and press delete button to delete
-                 </form>
-            <% } %>
-            <i  class="<%= fa_prefixU %> fa-thumbs-up"
-                   id='<%= "reviewU"+i %>'
-                   onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','U')"></i>
-
-            <i  class="<%= fa_prefixD %> fa-thumbs-down"
-                  id='<%= "reviewD"+i %>'
-                  onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','D')"></i>
-
-            <i>
-
-            likes: <span id='<%="likes"+ i %>'>
-                 <%= numLikesU-numLikesD %>
-               </span>
-            .... grade:
-            <%= reviews[i].points %>/<%= problem.points %>pts
-            <% if (yourReview){%>
-                <b>Your Review!</b>
-
-
-            <% } %>
-            </i>
-            <br>
-            Skills Mastered:
-            <% if (fullskills.length==0) {%>
-                <ul>
-                    <li>
-                        no skills mastered
-                    </li>
-                </ul>
-            <%}else {%>
-
-            <ul>
-            <% fullskills.map((x) => {%>
-                <li>
-                    <span  style="padding:5px;color:red">
-                        <%= x['name']%>
-                    </span>
-                </li>
-             <%}) %>
-             </ul>
-            <% }%>
-
-            <% if (yourReview){%>
-                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } else if (isTAreview) {%>
-                <b>TA Review</b>
-                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } else {%>
-                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } %>
-            <%= reviews[i].review %></div>
-            <br>
-            <!-- allow user to request regrades of their answers -->
-            <% if (answer.studentId==user.id) {%>
-                <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
-                    Regrade request:
-                    Reason:<br>
-                    <textarea name="reason" style="width:100%"></textarea>
-                    <hr>
-
-
-                    <input type="submit" value="request regrade">
-                </form>
-            <% } %>
-
-        </li>
-    <% } %>
-    </ul>
-    <hr>
-
-
-
-    <% if (!youReviewed) { %>
-        <h1> You didn't review this one </h1>
-        <div class="row">
-            <div class="col-md-6">
-
-                <form method="post" action="/saveReview2/<%= problem._id %>/<%= answer._id %>">
-                    Points:
-                    <select name="points">
-                        <% for(let j = 0;j<=problem.points; j++) { %>
-                            <option> <%= j %> </option>
                         <% } %>
-                    </select><br>
-                    <% for(let i=0;i<skills.length;i++){%>
-                        <input type="checkbox"
-                               name="skill"
-                               value="<%= skills[i]._id%>"
-                               >
-                        <%= skills[i].name %><br>
+
+                            <% if (userIsTA){%>
+                                <form method="post" action="/removeReviews">
+                                    <input type="checkbox" name='deletes' value="<%= reviews[i]._id%>" />
+                                    <input type="submit" class="btn btn-sm btn-danger" value="delete" />
+                                    check box and press delete button to delete
+                                </form>
+                                <% } %>
+                                    <i class="<%= fa_prefixU %> fa-thumbs-up" id='<%= "reviewU"+i %>'
+                                        onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','U')"></i>
+
+                                    <i class="<%= fa_prefixD %> fa-thumbs-down" id='<%= "reviewD"+i %>'
+                                        onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','D')"></i>
+
+                                    <i>
+
+                                        likes: <span id='<%="likes"+ i %>'>
+                                            <%= numLikesU-numLikesD %>
+                                        </span>
+                                        .... grade:
+                                        <%= reviews[i].points %>/<%= problem.points %>pts
+                                                <% if (yourReview){%>
+                                                    <b>Your Review!</b>
+
+
+                                                    <% } %>
+                                    </i>
+                                    <br>
+                                    Skills Mastered:
+                                    <% if (fullskills.length==0) {%>
+                                        <ul>
+                                            <li>
+                                                no skills mastered
+                                            </li>
+                                        </ul>
+                                        <%}else {%>
+
+                                            <ul>
+                                                <% fullskills.map((x)=> {%>
+                                                    <li>
+                                                        <span style="padding:5px;color:red">
+                                                            <%= x['name']%>
+                                                        </span>
+                                                    </li>
+                                                    <%}) %>
+                                            </ul>
+                                            <% }%>
+
+                                                <% if (yourReview){%>
+                                                    <div
+                                                        style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                                                        <% } else if (isTAreview) {%>
+                                                            <b>TA Review</b>
+                                                            <div
+                                                                style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                                                                <% } else {%>
+                                                                    <div
+                                                                        style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                                                                        <% } %>
+                                                                            <%= reviews[i].review %>
+                                                                    </div>
+                                                                    <br>
+                                                                    <!-- allow user to request regrades of their answers -->
+                                                                    <% if (answer.studentId==user.id) {%>
+                                                                        <form method="post"
+                                                                            action="/requestRegrade/<%= reviews[i].id %>">
+                                                                            Regrade request:
+                                                                            Reason:<br>
+                                                                            <textarea name="reason"
+                                                                                style="width:100%"></textarea>
+                                                                            <hr>
+
+
+                                                                            <input type="submit"
+                                                                                value="request regrade">
+                                                                        </form>
+                                                                        <% } %>
+
+                    </li>
                     <% } %>
+        </ul>
+        <hr>
 
-                      <div class="form-group">
-                          <label for="review">Enter your review below:</label>
-                          <textarea class="form-control rounded-0" id="review" name="review" rows="10"></textarea>
-                      </div>
-                      <br>
-                      <input class="btn btn-lg btn-warning"
-                          name="destination"
-                          type="submit"
-                          value="submit and view next">
-                      <input class="btn btn-lg btn-danger"
-                          type="submit" name="destination"
-                          value="submit and view this again">
 
-                </form>
-            </div>
-            <div class="col-md-6">
-                <b>Rubric</b>
-                <hr>
-                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd"><%= problem.rubric %>
+
+        <% if (!youReviewed) { %>
+            <h1> You didn't review this one </h1>
+            <div class="row">
+                <div class="col-md-6">
+
+                    <form method="post" action="/saveReview2/<%= problem._id %>/<%= answer._id %>">
+                        Points:
+                        <select name="points">
+                            <% for(let j=0;j<=problem.points; j++) { %>
+                                <option>
+                                    <%= j %>
+                                </option>
+                                <% } %>
+                        </select><br>
+                        <% for(let i=0;i<skills.length;i++){%>
+                            <input type="checkbox" name="skill" value="<%= skills[i]._id%>">
+                            <%= skills[i].name %><br>
+                                <% } %>
+
+                                    <div class="form-group">
+                                        <label for="review">Enter your review below:</label>
+                                        <textarea class="form-control rounded-0" id="review" name="review"
+                                            rows="10"></textarea>
+                                    </div>
+                                    <br>
+                                    <input class="btn btn-lg btn-warning" name="destination" type="submit"
+                                        value="submit and view next">
+                                    <input class="btn btn-lg btn-danger" type="submit" name="destination"
+                                        value="submit and view this again">
+
+                    </form>
                 </div>
+                <div class="col-md-6">
+                    <b>Rubric</b>
+                    <hr>
+                    <div class="bg-default"
+                        style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd">
+                        <%= problem.rubric %>
+                    </div>
 
-            </div>
-        <div>
-    <% } %>
-    <h1 style="margin-top:20px;border-top:thick solid black">
-        Regrade Requests</h1>
-    <ol>
-    <% for(let i=0; i<regradeRequests.length; i++){
-          rr = regradeRequests[i]
-          if (rr.completed) continue %>
-          <li>
-              reason:<br>
-              <%= rr.reason %><br>
-       <% if (userIsTA){%>
-           <form method="post" action="/updateRegradeRequest/<%= rr._id%>">
+                </div>
+                <div>
+                    <% } %>
+                        <h1 style="margin-top:20px;border-top:thick solid black">
+                            Regrade Requests</h1>
+                        <ol>
+                            <% for(let i=0; i<regradeRequests.length; i++){ rr=regradeRequests[i] if (rr.completed)
+                                continue %>
+                                <li>
+                                    reason:<br>
+                                    <%= rr.reason %><br>
+                                        <% if (userIsTA){%>
+                                            <form method="post" action="/updateRegradeRequest/<%= rr._id%>">
 
-               reply: <br>
-               <textarea name="reply"></textarea>
-               <hr>
-               <input type="submit" value="send reply">
-           </form>
-       <% }%>
-       <hr>
-       </li>
-    <% }%>
-    </ol>
-    <h2> Completed regrade requests </h2>
-    <ul>
-    <% for(let i=0; i<regradeRequests.length; i++){
-          rr = regradeRequests[i]
-          if (!rr.completed) continue %>
-          <li>
+                                                reply: <br>
+                                                <textarea name="reply"></textarea>
+                                                <hr>
+                                                <input type="submit" value="send reply">
+                                            </form>
+                                            <% }%>
+                                                <hr>
+                                </li>
+                                <% }%>
+                        </ol>
+                        <h2> Completed regrade requests </h2>
+                        <ul>
+                            <% for(let i=0; i<regradeRequests.length; i++){ rr=regradeRequests[i] if (!rr.completed)
+                                continue %>
+                                <li>
 
-               <div style="padding:5px;background-color:yellow">
-                   reason:<%= rr.reason %></div>
-               <div style="padding:5px;background-color:lightgreen">reply:
-                   <%= rr.reply %></div>
-               <hr>
+                                    <div style="padding:5px;background-color:yellow">
+                                        reason:<%= rr.reason %>
+                                    </div>
+                                    <div style="padding:5px;background-color:lightgreen">reply:
+                                        <%= rr.reply %>
+                                    </div>
+                                    <hr>
 
-       </li>
-    <% }%>
-    </ul>
-    <hr>
-    <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-    <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
-    <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
-<% if (userIsTA){%>
-<a href="/showRegradeRequests/<%= problem.courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
-<a href="/gradeProblemSet/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
+                                </li>
+                                <% }%>
+                        </ul>
+                        <hr>
+                        <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others
+                            answers</a>
+                        <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the
+                            Problem</a>
+                        <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the
+                            Problem Set</a>
+                        <% if (userIsTA){%>
+                            <a href="/showRegradeRequests/<%= problem.courseId %>"
+                                class="btn btn-small btn-primary">Back to Regrade Requests List</a>
+                            <a href="/gradeProblemSet/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to
+                                Grade Problem Set</a>
 
-    <% } %>
+                            <% } %>
 
 
 
-<%- include('bootfooter') -%>
+                                <%- include('bootfooter') -%>

@@ -1,70 +1,84 @@
 <%- include('bootheader') -%>
-<% if (loggedIn) { %>
-   <%- include('menubar') -%>
-<% } %>
+    <% if (loggedIn) { %>
+        <%- include('menubar') -%>
+            <% } %>
 
-    <div class="jumbotron">
-        <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
+                <div class="p-5 mb-3 bg-light border">
+                    <div class="container-fluid">
+                        <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
+                        <h2>Promoting Effective and Engaged Learning</h2>
+                        <% if (loggedIn){ %>
+                            <form method="post" action="/joinCourse">
+                                <div class="mx-3 my-1 row g-3 align-items-center">
+                                    <div class="col-auto">
+                                        <label for="inputPassword6" class="col-form-label"> Enroll in a course
+                                        </label>
+                                    </div>
+                                    <div class="col-auto">
+                                        <input type="input" id="coursePin" class="form-control"
+                                            aria-describedby="ccInline" placeholder="7 digit pin">
+                                    </div>
+                                    <div class="col-auto">
+                                        <span id="ccInline" class="form-text">(or
+                                            <a href="/createCourse" class="text-decoration-none">create a new
+                                                course</a>,
+                                            or
+                                            <a href="/stats" class="text-decoration-none">view usage
+                                                statistics</a>)</span>
+                                    </div>
+                                </div>
+                            </form>
+                            <% } %>
+                    </div>
+                </div>
+                <% if (!loggedIn){ %>
+                    <h2>You must login through Brandeis to use the Peer Review App:
+                        <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
+                    </h2>
+                    <% } else {%>
+                        <hr>
+                        <div class="row oldlinkcolor">
+                            <div class="col-lg-4 bg-warning">
+                                <h2>Courses I'm taking</h2>
+                                <ul>
+                                    <% for(i=0; i<=coursesTaken.length-1; i++){ %>
+                                        <li>
+                                            <a href="/showCourse/<%= coursesTaken[i]._id %>">
+                                                <%= coursesTaken[i].name %>
+                                            </a>
+                                        </li>
+                                        <% } %>
+                                </ul>
+                            </div>
+                            <div class="col-lg-4 bg-primary">
+                                <h2>Courses I'm TAing</h2>
+                                <ul>
+                                    <% for(i=0; i<=coursesTAing.length-1; i++){ %>
+                                        <li>
+                                            <a href="/showCourse/<%= coursesTAing[i]._id %>">
+                                                <%= coursesTAing[i].name %>
+                                            </a>
+                                        </li>
+                                        <% } %>
+                                </ul>
+                            </div>
+                            <div class="col-lg-4 bg-danger">
+                                <h2>Courses I'm Teaching</h2>
+                                <ul>
+                                    <% for(i=0; i<=coursesOwned.length-1; i++){ %>
+                                        <li>
+                                            <a href="/showCourse/<%= coursesOwned[i]._id %>">
+                                                <%= coursesOwned[i].name %>
+                                            </a>
+                                        </li>
+                                        <% } %>
+                                </ul>
+                            </div>
+                        </div>
 
-        <h2>Promoting Effective and Engaged Learning</h2>
-    </div>
-    <% if (!loggedIn){ %>
-        <h2>You must login through Brandeis to use the Peer Review App:
-         <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
-         </h2>
-    <% } else {%>
-        <form method="post" action="/joinCourse">
-        Enroll in a course:
-        <input type="input" name="coursePin" placeholder="7 digit pin"s>
-        or
-        <a href="/createCourse">Create a new course</a>
-        or
-        <a href="/stats">View usage statistics</a>
-        </form>
-
-        <hr>
-        <div class="row">
-            <div class="col bg-warning">
-                <h2>Courses I'm taking</h2>
-                <ul>
-                <% for(i = 0; i<= coursesTaken.length-1; i++){  %>
-                    <li>
-                        <a href="/showCourse/<%= coursesTaken[i]._id %>">
-                            <%= coursesTaken[i].name %>
-                        </a>
-                    </li>
-                <% } %>
-                </ul>
-            </div>
-            <div class="col bg-primary">
-                <h2>Courses I'm TAing</h2>
-                <ul>
-                <% for(i = 0; i<= coursesTAing.length-1; i++){  %>
-                    <li>
-                        <a href="/showCourse/<%= coursesTAing[i]._id %>">
-                            <%= coursesTAing[i].name %>
-                        </a>
-                    </li>
-                <% } %>
-                </ul>
-            </div>
-            <div class="col bg-danger">
-                <h2>Courses I'm Teaching</h2>
-                <ul>
-                <% for(i = 0; i<= coursesOwned.length-1; i++){  %>
-                    <li>
-                        <a href="/showCourse/<%= coursesOwned[i]._id %>">
-                            <%= coursesOwned[i].name %>
-                        </a>
-                    </li>
-                <% } %>
-                </ul>
-            </div>
-        </div>
 
 
+                        <%} %>
+                            <br>
 
-    <%} %>
-<br>
-
-<%- include('bootfooter') -%>
+                            <%- include('bootfooter') -%>

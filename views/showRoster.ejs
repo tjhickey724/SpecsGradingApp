@@ -1,48 +1,53 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <h1><%= courseInfo.name %></h1>
-    studentPin: <%= courseInfo.coursePin %>
-    <br>
-
-<hr>
-
-    <a href="/showCourse/<%= courseInfo._id %>" class="btn btn-sm btn-info">
-        Back to Course
-    </a>
-<h1>Roster</h1>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr><th>Name</th><th>Email</th></tr>
-        </thead>
-        <tbody>
-            <% for(i = 0; i< members.length; i++){ %>
-                <tr>
-                    <td>
-                        <%= members[i].googlename %>
-                    </td>
-                    <td>
-                        <%= members[i].googleemail %>
-                    </td>
-                </tr>
-        </tbody>
-    <% } %>
-    </table>
-
-<hr>
-    <% if (user._id.equals(courseInfo.ownerId)) { %>
-        You are the  Owner
-        <form method="post" action="/addStudents/<%= courseInfo._id %>">
-            <h2>Enter emails of students to add to your course</h2>
-            <textarea rows="10" cols="40" name="emails"></textarea>
+    <%- include('menubar') -%>
+        <h1>
+            <%= courseInfo.name %>
+        </h1>
+        studentPin: <%= courseInfo.coursePin %>
             <br>
-            <input type="submit">
-        </form>
-    <% } else { %>
-        You are not the owner
-    <%} %>
-    <br>
+
+            <hr>
+
+            <a href="/showCourse/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+                Back to Course
+            </a>
+            <h1>Roster</h1>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(i=0; i< members.length; i++){ %>
+                        <tr>
+                            <td>
+                                <%= members[i].googlename %>
+                            </td>
+                            <td>
+                                <%= members[i].googleemail %>
+                            </td>
+                        </tr>
+                </tbody>
+                <% } %>
+            </table>
+
+            <hr>
+            <% if (user._id.equals(courseInfo.ownerId)) { %>
+                You are the Owner
+                <form method="post" action="/addStudents/<%= courseInfo._id %>">
+                    <h2>Enter emails of students to add to your course</h2>
+                    <textarea rows="10" cols="40" name="emails"></textarea>
+                    <br>
+                    <input type="submit">
+                </form>
+                <% } else { %>
+                    You are not the owner
+                    <%} %>
+                        <br>
 
 
 
 
-<%- include('bootfooter') -%>
+                        <%- include('bootfooter') -%>

@@ -1,132 +1,124 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <h1><%= courseInfo.name %></h1>
-    studentPin: <%= courseInfo.coursePin %>
-    <br>
+    <%- include('menubar') -%>
+        <h1>
+            <%= courseInfo.name %>
+        </h1>
+        studentPin: <%= courseInfo.coursePin %>
+            <br>
+
+            <hr>
+            <b>Problem Sets</b>
+            <ul>
+                <% for(i=0; i<=problemSets.length-1; i++){ %>
+                    <% if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) {continue} else if
+                        (courseInfo.ownerId==user.id && !problemSets[i].visible) { %>
+                        <li> HIDDEN
+                            <% } else { %>
+                        <li>
+                            <%}%>
 
 
+                                <a href="/showProblemSet/<%= problemSets[i]._id %>" <% if (
+                                    answerMap.get(problemSets[i]._id.toString())>=
+                                    problemMap.get(problemSets[i]._id.toString())
+                                    ) {%>
+                                    style="color:green"
+                                    <% } else {%>
+                                        style="color:red"
+                                        <% } %>
+                                            >
+
+                                            <%= problemSets[i].name.trim() || "problem set" %>
+                                </a>
+
+                                (<%= answerMap.get(problemSets[i]._id.toString()) || 0 %>/<%=
+                                        problemMap.get(problemSets[i]._id.toString()) || 0 %>)
 
 
+                        </li>
+                        <% } %>
+            </ul>
+
+            <hr>
+            <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+                <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+                    Add Problem Set
+                </a>
+
+                <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+                    Add a Skill
+                </a>
+
+                <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+                    Show Summarized Student Info
+                </a>
+
+                <a class="btn btn-sm btn-info" href="/showRoster/<%= courseInfo._id %>">
+                    Show Roster
+                </a>
+                <% } else { %>
+                    <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
+                        show all problems and responses
+                    </a>
+
+                    <%} %>
+                        <br>
 
 
+                        Number of reviews I've made: <%= myReviews.length %>
+                            with <%= thumbsUp %> thumbs up and
+                                <%= thumbsDown %> thumb downs <br>
+                                    <br>
+                                    <hr><br>
+
+                                    <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+                                        Show TAs
+                                    </a>
+                                    <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+                                        Show Skills
+                                    </a>
+                                    <br>
+                                    <hr>
+                                    <h2>Skills Mastery Evidence</h2>
+                                    <ul>
+                                        <% for(i=0; i< skills.length; i++){ %>
+                                            <li>
+
+                                                <a href="/showSkill/<%= skills[i]._id %>">
+                                                    <%= skills[i].name %>
+                                                </a>
+                                                <span style="color:red">
+                                                    times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
+                                                </span>
+                                            </li>
+                                            <% } %>
+
+                                                <% skillIds=skills.map((x)=>x.id)
+                                                    %>
+
+                                                    <% for(i=0; i< allSkills.length; i++){ if
+                                                        (skillIds.includes(allSkills[i].id)) continue; %>
+                                                        <li>
+                                                            <a href="/showSkill/<%= allSkills[i]._id %>">
+                                                                <%= allSkills[i].name %>
+                                                            </a>
+                                                            mastery not yet demonstrated
+                                                        </li>
+                                                        <% } %>
+                                    </ul>
+                                    <hr>
+
+                                    <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+                                        <a href="/showRegradeRequests/<%= courseInfo.id %>">
+                                            <%= regradeRequests.length %> regrade requests outstanding
+                                        </a>
+                                        <% } %>
+                                            <hr>
 
 
-
-<hr>
-<b>Problem Sets</b>
-    <ul>
-        <% for(i = 0; i<= problemSets.length-1; i++){ %>
-            <%
-             if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
-             else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
-                 %> <li> HIDDEN
-             <% } else { %> <li>
-             <%}%>
+                                            <a href="/" class="btn btn-sm btn-danger">
+                                                Back to Home
+                                            </a>
 
 
-            <a href="/showProblemSet/<%= problemSets[i]._id %>"
-                <% if ( answerMap.get(problemSets[i]._id.toString()) >=
-                       problemMap.get(problemSets[i]._id.toString())
-                ) {%>
-                style="color:green"
-                <% } else {%>
-                style="color:red"
-                <% } %>
-            >
-
-                <%= problemSets[i].name.trim() || "problem set" %>
-            </a>
-
-                (<%= answerMap.get(problemSets[i]._id.toString()) || 0
-                  %>/<%=
-                     problemMap.get(problemSets[i]._id.toString()) || 0 %>)
-
-
-        </li>
-    <% } %>
-    </ul>
-
-<hr>
-    <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-        <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-            Add Problem Set
-        </a>
-
-        <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-           Add a Skill
-       </a>
-
-        <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-            Show Summarized Student Info
-        </a>
-
-        <a class="btn btn-sm btn-info"
-           href="/showRoster/<%= courseInfo._id %>">
-            Show Roster
-        </a>
-    <% } else { %>
-        <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
-            show all problems and responses
-        </a>
-
-    <%} %>
-    <br>
-
-
-    Number of reviews I've made: <%= myReviews.length %>
-    with <%= thumbsUp %> thumbs up and
-    <%= thumbsDown %> thumb downs <br>
-    <br><hr><br>
-
-    <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show TAs
-    </a>
-    <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-       Show Skills
-   </a>
-   <br>
-   <hr>
-    <h2>Skills Mastery Evidence</h2>
-    <ul>
-    <% for(i = 0; i< skills.length; i++){  %>
-        <li>
-
-            <a href="/showSkill/<%= skills[i]._id %>">
-                <%= skills[i].name %>
-            </a>
-            <span style="color:red">
-            times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
-            </span>
-        </li>
-    <% } %>
-
-    <%
-    skillIds = skills.map((x)=>x.id)
-    %>
-
-    <% for(i = 0; i< allSkills.length; i++){
-         if (skillIds.includes(allSkills[i].id)) continue; %>
-        <li>
-            <a href="/showSkill/<%= allSkills[i]._id %>">
-                <%= allSkills[i].name %>
-            </a>
-            mastery not yet demonstrated
-        </li>
-    <% } %>
-    </ul>
-    <hr>
-
-    <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-        <a href="/showRegradeRequests/<%= courseInfo.id %>">
-            <%= regradeRequests.length %> regrade requests outstanding
-        </a>
-    <% } %>
-    <hr>
-
-
-    <a href="/" class="btn btn-sm btn-danger">
-        Back to Home
-    </a>
-
-
-<%- include('bootfooter') -%>
+                                            <%- include('bootfooter') -%>

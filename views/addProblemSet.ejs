@@ -1,19 +1,23 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <div class="jumbotron">
-        <h1><%= name %></h1>
-    </div>
+    <%- include('menubar') -%>
+        <div class="p-5 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1>
+                    <%= name %>
+                </h1>
+            </div>
+        </div>
 
 
-    <% if (user._id.equals(ownerId)) { %>
-        You own this course<br>
-        <form method="post" action="/saveProblemSet/<%= courseId %>">
-            Problem Set Name: <input type="text" name="name"><br>
-            <input class="btn btn-primary" type="submit" value="Save">
-        </form>
-    <% } else { %>
-        You are a student in this course and may not add problem sets.
-    <%} %>
+        <% if (user._id.equals(ownerId)) { %>
+            You own this course<br>
+            <form method="post" action="/saveProblemSet/<%= courseId %>">
+                Problem Set Name: <input type="text" name="name"><br>
+                <input class="btn btn-primary" type="submit" value="Save">
+            </form>
+            <% } else { %>
+                You are a student in this course and may not add problem sets.
+                <%} %>
 
 
-<%- include('bootfooter') -%>
+                    <%- include('bootfooter') -%>

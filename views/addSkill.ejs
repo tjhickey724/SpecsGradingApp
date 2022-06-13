@@ -1,19 +1,21 @@
 <%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <div class="jumbotron">
-        <h1>Add Skill</h1>
-    </div>
+    <%- include('menubar') -%>
+        <div class="p-5 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1>Add Skill</h1>
+            </div>
+        </div>
 
-    <form method="POST" action="/addSkill">
-        <input type="hidden" name="courseId" value="<%= courseId %>">
-        Skill Name:<br>
-        <input type="text" name="name">
-        <br>
-        Skill Description:<br>
-        <textarea name="description" cols="100" rows="10"></textarea>
-        <br>
-        <input class="btn btn-lg btn-primary" type="submit">
-    </form>
+        <form method="POST" action="/addSkill">
+            <input type="hidden" name="courseId" value="<%= courseId %>">
+            Skill Name:<br>
+            <input type="text" name="name">
+            <br>
+            Skill Description:<br>
+            <textarea name="description" cols="100" rows="10"></textarea>
+            <br>
+            <input class="btn btn-lg btn-primary" type="submit">
+        </form>
 
 
-<%- include('bootfooter') -%>
+        <%- include('bootfooter') -%>

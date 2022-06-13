@@ -1,46 +1,48 @@
 <%- include('bootheader') -%>
-    <%- include('menubar') -%>
-        <h1>
-            <%= problemSet.name %>
-        </h1>
-        <% jsonGrades=[] %>
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>N </th>
-                        <th>Student</th>
-                        <% for(i=0; i<=problems.length-1; i++){ %>
-                            <th> <a href="/showProblem/<%= problems[i]._id %>">
-                                    P<%= i %><br>
-                                        <%= problems[i].points %>
+<%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1 class="pb-2 border-bottom">
+                    <%= problemSet.name %> </h1>
+                <div class="p-2">
+    <% jsonGrades = [] %>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>N </th>
+                <th>Student</th>
+                <% for(i = 0; i<= problems.length-1; i++){  %>
+                        <th> <a href="/showProblem/<%= problems[i]._id %>">
+                            P<%= i %><br> <%= problems[i].points %>
 
-                                </a></th>
-                            <% } %>
-                                <th>Total</th>
-                                <!--
+                        </a></th>
+                <% } %>
+                <th>Total</th>
+            <!--
                 <th>Count</th>
                 <th>Average</th>
             -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for(i=0; i< studentsInfo.length; i++){ let psetScore=0 let psetCount=0 // number of problems
-                        graded by TAs let jsonRow={email:studentsInfo[i].googleemail,
-                        name:studentsInfo[i].googlename,grades:[]} %>
-                        <tr>
-                            <td>
-                                <%= i %>
-                            </td>
-                            <td>
-                                <%= studentsInfo[i].googleemail %>
+            </tr>
+        </thead>
+        <tbody>
+            <% for(i = 0; i< studentsInfo.length; i++){
+                let psetScore = 0
+                let psetCount = 0 // number of problems graded by TAs
+                let jsonRow = {email:studentsInfo[i].googleemail, name:studentsInfo[i].googlename,grades:[]}
+                %>
+                <tr>
+                    <td><%= i %></td>
+                    <td> <%= studentsInfo[i].googleemail %>
 
-                            </td>
-                            <% for(j=0; j<=problems.length-1; j++){ // find the scores of the reviews of this problem
-                                const studentAnswers=answers.filter(a=>{
-                                return a.studentId.equals(studentsInfo[i]._id) &&
-                                a.problemId.equals(problems[j]._id)
-                                })
-                                //console.log(`\n\n${i} ${j} studentAnswers= ${JSON.stringify(studentAnswers)}`)
+                    </td>
+                    <% for(j = 0; j<= problems.length-1; j++){
+                        // find the scores of the reviews of this problem
+                     const studentAnswers =
+                         answers.filter(a =>{
+                             return a.studentId.equals(studentsInfo[i]._id) &&
+                                    a.problemId.equals(problems[j]._id)
+                         })
+                     //console.log(`\n\n${i} ${j} studentAnswers= ${JSON.stringify(studentAnswers)}`)
 
 
 
@@ -61,84 +63,81 @@
 
 
 
-                                %>
-                                <td>
-                                    <% if (studentAnswers.length==0){ jsonRow.grades.push(-1) %>
-                                        <!-- No answer to review -->
+                        %>
+                            <td>
+                                <% if (studentAnswers.length == 0){
+                                    jsonRow.grades.push(-1)
+                                    %>
+                                    <!-- No answer to review -->
 
-                                        <% } else if (!answerId) { jsonRow.grades.push(0) %>
-                                            <a style="color:red"
-                                                href="/gradeProblem/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
-                                                No TA reviews yet
-                                            </a>
-                                            <% } else { %>
+                               <% } else if (!answerId) {
+                                    jsonRow.grades.push(0)
+                                   %>
+                                    <a style="color:red" href="/gradeProblem/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
+                                    No TA reviews yet
+                                    </a>
+                                <% } else { %>
 
-                                                <a href="/showReviewsOfAnswer/<%= answerId %>">
-                                                    <% let scores=grades.map((r)=> r.points)
-                                                        let avgScore =
-                                                        Math.ceil(
-                                                        scores.reduce((a,b) => a + b, 0)/scores.length
-                                                        )
-                                                        psetScore += avgScore
-                                                        psetCount += 1
-                                                        jsonRow.grades.push(avgScore)
-                                                        %>
-                                                        <%= JSON.stringify(scores) %> <br>
-                                                            <%= avgScore %>
-                                                </a>
-                                                <% } %>
-                                </td>
+                                <a href="/showReviewsOfAnswer/<%= answerId %>">
+                                    <% let scores = grades.map((r) => r.points)
+                                       let avgScore =
+                                            Math.ceil(
+                                                scores.reduce((a,b) => a + b, 0)/scores.length
+                                                )
+                                       psetScore += avgScore
+                                       psetCount += 1
+                                       jsonRow.grades.push(avgScore)
+                                    %>
+                                    <%= JSON.stringify(scores) %> <br>
+                                    <%=  avgScore %>
+                                </a>
                                 <% } %>
-                                    <td>
-                                        <% jsonRow.grades.push(psetScore) jsonRow.grades.push(psetCount) let
-                                            average=psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
-                                            jsonRow.grades.push(average)
-                                            jsonGrades.push(jsonRow)%>
-                                            <% if (psetCount>0){%>
-                                                <%= psetScore %>
-                                    </td>
-                                    <!--
+                            </td>
+                    <% } %>
+                    <td> <% jsonRow.grades.push(psetScore)
+                            jsonRow.grades.push(psetCount)
+                            let average = psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
+                            jsonRow.grades.push(average)
+                            jsonGrades.push(jsonRow)%>
+                        <% if (psetCount>0){%>
+                         <%= psetScore %> </td>
+                         <!--
                          <td><%= psetCount %></td>
                          <td> <% if (psetCount>0){%>
                              <%= average %>
                              <%}%>
                              </td>
                          -->
-                                    <%} %>
-                        </tr>
-                        <% } %>
+                        <%} %>
+                </tr>
+            <% } %>
 
-                </tbody>
+        </tbody>
 
-            </table>
-            <hr>
-            <pre>
-
-<%  jsonGrades.sort((row1,row2)=>
+    </table>
+<hr>
+    <pre><%  jsonGrades.sort((row1,row2)=>
       row1.grades[row1.grades.length-1] - row2.grades[row2.grades.length-1])
     for (let i=0; i<jsonGrades.length; i++){
             let row = jsonGrades[i]
             let gs = row.grades
 %><%= row.email %>, <%= row.name %> <% for(let j=0; j<gs.length; j++){ %>, <%= gs[j] %> <% } %>
-<% } %>
-    </pre>
+<% } %></pre>
 
-            <%= JSON.stringify(jsonGrades) %>
-
-
-
-                <hr>
-                <% if (courseInfo.ownerId.equals(user._id)){ %>
-                    <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
-                    <% } %>
-                        <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of
-                            Problem Sets</a>
-                        <% if ((user.taFor).indexOf(problemSet.courseId)>=0) { %>
-                            <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
-                                Problem Set </a>
-                            <% } %>
+    <%= JSON.stringify(jsonGrades) %>
 
 
 
+    <hr>
+    <% if (courseInfo.ownerId.equals(user._id)){ %>
+        <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+    <% } %>
+    <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
+    <% if ((user.taFor).indexOf(problemSet.courseId)>=0) { %>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
+    <% } %>
 
-                                <%- include('bootfooter') -%>
+
+                </div></div></div>
+
+<%- include('bootfooter') -%>

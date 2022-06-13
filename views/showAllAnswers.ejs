@@ -2,13 +2,13 @@
   <%- include('menubar') -%>
 
     <script type="text/javascript" src="/js/clickThumb.js"></script>
-
-    <h3>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h3 class="pb-2 border-bottom">
       <%= problem.description %>
-    </h3>
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
-      <%= problem.problemText %>
-    </div>
+</h3>
+                <div class="p-2">
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
     <hr>
 
     <% if (canView) { %>
@@ -103,15 +103,9 @@
                             <div style="background:rgb(255,255,255);
                   <% }else if (rev.reviewerId.equals(user._id)) {%>
                        <span style=" color:rgb(220,120,255);">YOUR REVIEW!!</span>
-                              <div style="background:rgb(220,120,255);
-
-                   <% } else { %>
-                       <div style=" background:rgb(120,220,255); <% } %>
-                                padding:5px; margin-bottom:10px;border:thin solid black; white-space: pre-wrap;
-                                font-family:monospace; padding:10px"
-                                ><%= rev.review %>
-                              </div>
-
+                              <div style="background:rgb(220,120,255);<% } else { %>
+                       <div style="background:rgb(120,220,255);<% } %>
+                           padding:5px; margin-bottom:10px;border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= rev.review %></div>
                             </div>
                         </div>
                         <% }%>
@@ -139,5 +133,5 @@
                                           class="btn btn-small btn-primary">Back to the Problem Set</a>
 
 
-
+                </div></div></div>
                                         <%- include('bootfooter') -%>

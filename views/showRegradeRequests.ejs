@@ -1,22 +1,27 @@
 <%- include('bootheader') -%>
     <%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h6 class="pb-2 border-bottom fw-bold"> Outstanding Regrade Requests
 
-        <hr>
-        <b>Outstanding Regrade Requests</b>
-        <ul>
-            <% for(i=0; i<=regradeRequests.length-1; i++){ const r=regradeRequests[i] if (r.completed) continue; %>
-                <li>
+                </h6>
+                <div class="p-2">
+                    <hr>
+                    <ul>
+                        <% for(i=0; i<=regradeRequests.length-1; i++){ const r=regradeRequests[i] 
+                            if (r.completed) continue; %>
+                            <li>
 
-                    <a href="/showRegradeRequest/<%= r._id %>">
-                        view</a><br>
-                    Completed? <%= r.completed %><br>
-                        Created <%= r.createdAt %>
-                </li>
-                <% } %>
-        </ul>
-        <a href="/showCourse/<%=courseId%>"> Return to course </a>
-        <hr>
+                                <a href="/showRegradeRequest/<%= r._id %>">
+                                    view</a><br>
+                                Completed? <%= r.completed %><br>
+                                    Created <%= r.createdAt %>
+                            </li>
+                            <% } %>
+                    </ul>
+                    <a href="/showCourse/<%=courseId%>"> Return to course </a>
+                    <hr>
 
 
 
-        <%- include('bootfooter') -%>
+                    <%- include('bootfooter') -%>

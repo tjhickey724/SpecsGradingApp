@@ -2,9 +2,13 @@
     <%- include('menubar') -%>
 
         <script type="text/javascript" src="/js/clickThumb.js"></script>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h2 class="pb-2 border-bottom">         The problem you reviewed</h2>
 
-        <h2>The Problem you reviewed</h2>
-        <small>Submission time and date:<%= problem.createdAt %> </small>
+
+                <div class="p-2">
+        <small>Submission time and date: <%= problem.createdAt %></small>
         <pre class="bg-success      "><%= problem.problemText %></pre>
         <br>
         <h2>Your reviews of other's answers</h2>
@@ -73,6 +77,6 @@
         <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
         <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
 
-
+</div></div></div>
 
         <%- include('bootfooter') -%>

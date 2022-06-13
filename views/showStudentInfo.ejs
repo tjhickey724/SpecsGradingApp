@@ -1,5 +1,10 @@
 <%- include('bootheader') -%>
     <%- include('menubar') -%>
+		<div class="p-3 mb-4 bg-light">
+			<div class="container-fluid ">
+				<h1 class="pb-2 border-bottom">
+Student Info for <%= courseInfo.name %>				</h1>
+				<div class="p-2">
         <script type="text/javascript" src="/js/sort-table.js"></script>
         <style type="text/css">
             th,
@@ -7,8 +12,7 @@
                 border: 1px solid black
             }
         </style>
-        <h1>Student Info for <%= courseInfo.name %>
-        </h1>
+
 
         Class Size = <%= studentsInfo.length %>
             <table style="border:2px solid black" class="js-sort-table table table-bordered table-striped"
@@ -92,5 +96,5 @@
                 </tbody>
             </table>
 
-
+</div></div></div>
             <%- include('bootfooter') -%>

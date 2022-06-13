@@ -1,31 +1,31 @@
 <%- include('bootheader') -%>
   <%- include('menubar') -%>
-    <% if (!course.ownerId.equals(user._id)) { %>
-      You must own the course to edit the problems
-      <% } else { %>
-        <div class="p-5 mb-4 bg-light">
-          <div class="container-fluid ">
-            <h1>Edit Problem</h1>
-          </div>
-        </div>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
 
+    <% if (!course.ownerId.equals(user._id)) { %>
+                <div class="p-2">
+      You must own the course to edit the problems.</div>
+      <% } else { %>
+
+            <h1 class="pb-2 border-bottom">Edit Problem</h1>
+                <div class="p-2">
         <form method="post" action="/updateProblem/<%= problem._id %>">
-          <br>
           <input type="checkbox" name='visible' <% if (problem.visible) {%> checked <% }%>
             value='visible'>
-            Visible:
+            Visible
             <br>
             <input type="checkbox" name='answerable' <% if (problem.answerable) {%> checked <% }%>
               value='answerable'>
-              Answerable:
+              Answerable
               <br>
               <input type="checkbox" name='submitable' <% if (problem.submitable) {%> checked <% }%>
                 value='submitable'>
-                Submitable:
+                Submitable
                 <br>
                 <input type="checkbox" name='peerReviewable' <% if (problem.peerReviewable) {%> checked <% }%>
                   value='peerReviewable'>
-                  Peer Reviewable:
+                  Peer Reviewable
                   <br>
                   <hr>
 
@@ -54,7 +54,7 @@
                             <br>
                             <input class="btn btn-lg btn-primary" type="submit">
         </form>
-
+</div>
         <% } %>
-
+</div></div>
           <%- include('bootfooter') -%>

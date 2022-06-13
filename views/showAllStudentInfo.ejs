@@ -1,8 +1,12 @@
 <%- include('bootheader') -%>
     <%- include('menubar') -%>
+
         <script type="text/javascript" src="/js/sort-table.js"></script>
-        <h1>Student Info for <%= courseInfo.name %>
-        </h1>
+		<div class="p-3 mb-4 bg-light">
+			<div class="container-fluid ">
+				<h1 class="pb-2 border-bottom">
+Student Info for <%= courseInfo.name %>				</h1>
+				<div class="p-2">
 
         Number of Students in Class: <%= studentsInfo.length %>
             <table class1="table table-bordered table-striped" class="js-sort-table">
@@ -29,23 +33,16 @@
                                         <%= problem.description %>
                                     </h4>
                                     <div class="bg-default"
-                                        style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px">
-                                        <%= problem.problemText %>
-                                    </div>
+                                        style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
                                     <div class="bg-info"
-                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
-                                        <%= answer.answer %>
-                                    </div>
+                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></div>
                                     Review Scores:: <%= JSON.stringify(reviewScores,null,10) %> / <%= problem.points %>
                                             =
                                             <%= (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length *
                                                 problem.points)*100).toFixed(0) %>%
                                                 <% for (r in reviews){ review=reviews[r] %>
                                                     <div class="bg-warning"
-                                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace">
-                                                        review: <%= review.points %>/<%= problem.points %> <br>
-                                                                <%= review.review %>
-                                                    </div>
+                                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace">review: <%= review.points %>/<%= problem.points %><br><%= review.review %></div>
                                                     <% } %>
                                                         <% } %>
 
@@ -55,5 +52,5 @@
                         <% } %>
                 </tbody>
             </table>
-
+</div></div></div>
             <%- include('bootfooter') -%>

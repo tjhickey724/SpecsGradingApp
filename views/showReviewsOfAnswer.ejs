@@ -1,8 +1,12 @@
 <%- include('bootheader') -%>
     <%- include('menubar') -%>
-
-        <script type="text/javascript" src="/js/clickThumb.js"></script>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
         <hr>
+
+
+                <div class="p-2">
+        <script type="text/javascript" src="/js/clickThumb.js"></script>
         <h3 class="bg-danger">
             <% let userIsTA=true && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
                 if (userIsTA) {
@@ -17,9 +21,7 @@
         </h3>
         <b>The Question</b>
         <div class="bg-default"
-            style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
-            <%= problem.problemText %>
-        </div>
+            style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
 
         <b>Their Answer</b>
         <small>Submission time and date:<%= answer.createdAt %> </small>
@@ -105,32 +107,18 @@
                                                 <% if (yourReview){%>
                                                     <div
                                                         style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-                                                        <% } else if (isTAreview) {%>
-                                                            <b>TA Review</b>
-                                                            <div
-                                                                style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-                                                                <% } else {%>
-                                                                    <div
-                                                                        style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-                                                                        <% } %>
-                                                                            <%= reviews[i].review %>
-                                                                    </div>
-                                                                    <br>
-                                                                    <!-- allow user to request regrades of their answers -->
-                                                                    <% if (answer.studentId==user.id) {%>
-                                                                        <form method="post"
-                                                                            action="/requestRegrade/<%= reviews[i].id %>">
-                                                                            Regrade request:
-                                                                            Reason:<br>
-                                                                            <textarea name="reason"
-                                                                                style="width:100%"></textarea>
-                                                                            <hr>
-
-
-                                                                            <input type="submit"
-                                                                                value="request regrade">
-                                                                        </form>
-                                                                        <% } %>
+                                                        <% } else if (isTAreview) {%><b>TA Review</b><div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } else {%><div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } %><%= reviews[i].review %></div><br><!-- allow user to request regrades of their answers -->
+                                                        <% if (answer.studentId==user.id) {%>
+                                                            <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
+                                                                Regrade request:
+                                                                Reason:<br>
+                                                                <textarea name="reason" style="width:100%"></textarea>
+                                                                <hr>
+                                                        
+                                                        
+                                                                <input type="submit" value="request regrade">
+                                                            </form>
+                                                            <% } %>
 
                     </li>
                     <% } %>
@@ -175,9 +163,7 @@
                     <b>Rubric</b>
                     <hr>
                     <div class="bg-default"
-                        style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd">
-                        <%= problem.rubric %>
-                    </div>
+                        style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd"><%= problem.rubric %></div>
 
                 </div>
                 <div>
@@ -235,6 +221,6 @@
 
                             <% } %>
 
-
+                </div></div></div>
 
                                 <%- include('bootfooter') -%>

@@ -1,21 +1,26 @@
 <%- include('bootheader') -%>
     <%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <div class="p-2">
 
-        <% if (user._id.equals(courseInfo.ownerId)) { %>
-            You own this course<br>
-            <form method="post" action="/updateProblemSet/<%= psetId %>">
-                Problem Set Name:
-                <input type="text" name="name" value="<%= problemSet.name %>">
-                <br>
-                visible: <input type="checkbox" name="visible" <% if (problemSet.visible) {%> checked <% } %>
-                    value="visible"
-                    >
-                    <br>
-                    <input class="btn btn-primary" type="submit" value="Save">
-            </form>
-            <% } else { %>
-                Only the owner can update problem sets.
-                <%} %>
-
-
-                    <%- include('bootfooter') -%>
+                    <% if (user._id.equals(courseInfo.ownerId)) { %>
+                        You own this course<br>
+                        <form method="post" action="/updateProblemSet/<%= psetId %>">
+                            Problem Set Name:
+                            <input type="text" name="name" value="<%= problemSet.name %>">
+                            <br>
+                            visible: <input type="checkbox" name="visible" <% if (problemSet.visible) {%> checked <% }
+                                %>
+                                value="visible"
+                                >
+                                <br>
+                                <input class="btn btn-primary" type="submit" value="Save">
+                        </form>
+                        <% } else { %>
+                            Only the owner can update problem sets.
+                            <%} %>
+                </div>
+            </div>
+        </div>
+        <%- include('bootfooter') -%>

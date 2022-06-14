@@ -13,17 +13,20 @@
         <br>
         <h2>Your reviews of other's answers</h2>
         <ul>
-            <% for(i=0; i<=usersReviews.length-1; i++){ %>
-                <li style="margin-top:30px"> An answer:
+ <% for(i = 0; i<= usersReviews.length-1; i++){  %>
+        <li style="margin-top:30px"> An answer:
 
-                    <% let answers=usersReviewedAnswers.filter( (a)=> (a._id.equals(usersReviews[i].answerId))
-                        )
-                        let answer = answers[0]
-                        %>
-                        <pre class="bg-warning"
-                            style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></pre>
-                        Reviews:<br>
-                        <ul>
+              <% let answers =
+                 usersReviewedAnswers.filter(
+                   (a)=> (a._id.equals(usersReviews[i].answerId))
+                 )
+                 let answer = answers[0]
+              %>
+              <pre class="bg-warning"
+                   style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+               ><%= answer.answer %></pre>
+               Reviews:<br>
+            <ul>
                 <% for(let j=0; j< allReviews.length; j++){
                       let rev = allReviews[j]
                       let numLikesU = allReviews[j].upvoters.length
@@ -39,39 +42,41 @@
                       }
                     %>
                 <li>
-                                    <i class="<%= fa_prefixU %> fa-thumbs-up" id='<%= "reviewU"+j %>'
-                                        onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','U')"></i>
+                      <i  class="<%= fa_prefixU %> fa-thumbs-up"
+                                   id='<%= "reviewU"+j %>'
+                                   onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','U')"></i>
 
-                                    <i class="<%= fa_prefixD %> fa-thumbs-down" id='<%= "reviewD"+j %>'
-                                        onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','D')"></i>
+                      <i  class="<%= fa_prefixD %> fa-thumbs-down"
+                                  id='<%= "reviewD"+j %>'
+                                  onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','D')"></i>
 
-                                    <i>
+                      <i>
 
-                                        likes: <span id='<%="likes"+ j %>'>
-                                            <%= numLikesU-numLikesD %>
-                                        </span>
-                                        .... grade:
-                                        <%= rev.points %>/<%= problem.points %>pts
-                                    </i>
-
-
-                                    <% if (rev.reviewerId.equals(user._id)) {%>
-                                        YOUR REVIEW!!
-                                        <div style="background:rgb(220,120,255); padding:5px">
-                                            <% } else { %>
-                                                <div style="background:rgb(120,220,255); padding:5px">
-                                                    <% } %>
+                        likes: <span id='<%="likes"+ j %>'>
+                                 <%= numLikesU-numLikesD %>
+                               </span>
+                           .... grade:
+                         <%= rev.points %>/<%= problem.points %>pts
+                      </i>
 
 
-                                                        <%= rev.review %>
-                                                </div>
+                    <% if (rev.reviewerId.equals(user._id)) {%>
+                        YOUR REVIEW!!
+                        <div style="background:rgb(220,120,255); padding:5px">
+                    <% } else { %>
+                        <div style="background:rgb(120,220,255); padding:5px">
+                    <% } %>
 
-                                </li>
-                                <% } %>
-                        </ul>
+
+                        <%= rev.review %>
+                    </div>
+
                 </li>
                 <% } %>
-        </ul>
+            </ul>
+        </li>
+    <% } %>
+</ul>
         <hr>
         <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
         <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>

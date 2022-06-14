@@ -1767,18 +1767,18 @@ index 31d45df..e2fdc70 100644
 +              <% if (!(answers[i].reviewers.includes(user._id))){  %>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
 +                  <a  href="/showReviewsOfAnswer/<%= answers[i]._id %>"
 +                     target="_blank">grade it</a>
 +                   <button  class="grader_<%=i%>"
 +                                   id="cga_<%= i %>"
-+                                   onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
++                                   onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
 +
 +
 +                <% } else { %>

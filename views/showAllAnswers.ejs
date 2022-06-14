@@ -1,7 +1,6 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
 
-    <script type="text/javascript" src="/js/clickThumb.js"></script>
         <div class="p-3 mb-4 bg-light">
             <div class="container-fluid ">
                 <h3 class="pb-2 border-bottom">
@@ -10,7 +9,7 @@
                 <div class="p-2">
     <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
     <hr>
-
+    <script type="text/javascript" src="/js/clickThumb.js"></script>
     <% if (canView) { %>
       <h2>All <%= answers.length %> Answers with <%= reviews.length %> Reviews, total</h2>
       <% for(let i=0; i<answers.length; i++){ %>
@@ -20,27 +19,27 @@
               <br>
               <h3>ANSWER</h3>
               <% if (isTA) {%>
-                <div>
-                  <% if (!(answers[i].reviewers.includes(user._id))){ %>
-                    <button class="grader_<%=i%>" id="cga_<%= i %>"
-                      onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)">
-                      <%= problem.points%>
-                    </button>
-                    <button class="grader_<%=i%>" id="cga_<%= i %>"
-                      onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)">
-                      <%= problem.points-1%>
-                    </button>
-                    <a href="/showReviewsOfAnswer/<%= answers[i]._id %>" target="_blank">grade it</a>
-                    <button class="grader_<%=i%>" id="cga_<%= i %>"
-                      onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
-                    <button class="grader_<%=i%>" id="cga_<%= i %>"
-                      onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
-
-
-                    <% } else { %>
-                      <a href="/showReviewsOfAnswer/<%= answers[i]._id %>" target="_blank">regrade it</a>
-                      <% } %>
-                </div>
+                 <div>
+              <% if (!(answers[i].reviewers.includes(user._id))){  %>
+                  <button  class="grader_<%=i%>"
+                                  id="cga_<%= i %>"
+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
+                  <button  class="grader_<%=i%>"
+                                  id="cga_<%= i %>"
+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
+                  <a  href="/showReviewsOfAnswer/<%= answers[i]._id %>"
+                     target="_blank">grade it</a>
+                   <button  class="grader_<%=i%>"
+                                   id="cga_<%= i %>"
+                                   onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
+                  <button  class="grader_<%=i%>"
+                                  id="cga_<%= i %>"
+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
+                <% } else { %>
+                  <a href="/showReviewsOfAnswer/<%= answers[i]._id %>"
+                     target="_blank">regrade it</a>
+                <% } %>
+              </div>
                 <% } %>
 
                   <pre class="bg-warning"
@@ -77,20 +76,19 @@
                     <b style="color:rgb(255,0,0);font-size:16pt">Review by TA!!</b>
                     <% } %>
                 </div>
-                <div class="col">
-                  <i class="<%= fa_prefixU %> fa-thumbs-up" id='<%= "reviewU"+j %>'
-                    onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
-
-                  <i class="<%= fa_prefixD %> fa-thumbs-down" id='<%= "reviewD"+j %>'
-                    onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
-
+ <div class="col">
+                  <i  class="<%= fa_prefixU %> fa-thumbs-up"
+                               id='<%= "reviewU"+j %>'
+                               onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
+                  <i  class="<%= fa_prefixD %> fa-thumbs-down"
+                              id='<%= "reviewD"+j %>'
+                              onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
                   <i>
-
                     likes: <span id='<%="likes"+ j %>'>
-                      <%= numLikesU-numLikesD %>
-                    </span>
-                    .... grade:
-                    <%= rev.points %>/<%= problem.points %>pts
+                             <%= numLikesU-numLikesD %>
+                           </span>
+                       .... grade:
+                     <%= rev.points %>/<%= problem.points %>pts
                   </i><br>
                   SKILLS Mastered: [[<%= JSON.stringify(skillnames) %>]]<br>
                     <% if (isTAreview){%>

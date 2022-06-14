@@ -1,6 +1,6 @@
 <%- include('bootheader') -%>
     <% if (loggedIn) { %>
-<%- include('menubar') -%>
+        <%- include('menubar') -%>
             <% } %>
 
                 <div class="p-lg-5 p-4 mb-lg-3 mb-0 bg-light border">
@@ -58,14 +58,15 @@
                             <div class="card bg-primary">
                                 <div class="card-header">Courses I'm TAing</div>
                                 <ul>
-                                    <% for(i=0; i<=coursesTaken.length-1; i++){ %>
+                                    <% for(i=0; i<=coursesTAing.length-1; i++){ %>
                                         <li>
-                                            <a class="link-info" href="/showCourse/<%= coursesTaken[i]._id %>">
-                                                <%= coursesTaken[i].name %>
+                                            <a class="link-info" href="/showCourse/<%= coursesTAing[i]._id %>">
+                                                <%= coursesTAing[i].name %>
                                             </a>
                                         </li>
                                         <% } %>
                                 </ul>
+
                             </div>
                             <div class="card bg-danger">
                                 <div class="card-header">Courses I'm Teaching</div>
@@ -86,4 +87,4 @@
                         <%} %>
                             <br>
 
-<%- include('bootfooter') -%>
+                            <%- include('bootfooter') -%>

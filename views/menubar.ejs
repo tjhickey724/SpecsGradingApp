@@ -18,7 +18,7 @@
         <% if (loggedIn) { %>
           <li class="nav-item">
             <a class="nav-link <% if (routeName == " profile") { %> active <% } %> " href="/profile">
-                Profile
+                Profile (<%= user.googleemail %>)
             </a>
           </li>
           <li class="nav-item">

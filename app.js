@@ -1072,14 +1072,34 @@ app.get('/editProblem/:probId',
   }
 )
 
+/*
+  This route has some nuanced behavior.
+  If the user tries to save an answer that has already
+  been reviewed, then we should not let them do it and
+  we should send them to a page that says their answer has
+  been reviewed and they can't update it. 
+*/
 app.post('/saveAnswer/:probId',
   async ( req, res, next ) => {
     const id = req.params.probId
     res.locals.problem = await Problem.findOne({_id:id})
     const problem = res.locals.problem
 
-    let newAnswer = new Answer(
-         {
+    const answers = 
+      await Answer.find(
+              {studentId:req.user._id,
+               problemId:problem._id}
+     )
+    
+    const answerIds = answers.map(x => x._id);
+    const reviews = await Review.find({answerId:{$in:answerIds}});
+    console.log('about to try to save the new answer')
+    console.dir(reviews);
+    if (reviews.length>0){
+      res.redirect("/showReviewsOfAnswer/"+answerIds[0])
+    } else {
+        let newAnswer = new Answer(
+          {
           studentId:req.user._id,
           courseId:problem.courseId,
           psetId:problem.psetId,
@@ -1089,18 +1109,20 @@ app.post('/saveAnswer/:probId',
           numReviews: 0,
           pendingReviewers: [],
           createdAt: new Date()
-         }
+          }
         )
 
-    await Answer.deleteMany(
-      {studentId:req.user._id,
-       problemId:problem._id}
-     )
+        await Answer.deleteMany(
+          {studentId:req.user._id,
+            problemId:problem._id}
+          )
 
-    await newAnswer.save()
+        await newAnswer.save()
 
 
-    res.redirect("/showProblem/"+id)
+        res.redirect("/showProblem/"+id)
+    }
+
   }
 )
 
@@ -2062,6 +2084,40 @@ app.get('/showTAs/:courseId',
       }
       res.send('all done')
      }
+    }
+  )
+
+
+  app.get('/removeOrphanAnswers',
+    async (req, res, next) => {
+      try{
+        if (req.user.googleemail != "tjhickey@brandeis.edu"){
+          res.send('you are not allowed to do this!')
+        }else {
+          /* 
+              Find all reviews whose answer has been deleted,
+              and remove those reviews. 
+              First we find all of the answers and create a list of the AnswerIds
+              Then we find all reviews whose answer is not in that list.
+              These are the orphans.
+              Then we delete those orphan reviews.
+          */
+           console.log('in /removeOrphanAnswers')
+           const answers = await Answer.find({});
+           console.log("num answers is "+answers.length);
+           const answerIds = answers.map(x=>x._id)
+           console.log("num answerIds is "+answerIds.length);
+           const orphans = await Review.find({answerId:{$not:{$in:answerIds}}})
+           console.log("num orphans is "+orphans.length);
+           const orphanIds = orphans.map(x => x._id)
+           const numrevsBefore = await Review.find().count()
+           await Review.deleteMany({_id:{$in:orphanIds}})
+           const numrevsAfter = await Review.find().count();
+           res.send("before "+numrevsBefore+" after:"+numrevsAfter)
+           }
+      } catch(e){
+        next(e);
+      }
     }
   )
 

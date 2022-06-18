@@ -2179,13 +2179,7 @@ const masteryAgg = (courseId) =>
         }
       }
     }
-  }, {
-    '$addFields': {
-      'numSkills': {
-        '$size': '$skills'
-      }
-    }
-  }
+  },    
 ]
 
 app.get('/mastery/:courseId',
@@ -2194,6 +2188,99 @@ app.get('/mastery/:courseId',
     console.dir(agg)
     const zz = await Answer.aggregate(agg)
     res.json(zz)
+  })
+
+ const masteryAgg2 = (courseId) => 
+  [
+    {
+      '$match': {
+        'courseId': new ObjectId(courseId)
+      }
+    }, {
+      '$group': {
+        '_id': '$studentId', 
+        'numAns': {
+          '$sum': 1
+        }, 
+        'skills': {
+          $push: '$skills'
+        }
+      }
+    }
+  ]
+
+const skillCount = (skills,skillLists) => {
+  skillmap={}
+  for (skill of skills){
+    skillmap[skill]=0
+  }
+  for (skillList of skillLists){
+    for (skill of skillList){
+      skillmap[skill] += 1
+    }
+  }
+  return skillmap;
+}
+
+  /*
+    This route will analyze the skill mastery for the entire class.
+    The main goal is to generate a table which shows for each student
+    and for each skill, the number of times that students has demonstrated
+    mastery of that skill. We will put the skills in an array and label the
+    skill columns with numbers (perhaps with tooltips to see the full name).
+  */
+  app.get('/mastery2/:courseId',
+  async (req,res,next) => {
+    const courseId = req.params.courseId
+    const agg = masteryAgg2(courseId)
+    console.dir(agg)
+    const mastery = await Answer.aggregate(agg)
+    const studentIds = mastery.map(x=> x._id)
+    const students = await User.find({_id:{$in:studentIds}})
+    const skills = await Skill.find({courseId})
+    const skillIds = skills.map(x => x._id)
+    const studentSkillCounts = {}
+    for (student of mastery){
+      studentSkillCounts[student['_id']]=skillCount(skillIds,student['skills'])
+    }
+    const studentmap={}
+    for (student of students){
+      studentmap[student.id] = student
+    }
+
+    let skillmap = {} // this maps the skill id to the skill
+    for (skill of skills){
+      skillmap[skill.id] = skill
+    }
+    let sum = (vals) => {
+      total=0;
+      for (val of vals){
+        total += val;
+      }
+      return total;
+    }
+
+    let sum2 = (vals) => {
+      total=0;
+      for (val of vals){
+        total += val>0?1:0;
+      }
+      return total;
+    }
+
+    let data = []
+    for (student in studentSkillCounts){
+      let a ={};
+      a['student'] = studentmap[student];
+      a['skillCounts'] = studentSkillCounts[student];
+      a['total']= sum2(Object.values(a['skillCounts']))
+      data.push(a)
+    }
+    data = data.sort((x,y) => (x['total']<y['total']?1:-1))
+
+    res.render('summarizeSkills',{courseId,data,mastery,studentIds,students,studentmap,studentSkillCounts,skillIds,skillmap,skills})
+
+    //res.json({data,mastery,studentIds,students,studentSkillCounts,skillIds,skillmap,skills})
   })
 
 

@@ -64,6 +64,11 @@
            href="/showRoster/<%= courseInfo._id %>">
             Show Roster
         </a>
+
+        <a class="btn btn-sm btn-info"
+           href="/mastery2/<%= courseInfo._id %>">
+            Show Mastery
+        </a>
     <% } else { %>
         <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
             show all problems and responses

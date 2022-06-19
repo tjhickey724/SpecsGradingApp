@@ -1,0 +1,100 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+		<div class="p-3 mb-4 bg-light">
+			<div class="container-fluid ">
+				<h1 class="pb-2 border-bottom">
+Student Info for <%= courseInfo.name %>				</h1>
+				<div class="p-2">
+        <script type="text/javascript" src="/js/sort-table.js"></script>
+        <style type="text/css">
+            th,
+            td {
+                border: 1px solid black
+            }
+        </style>
+
+
+        Class Size = <%= studentsInfo.length %>
+            <table style="border:2px solid black" class="js-sort-table table table-bordered table-striped"
+                id="grades">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th class="js-sort-number"> Problems Completed</th>
+                        <th class="js-sort-number"> Number of Reviewed Answers</th>
+                        <th class="js-sort-number"> Number of Reviews </th>
+                        <th class="js-sort-number"> Quality of their Reviews </th>
+                        <th class="js-sort-number"> ThumbsUp </th>
+                        <th class="js-sort-number"> ThumbsDown </th>
+                        <th class="js-sort-number"> Avg Review Score </th>
+                        <th> Scores per problem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let i=0; i<studentsInfo.length; i++) {
+                        let grades = gradeSheet.grades[studentsInfo[i]._id]
+                        let avgReviews = []
+                        let numReviews = 0
+                        let numReviewed = 0
+                        let numAnswers = 0
+                        let thumbsUp=0
+                        let thumbsDown=0
+                        for (a in grades.answers) {
+                            numAnswers += 1
+                            let answer = grades.answers[a].answer
+                            let reviews = grades.answers[a].reviews
+                            let reviewScores = reviews.map((x)=>(x.points))
+                            let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
+                            let score = (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length * problem.points)*100)
+                            score = parseInt((reviewScores.length==0)?0:score)
+                            if (reviewScores.length>0) {
+                                numReviewed += 1
+                                avgReviews.push(score)
+                            }
+                            for (let r of reviews){
+                                thumbsUp += r.upvoters.length
+                                thumbsDown += r.downvoters.length
+                            }
+                            numReviews = numReviews + reviews.length
+                        } %>
+                        <tr>
+                            <td>
+                                <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= studentsInfo[i]._id %>">
+                                    <%= studentsInfo[i].googlename %>
+                                </a>
+                            </td>
+                            <td>
+                                <%= studentsInfo[i].googleemail %>
+                            </td>
+                            <td>
+                                <%= numAnswers %>
+                            </td>
+                            <td>
+                                <%= numReviewed %>
+                            </td>
+                            <td>
+                                <%= numReviews %>
+                            </td>
+                            <td>
+                                <%= thumbsUp - thumbsDown %>
+                            </td>
+                            <td>
+                                <%= thumbsUp %>
+                            </td>
+                            <td>
+                                <%= thumbsDown %>
+                            </td>
+                            <td>
+                                <%= (avgReviews.reduceRight((x,y)=>(x+y),0)/numReviewed).toFixed(0) %>%
+                            </td>
+                            <td>
+                                <%= JSON.stringify(avgReviews) %>
+                            </td>
+                        </tr>
+                        <% } %>
+                </tbody>
+            </table>
+
+</div></div></div>
+<%- include('bootfooter') -%>

@@ -1,0 +1,57 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+		<div class="p-3 mb-4 bg-light">
+			<div class="container-fluid ">
+				<h1 class="pb-2 border-bottom">
+<%= courseInfo.name %>				</h1>
+				<div class="p-2">
+   
+        studentPin: <%= courseInfo.coursePin %>
+            <br>
+
+            <hr>
+
+            <a href="/showCourse/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+                Back to Course
+            </a>
+            <h1>Roster</h1>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(i=0; i< members.length; i++){ %>
+                        <tr>
+                            <td>
+                                <%= members[i].googlename %>
+                            </td>
+                            <td>
+                                <%= members[i].googleemail %>
+                            </td>
+                        </tr>
+                </tbody>
+                <% } %>
+            </table>
+
+            <hr>
+            <% if (user._id.equals(courseInfo.ownerId)) { %>
+                <span class="lead">You are the owner</span>
+                <form method="post" action="/addStudents/<%= courseInfo._id %>">
+                        <div class="mb-3">
+                            <label for="description" class="form-label h3">Enter emails of students to add to your course</label>
+                            <textarea class="form-control" name="emails" rows="10" cols="40"></textarea>
+                        </div>
+                        <input class="btn btn-lg btn-outline-dark" type="submit">
+                </form>
+                <% } else { %>
+                    You are not the owner
+                    <%} %>
+                        <br>
+
+                </div></div></div>
+
+
+<%- include('bootfooter') -%>

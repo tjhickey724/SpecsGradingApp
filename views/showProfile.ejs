@@ -1,0 +1,12 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+        <div class="p-5 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1>Logged in as <%= user.googleemail %>
+                </h1>
+                <hr>
+                <p> Welcome, <%= user.googlename %>!</p>
+            </div>
+        </div>
+
+<%- include('bootfooter') -%>

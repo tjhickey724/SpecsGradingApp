@@ -1,0 +1,48 @@
+<% jsonGrades=[] for(i=0; i< studentsInfo.length; i++){ let psetScore=0 let psetCount=0 // number of problems graded by
+    TAs let jsonRow={email:studentsInfo[i].googleemail, name:studentsInfo[i].googlename,grades:[]} for(j=0;
+    j<=problems.length-1; j++){ // find the scores of the reviews of this problem const
+    studentAnswers=answers.filter(a=>{
+    return a.studentId.equals(studentsInfo[i]._id) &&
+    a.problemId.equals(problems[j]._id)
+    })
+
+
+
+    const grades =
+    taReviews
+    .filter(
+    r =>{
+    let zz = (r.problemId && r.problemId.equals(problems[j]._id))
+    && (r.studentId && r.studentId.equals(studentsInfo[i]._id))
+    //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
+
+    return(zz)
+    })
+    answerId = null
+    if (grades.length>0) {
+    answerId = grades[0].answerId
+    }
+
+
+
+    if (studentAnswers.length == 0){
+    jsonRow.grades.push(-1)
+    } else if (!answerId) {
+    jsonRow.grades.push(0)
+    } else {
+    let scores = grades.map((r) => r.points)
+    let avgScore =
+    Math.ceil(
+    scores.reduce((a,b) => a + b, 0)/scores.length
+    )
+    psetScore += avgScore
+    psetCount += 1
+    jsonRow.grades.push(avgScore)
+    } }
+    jsonRow.grades.push(psetScore)
+    jsonRow.grades.push(psetCount)
+    let average = psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
+    jsonRow.grades.push(average)
+    jsonGrades.push(jsonRow)
+    if (psetCount>0){} }
+    %><%- JSON.stringify(jsonGrades) %>

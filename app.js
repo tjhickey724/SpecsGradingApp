@@ -10,8 +10,8 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-// var livereload = require("livereload");
-// var connectLiveReload = require("connect-livereload");
+var livereload = require("livereload");
+var connectLiveReload = require("connect-livereload");
 // require the socket.io module
 
 // Models!
@@ -26,12 +26,12 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const ejsLint = require('ejs-lint');
 
-// const liveReloadServer = livereload.createServer();
-// liveReloadServer.server.once("connection", () => {
-//   setTimeout(() => {
-//     liveReloadServer.refresh("/");
-//   }, 100);
-// });
+const liveReloadServer = livereload.createServer();
+liveReloadServer.server.once("connection", () => {
+  setTimeout(() => {
+    liveReloadServer.refresh("/");
+  }, 100);
+});
 //const mongoose = require( 'mongoose' );
 //const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -46,11 +46,7 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost:27017",{
-    useNewUrlParser: true, 
-    useUnifiedTopology: true,
-    family: 4,
-});
+mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
@@ -65,7 +61,7 @@ const configPassport = require("./config/passport");
 configPassport(passport);
 
 var app = express();
-// app.use(connectLiveReload());
+app.use(connectLiveReload());
 
 var http = require("http").Server(app);
 var io = require("socket.io")(http);

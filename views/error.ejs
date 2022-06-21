@@ -1,7 +1,12 @@
-<h1>
-  <%= message %>
-</h1>
-<h2>
-  <%= error.status %>
-</h2>
-<pre><%= error.stack %></pre>
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="px-5 py-3 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">Error - <%= message %></h1>
+    <h2>
+      <%= error.status %>
+    </h2>
+    <pre class="bg-white border rounded" style="font-size: 12px !important;"><%= error.stack %></pre>
+  </div>
+</div>
+<%- include('bootfooter') -%>

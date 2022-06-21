@@ -1,56 +1,60 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-        <% console.log("in showTAs.ejs"); console.log(courseInfo.name) %>
+<% console.log("in showTAs.ejs"); console.log(courseInfo.name) %>
 
-		<div class="p-3 mb-4 bg-light">
-			<div class="container-fluid ">
-				<h1 class="pb-2 border-bottom">
-                <%= courseInfo.name %>
-                </h1>				<div class="p-2">
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= courseInfo.name %>
+    </h1>
+    <div class="p-2">
 
-            studentPin: <%= courseInfo.coursePin %>
-                <br>
+      studentPin: <%= courseInfo.coursePin %>
+      <br>
 
 
 
 
-                <hr>
-                <b>Teaching Assistants</b>
-                <form method="post" action="/removeTAs/<%=courseInfo._id%>">
-                    <ul>
-                        <% for(i=0; i< tas.length; i++){ %>
-                            <li>
-                                <% if (user._id.equals(courseInfo.ownerId)) { %>
-                                    <input type="checkbox" name="ta" value="<%= tas[i]._id %>">
-                                    <% } %>
-                                        <b>
-                                            <%= tas[i].googlename %>
-                                        </b>
-                                        <i>
-                                            <%= tas[i].googleemail %>
-                                        </i>
+      <hr>
+      <b>Teaching Assistants</b>
+      <form method="post" action="/removeTAs/<%=courseInfo._id%>">
+        <ul>
+          <% for(i=0; i< tas.length; i++){ %>
+          <li>
+            <% if (user._id.equals(courseInfo.ownerId)) { %>
+            <input type="checkbox" name="ta" value="<%= tas[i]._id %>">
+            <% } %>
+            <b>
+              <%= tas[i].googlename %>
+            </b>
+            <i>
+              <%= tas[i].googleemail %>
+            </i>
 
-                            </li>
-                            <% } %>
-                    </ul>
-                    <% if (user._id.equals(courseInfo.ownerId)) { %>
-                        <input class="btn btn-primary" type="submit" value="remove selected TAs">
-                        <% } %>
-                </form>
-                <hr>
-                <% if (user._id.equals(courseInfo.ownerId)) { %>
-                    <h2>Add a Teaching Assistant</h2>
-                    <form method="post" action="/addTA/<%= courseInfo._id%>" class="col-lg-8">
-                         <div class="input-group"><label for="email" class="input-group-text">Email</label><input class="form-control" type="text" name="email">
-                        <input class="btn btn-warning" type="submit" value="add specified TA"></div>
-                    </form>
-                    <% } else { %>
+          </li>
+          <% } %>
+        </ul>
+        <% if (user._id.equals(courseInfo.ownerId)) { %>
+        <input class="btn btn-primary" type="submit" value="remove selected TAs">
+        <% } %>
+      </form>
+      <hr>
+      <% if (user._id.equals(courseInfo.ownerId)) { %>
+      <h2>Add a Teaching Assistant</h2>
+      <form method="post" action="/addTA/<%= courseInfo._id%>" class="col-lg-8">
+        <div class="input-group"><label for="email" class="input-group-text">Email</label><input class="form-control" type="text" name="email">
+          <input class="btn btn-warning" type="submit" value="add specified TA">
+        </div>
+      </form>
+      <% } else { %>
 
-                        <%} %>
-                            <hr>
-                            <a href="/" class="btn btn-sm btn-danger">
-                                Back to Home
-                            </a>
-</div></div></div>
+      <%} %>
+      <hr>
+      <a href="/" class="btn btn-sm btn-danger">
+        Back to Home
+      </a>
+    </div>
+  </div>
+</div>
 
 <%- include('bootfooter') -%>

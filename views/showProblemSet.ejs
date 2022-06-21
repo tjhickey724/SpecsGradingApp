@@ -1,63 +1,62 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-        <div class="p-3 mb-4 bg-light">
-            <div class="container-fluid ">
-                <h1 class="pb-2 border-bottom">
-                    <%= problemSet.name.trim() || "Problem Set" %>
-                </h1>
-                <div class="p-2">
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= problemSet.name.trim() || "Problem Set" %>
+    </h1>
+    <div class="p-2">
 
-                    <ul>
-                        <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
+      <ul>
+        <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
                             !(courseInfo.ownerId==user.id) ) { %>
-                            <li>Problem Hidden </li>
-                            <% } else {%>
-                                <li>
+        <li>Problem Hidden </li>
+        <% } else {%>
+        <li>
 
 
-                                    <% const skillsToMaster=problems[i].skills.filter( (skill)=>
+          <% const skillsToMaster=problems[i].skills.filter( (skill)=>
                                         !skills.includes(skill.toString())).length
                                         %>
-                                        <% if (skillsToMaster==0){ %>
-                                            <a href="/showProblem/<%= problems[i]._id %>">
-                                                <span style="color:green">
-                                                    <%= problems[i].description || "no name" %>
-                                                        all skills in this problem have been mastered
-                                                </span>
-                                            </a>
+          <% if (skillsToMaster==0){ %>
+          <a href="/showProblem/<%= problems[i]._id %>">
+            <span style="color:green">
+              <%= problems[i].description || "no name" %>
+              all skills in this problem have been mastered
+            </span>
+          </a>
 
-                                            <% } else { %>
-                                                <a href="/showProblem/<%= problems[i]._id %>">
-                                                    <%= problems[i].description || "no name" %>
-                                                </a>
+          <% } else { %>
+          <a href="/showProblem/<%= problems[i]._id %>">
+            <%= problems[i].description || "no name" %>
+          </a>
 
-                                                <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
-                                                        master<br>
-                                                        <% } %>
-                                </li>
-                                <% }} %>
-                    </ul>
+          <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+          master<br>
+          <% } %>
+        </li>
+        <% }} %>
+      </ul>
 
 
-                    <hr>
-                    <% if (courseInfo.ownerId.equals(user._id)){ %>
-                        <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+      <hr>
+      <% if (courseInfo.ownerId.equals(user._id)){ %>
+      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
 
-                        <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
-                        <% } %>
-                            <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
-                                of Problem
-                                Sets</a>
-                            <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
-                                <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
-                                    Problem Set
-                                </a>
-                                <a class="btn btn-sm btn-warning"
-                                    href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
-                                </a>
-                                <% } %>
-                </div>
-            </div>
-        </div>
+      <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
+      <% } %>
+      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
+        of Problem
+        Sets</a>
+      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
+        Problem Set
+      </a>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
+      </a>
+      <% } %>
+    </div>
+  </div>
+</div>
 
 <%- include('bootfooter') -%>

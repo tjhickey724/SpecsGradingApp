@@ -75,10 +75,8 @@
 
       Number of reviews I've made: <%= myReviews.length %>
       with <%= thumbsUp %> thumbs up and
-      <%= thumbsDown %> thumb downs <br>
-      <br>
-      <hr><br>
-
+      <%= thumbsDown %> thumb downs
+      <hr>
       <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show TAs
       </a>
@@ -131,6 +129,9 @@
 
 
 
+    </div>
+  </div>
+</div>
 
-
-      <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

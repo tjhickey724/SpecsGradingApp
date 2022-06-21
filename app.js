@@ -1907,6 +1907,7 @@ app.get("/mastery2/:courseId", async (req, res, next) => {
     data.push(a);
   }
   data = data.sort((x, y) => (x["total"] < y["total"] ? 1 : -1));
+  res.locals.routeName = " summarizeSkills";
 
   res.render("summarizeSkills", {courseId, data, mastery, studentIds, students, studentmap, studentSkillCounts, skillIds, skillmap, skills});
 

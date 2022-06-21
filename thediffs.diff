@@ -1466,6 +1466,9 @@ index 1e487c8..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/bootheader.ejs b/views/bootheader.ejs
 index b6655e5..b3e8139 100644
 --- a/views/bootheader.ejs
@@ -1512,6 +1515,9 @@ index 071d54e..2749a87 100644
  
  
 <%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/editProblem.ejs b/views/editProblem.ejs
 index 8459448..56921fc 100644
 --- a/views/editProblem.ejs
@@ -1583,6 +1589,9 @@ index a9da20a..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/editSkill.ejs b/views/editSkill.ejs
 deleted file mode 100644
 index c0fb0ad..0000000
@@ -1608,6 +1617,9 @@ index c0fb0ad..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/gradeProblemSet.ejs b/views/gradeProblemSet.ejs
 index b1e74bf..2e3ac89 100644
 --- a/views/gradeProblemSet.ejs
@@ -1971,6 +1983,9 @@ index 346ca8b..fecb39d 100644
  
  
 <%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showOneStudentInfo.ejs b/views/showOneStudentInfo.ejs
 index 9cde173..1412f61 100644
 --- a/views/showOneStudentInfo.ejs
@@ -2091,6 +2106,9 @@ index b694d25..7d19f05 100644
 -
  
 <%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showProblemSet.ejs b/views/showProblemSet.ejs
 index 6d5cc50..c1b896d 100644
 --- a/views/showProblemSet.ejs
@@ -2144,6 +2162,9 @@ index 6d5cc50..c1b896d 100644
 -
  
 <%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showSkill.ejs b/views/showSkill.ejs
 deleted file mode 100644
 index b04caad..0000000
@@ -2170,6 +2191,9 @@ index b04caad..0000000
 -<a class="btn btn-primary" href="/showSkills/<%= skill.courseId %>">back to skills list</a><br>
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showSkills.ejs b/views/showSkills.ejs
 deleted file mode 100644
 index 83e4f48..0000000
@@ -2200,6 +2224,9 @@ index 83e4f48..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showStudentInfo.ejs b/views/showStudentInfo.ejs
 index 174e8bc..2fc5d4e 100644
 --- a/views/showStudentInfo.ejs
@@ -2295,6 +2322,9 @@ index 0000000..5ec2c8f
 +
 +
 +<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/stats.ejs b/views/stats.ejs
 new file mode 100644
 index 0000000..39fb644
@@ -2325,3 +2355,6 @@ index 0000000..39fb644
 +        </li>
 +    </ul>
 +<%- include('bootfooter') -%>
+</body>
+
+</html>

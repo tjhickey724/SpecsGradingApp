@@ -8,16 +8,16 @@
     <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
       <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
         <li class="nav-item">
-          <a class="nav-link <% if (routeName == " index" || routeName==" login" ) { %> active fw-bold <% } %> "
+          <a class="nav-link active <% if (routeName == " index" || routeName==" login" ) { %> fw-bold <% } %> "
               href="/">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <% if (routeName == " stats") { %> active fw-bold <% } %> " href="/stats">
+          <a class="nav-link active <% if (routeName == " stats") { %> fw-bold <% } %> " href="/stats">
               Stats </a>
         </li>
         <% if (loggedIn) { %>
           <li class="nav-item">
-            <a class="nav-link <% if (routeName == " profile") { %> active fw-bold <% } %> " href="/profile">
+            <a class="nav-link active <% if (routeName == " profile") { %> fw-bold <% } %> " href="/profile">
                 Profile (<%= user.googleemail %>)
             </a>
           </li>

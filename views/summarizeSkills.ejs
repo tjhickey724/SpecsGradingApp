@@ -1,0 +1,45 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<!-- mastery,studentIds,students,studentmap,studentSkillCounts,skillIds,skillmap,skills -->
+
+
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <td> name</td> 
+            <td> email</td>
+            <td> total</td>
+            <% for (skill of skills){%>
+                <td> <button>
+                            <%= skill['name'].slice(0,5)  %> 
+                     </button>
+                </td>
+            <% } %>
+        </tr>
+    </thead>
+    <tbody>
+        <% for (datum of data){%>
+          <tr>
+           
+            <td>
+                <a href="/showOneStudentInfo/<%= courseId %>/<%= datum['student']['_id']%>">
+                  <%= datum['student']['googlename'] %>
+                </a>
+            </td>
+            <td>
+                <%= datum['student']['googleemail'] %>
+           </td>
+            <td>
+                <%= datum['total'] %> 
+            </td>
+            <% for (count in datum['skillCounts']) {%>
+                <td> <%= datum['skillCounts'][count] %> </td>
+            <% } %>
+          </tr>
+        <% } %>
+    </tbody>
+</table>
+
+
+<%- include('bootfooter') -%>

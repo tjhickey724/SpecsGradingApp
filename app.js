@@ -850,67 +850,112 @@ function getElementBy_id(id, vals) {
   return null;
 }
 
-app.get("/showAllAnswers/:probId", async (req, res, next) => {
-  try {
-    const id = req.params.probId;
-    res.locals.problem = await Problem.findOne({_id: id});
-    const course = await Course.findOne({_id: res.locals.problem.courseId});
-    const userReviews = await Review.find({problemId: id, reviewerId: req.user._id});
-    res.locals.allSkills = await Skill.find({courseId: res.locals.problem.courseId});
-    res.locals.getSkill = (id, vals) => getElementBy_id(id, vals);
-    res.locals.numReviews = userReviews.length;
-    res.locals.canView = res.locals.numReviews >= 2 || req.user._id.equals(course.ownerId);
-    if (!res.locals.canView) {
-      res.locals.answers = [];
-      res.locals.reviews = [];
-    } else {
-      res.locals.answers = await Answer.find({problemId: id}).collation({locale: "en", strength: 2}).sort({answer: 1});
-      res.locals.reviews = await Review.find({problemId: id});
+app.get('/showAllAnswers/:probId',
+    async (req, res, next ) => {
+      try {
+          const id = req.params.probId
+          res.locals.problem = await Problem.findOne({_id:id})
+          const course =
+            await Course.findOne({_id:res.locals.problem.courseId})
+          const userReviews =
+            await Review.find({problemId:id,reviewerId:req.user._id})
+          res.locals.allSkills =
+            await Skill.find({courseId:res.locals.problem.courseId})
+          res.locals.getSkill = (id,vals) => getElementBy_id(id,vals)
+          res.locals.numReviews = userReviews.length
+          res.locals.canView =
+              ((res.locals.numReviews>=2) ||
+               (req.user._id.equals(course.ownerId)))
+          if (!res.locals.canView){
+              res.locals.answers=[]
+              res.locals.reviews=[]
+          }else {
+            res.locals.answers = await Answer.find({problemId:id})
+              .collation({locale:'en',strength: 2})
+              .sort({answer:1})
+            res.locals.reviews = await Review.find({problemId:id})
+          }
+          res.locals.isTA =
+              req.user.taFor &&
+              req.user.taFor.includes(course._id)
+          const taList = await User.find({taFor:res.locals.problem.courseId})
+          res.locals.taList = taList.map(x => x._id)
+          res.locals.routeName = " showAllAnswers";
+          res.render('showAllAnswers')
+      }
+    catch(e){
+      next(e)
     }
-    res.locals.isTA = req.user.taFor && req.user.taFor.includes(course._id);
-    const taList = await User.find({taFor: res.locals.problem.courseId});
-    res.locals.taList = taList.map((x) => x._id);
-    res.locals.routeName = " showAllAnswers";
-    res.render("showAllAnswers");
-  } catch (e) {
-    next(e);
   }
-});
+)
 
-app.get("/editProblem/:probId", async (req, res, next) => {
-  const id = req.params.probId;
-  res.locals.probId = id;
-  res.locals.problem = await Problem.findOne({_id: id});
-  res.locals.course = await Course.findOne({_id: res.locals.problem.courseId}, "ownerId");
-  res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
-  res.locals.allSkills = await Skill.find({courseId: res.locals.problem.courseId});
-  res.locals.routeName = " editProblem";
-  res.render("editProblem");
-});
+app.get('/editProblem/:probId',
+  async ( req, res, next ) => {
+    const id = req.params.probId
+    res.locals.probId = id
+    res.locals.problem = await Problem.findOne({_id:id})
+    res.locals.course =
+        await Course.findOne({_id:res.locals.problem.courseId},'ownerId')
+    res.locals.skills =
+            await Skill.find({_id: {$in:res.locals.problem.skills}})
+    res.locals.allSkills =
+            await Skill.find({courseId:res.locals.problem.courseId})
+    res.locals.routeName = " editProblem";
+    res.render("editProblem")
+  }
+)
 
-app.post("/saveAnswer/:probId", async (req, res, next) => {
-  const id = req.params.probId;
-  res.locals.problem = await Problem.findOne({_id: id});
-  const problem = res.locals.problem;
+/*
+  This route has some nuanced behavior.
+  If the user tries to save an answer that has already
+  been reviewed, then we should not let them do it and
+  we should send them to a page that says their answer has
+  been reviewed and they can't update it. 
+*/
+app.post('/saveAnswer/:probId',
+  async ( req, res, next ) => {
+    const id = req.params.probId
+    res.locals.problem = await Problem.findOne({_id:id})
+    const problem = res.locals.problem
 
-  let newAnswer = new Answer({
-    studentId: req.user._id,
-    courseId: problem.courseId,
-    psetId: problem.psetId,
-    problemId: problem._id,
-    answer: req.body.answer,
-    reviewers: [],
-    numReviews: 0,
-    pendingReviewers: [],
-    createdAt: new Date(),
+    const answers = 
+      await Answer.find(
+              {studentId:req.user._id,
+               problemId:problem._id}
+     )
+    
+    const answerIds = answers.map(x => x._id);
+    const reviews = await Review.find({answerId:{$in:answerIds}});
+    console.log('about to try to save the new answer')
+    console.dir(reviews);
+    if (reviews.length>0){
+      res.redirect("/showReviewsOfAnswer/"+answerIds[0])
+    } else {
+        let newAnswer = new Answer(
+          {
+          studentId:req.user._id,
+          courseId:problem.courseId,
+          psetId:problem.psetId,
+          problemId:problem._id,
+          answer:req.body.answer,
+          reviewers: [],
+          numReviews: 0,
+          pendingReviewers: [],
+          createdAt: new Date()
+          }
+        )
+
+        await Answer.deleteMany(
+          {studentId:req.user._id,
+            problemId:problem._id}
+          )
+
+        await newAnswer.save()
+
+
+        res.redirect("/showProblem/"+id)
+    }
   });
-
-  await Answer.deleteMany({studentId: req.user._id, problemId: problem._id});
-
-  await newAnswer.save();
-
-  res.redirect("/showProblem/" + id);
-});
 
 app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
   try {
@@ -1628,112 +1673,155 @@ app.get("/showTAs/:courseId", async (req, res, next) => {
   }
 });
 
-// add the studentId to each Review ...
-app.get("/updateReviews", async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-    //console.log("did we get here???  Yes we did!!")
-    return;
-  } else {
-    res.send("we aren't doing this anymore!");
-    //console.log("did we get here???  Yes we did!!")
-    return;
-    try {
-      let counter = 0;
-      const reviews = await Review.find({});
-      reviews.forEach(async (r) => {
-        // lookup the answer, get the studentId,
-        // and add it to the review, and save it...
-        answer = await Answer.findOne({_id: r.answerId});
-        //console.log(counter+": "+r._id+" "+answer.studentId)
-        counter += 1;
-        r.studentId = answer.studentId;
-        await r.save();
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
-    }
-    res.send("all done");
-  }
-});
-
-// add the studentId to each Review ...
-app.get("/updateReviews2", async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      // for each answer, find all of the reviews of that answer
-      // create the reviewers field of the answer and set it
-      let counter = 0;
-      const answers = await Answer.find({});
-      answers.forEach(async (a) => {
-        try {
-          //  answer, get the studentId,
+  // add the studentId to each Review ...
+  app.get('/updateReviews',
+    async (req, res, next) => {
+     if (req.user.googleemail != "tjhickey@brandeis.edu"){
+      res.send('you are not allowed to do this!')
+      //console.log("did we get here???  Yes we did!!")
+      return
+    }else {
+      res.send("we aren't doing this anymore!")
+      //console.log("did we get here???  Yes we did!!")
+      return
+      try {
+        let counter=0
+        const reviews = await Review.find({})
+        reviews.forEach(async (r) => {
+          // lookup the answer, get the studentId,
           // and add it to the review, and save it...
-          reviews = await Review.find({answerId: a._id});
-          reviewers = reviews.map((r) => r.reviewerId);
-          //console.log(a._id+" "+JSON.stringify(reviewers))
-          a.reviewers = reviewers;
-          await a.save();
-        } catch (e) {
-          console.log("caught an error updating an answer: " + e);
-        }
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
+          answer = await Answer.findOne({_id:r.answerId})
+          //console.log(counter+": "+r._id+" "+answer.studentId)
+          counter += 1
+          r.studentId = answer.studentId
+          await r.save()
+        })
+      }catch(e){
+        console.log("caught an error: "+e)
+        console.dir(e)
+      }
+      res.send('all done')
+     }
     }
-    res.send("all done");
-  }
-});
+  )
 
-app.get("/removeGradeSheets", async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      let counter = 0;
-      const courses = await Course.find({});
-      courses.forEach(async (c) => {
-        // lookup the answer, get the studentId,
-        // and add it to the review, and save it...
-        c.gradeSheet = {};
-        //console.log('updated course :'+JSON.stringify(c))
-        await c.save();
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
+  // add the studentId to each Review ...
+  app.get('/updateReviews2',
+    async (req, res, next) => {
+     if (req.user.googleemail != "tjhickey@brandeis.edu"){
+      res.send('you are not allowed to do this!')
+    }else {
+      try {
+        // for each answer, find all of the reviews of that answer
+        // create the reviewers field of the answer and set it
+        let counter=0
+        const answers = await Answer.find({})
+        answers.forEach(async (a) => {
+          try {
+            //  answer, get the studentId,
+            // and add it to the review, and save it...
+            reviews = await Review.find({answerId:a._id})
+            reviewers = reviews.map(r=>r.reviewerId)
+            //console.log(a._id+" "+JSON.stringify(reviewers))
+            a.reviewers = reviewers
+            await a.save()
+          }catch(e){
+            console.log("caught an error updating an answer: "+e)
+          }
+        })
+      }catch(e){
+        console.log("caught an error: "+e)
+        console.dir(e)
+      }
+      res.send('all done')
+     }
     }
-    res.send("all done");
-  }
-});
+  )
 
-app.get("/updateOfficialReviews", async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      // iterate through all answers
-      // look for reviews a review by a TA
-      // if found, then use it to update the answer
 
-      let answers = await Answer.find();
-      for (let answer of answers) {
-        let reviews = await Review.find({answerId: answer._id});
-        for (let review of reviews) {
-          let reviewer = await User.findOne({_id: review.reviewerId});
-          if (reviewer && reviewer.taFor && reviewer.taFor.includes(answer.courseId)) {
-            answer.officialReviewId = review._id;
-            answer.points = review.points;
-            answer.review = review.review;
-            answer.skills = review.skills;
-            await answer.save();
+  app.get('/removeGradeSheets',
+    async (req, res, next) => {
+     if (req.user.googleemail != "tjhickey@brandeis.edu"){
+      res.send('you are not allowed to do this!')
+    }else {
+      try {
+        let counter=0
+        const courses = await Course.find({})
+        courses.forEach(async (c) => {
+          // lookup the answer, get the studentId,
+          // and add it to the review, and save it...
+          c.gradeSheet = {}
+          //console.log('updated course :'+JSON.stringify(c))
+          await c.save()
+        })
+      }catch(e){
+        console.log("caught an error: "+e)
+        console.dir(e)
+      }
+      res.send('all done')
+     }
+    }
+  )
+
+
+  app.get('/removeOrphanAnswers',
+    async (req, res, next) => {
+      try{
+        if (req.user.googleemail != "tjhickey@brandeis.edu"){
+          res.send('you are not allowed to do this!')
+        }else {
+          /* 
+              Find all reviews whose answer has been deleted,
+              and remove those reviews. 
+              First we find all of the answers and create a list of the AnswerIds
+              Then we find all reviews whose answer is not in that list.
+              These are the orphans.
+              Then we delete those orphan reviews.
+          */
+           console.log('in /removeOrphanAnswers')
+           const answers = await Answer.find({});
+           console.log("num answers is "+answers.length);
+           const answerIds = answers.map(x=>x._id)
+           console.log("num answerIds is "+answerIds.length);
+           const orphans = await Review.find({answerId:{$not:{$in:answerIds}}})
+           console.log("num orphans is "+orphans.length);
+           const orphanIds = orphans.map(x => x._id)
+           const numrevsBefore = await Review.find().count()
+           await Review.deleteMany({_id:{$in:orphanIds}})
+           const numrevsAfter = await Review.find().count();
+           res.send("before "+numrevsBefore+" after:"+numrevsAfter)
+           }
+      } catch(e){
+        next(e);
+      }
+    }
+  )
+
+  app.get('/updateOfficialReviews',
+    async (req, res, next) => {
+     if (req.user.googleemail != "tjhickey@brandeis.edu"){
+      res.send('you are not allowed to do this!')
+    }else {
+      try {
+        // iterate through all answers
+        // look for reviews a review by a TA
+        // if found, then use it to update the answer
+
+        let answers = await Answer.find()
+        for (let answer of answers){
+          let reviews = await Review.find({answerId:answer._id})
+          for (let review of reviews){
+            let reviewer =
+            await User.findOne({_id:review.reviewerId})
+            if (reviewer && reviewer.taFor && (reviewer.taFor.includes(answer.courseId))){
+              answer.officialReviewId = review._id
+              answer.points = review.points
+              answer.review = review.review
+              answer.skills = review.skills
+              await answer.save()
+            }
           }
         }
-      }
     } catch (e) {
       console.log("caught an error: " + e);
       console.dir(e);
@@ -1747,38 +1835,127 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const masteryAgg = (courseId) => [
   {
-    $match: {
-      courseId: new ObjectId(courseId),
-    },
-  },
-  {
-    $group: {
-      _id: "$studentId",
-      numAns: {
-        $sum: 1,
-      },
-      skills: {
-        $addToSet: {
-          $arrayElemAt: ["$skills", 0],
-        },
-      },
-    },
-  },
-  {
-    $addFields: {
-      numSkills: {
-        $size: "$skills",
-      },
-    },
-  },
-];
+    '$match': {
+      'courseId': new ObjectId(courseId)
+    }
+  }, {
+    '$group': {
+      '_id': '$studentId', 
+      'numAns': {
+        '$sum': 1
+      }, 
+      'skills': {
+        '$addToSet': {
+          '$arrayElemAt': [
+            '$skills', 0
+          ]
+        }
+      }
+    }
+  },    
+]
 
-app.get("/mastery/:courseId", async (req, res, next) => {
-  const agg = masteryAgg(req.params.courseId);
-  console.dir(agg);
-  const zz = await Answer.aggregate(agg);
-  res.json(zz);
-});
+app.get('/mastery/:courseId',
+  async (req,res,next) => {
+    const agg = masteryAgg(req.params.courseId)
+    console.dir(agg)
+    const zz = await Answer.aggregate(agg)
+    res.json(zz)
+  })
+
+ const masteryAgg2 = (courseId) => 
+  [
+    {
+      '$match': {
+        'courseId': new ObjectId(courseId)
+      }
+    }, {
+      '$group': {
+        '_id': '$studentId', 
+        'numAns': {
+          '$sum': 1
+        }, 
+        'skills': {
+          $push: '$skills'
+        }
+      }
+    }
+  ]
+
+const skillCount = (skills,skillLists) => {
+  skillmap={}
+  for (skill of skills){
+    skillmap[skill]=0
+  }
+  for (skillList of skillLists){
+    for (skill of skillList){
+      skillmap[skill] += 1
+    }
+  }
+  return skillmap;
+}
+
+  /*
+    This route will analyze the skill mastery for the entire class.
+    The main goal is to generate a table which shows for each student
+    and for each skill, the number of times that students has demonstrated
+    mastery of that skill. We will put the skills in an array and label the
+    skill columns with numbers (perhaps with tooltips to see the full name).
+  */
+  app.get('/mastery2/:courseId',
+  async (req,res,next) => {
+    const courseId = req.params.courseId
+    const agg = masteryAgg2(courseId)
+    console.dir(agg)
+    const mastery = await Answer.aggregate(agg)
+    const studentIds = mastery.map(x=> x._id)
+    const students = await User.find({_id:{$in:studentIds}})
+    const skills = await Skill.find({courseId})
+    const skillIds = skills.map(x => x._id)
+    const studentSkillCounts = {}
+    for (student of mastery){
+      studentSkillCounts[student['_id']]=skillCount(skillIds,student['skills'])
+    }
+    const studentmap={}
+    for (student of students){
+      studentmap[student.id] = student
+    }
+
+    let skillmap = {} // this maps the skill id to the skill
+    for (skill of skills){
+      skillmap[skill.id] = skill
+    }
+    let sum = (vals) => {
+      total=0;
+      for (val of vals){
+        total += val;
+      }
+      return total;
+    }
+
+    let sum2 = (vals) => {
+      total=0;
+      for (val of vals){
+        total += val>0?1:0;
+      }
+      return total;
+    }
+
+    let data = []
+    for (student in studentSkillCounts){
+      let a ={};
+      a['student'] = studentmap[student];
+      a['skillCounts'] = studentSkillCounts[student];
+      a['total']= sum2(Object.values(a['skillCounts']))
+      data.push(a)
+    }
+    data = data.sort((x,y) => (x['total']<y['total']?1:-1))
+
+    res.render('summarizeSkills',{courseId,data,mastery,studentIds,students,studentmap,studentSkillCounts,skillIds,skillmap,skills})
+
+    //res.json({data,mastery,studentIds,students,studentSkillCounts,skillIds,skillmap,skills})
+  })
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

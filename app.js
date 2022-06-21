@@ -46,7 +46,7 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {

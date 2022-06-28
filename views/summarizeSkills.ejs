@@ -2,44 +2,52 @@
 <%- include('menubar') -%>
 <!-- mastery,studentIds,students,studentmap,studentSkillCounts,skillIds,skillmap,skills -->
 
-
-
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <td> name</td> 
-            <td> email</td>
-            <td> total</td>
-            <% for (skill of skills){%>
-                <td> <button>
-                            <%= skill['name'].slice(0,5)  %> 
-                     </button>
-                </td>
-            <% } %>
-        </tr>
-    </thead>
-    <tbody>
-        <% for (datum of data){%>
+<div class="p-5 pb-3 mb-4 bg-light">
+  <div class="container-fluid">
+    <div class="p-2">
+      <p class="small text-muted m-0 mb-1 fst-italic text-end">If truncated, hover over a skill to read its full name.</p>
+      <table class="table table-bordered table-striped">
+        <thead>
           <tr>
-           
-            <td>
-                <a href="/showOneStudentInfo/<%= courseId %>/<%= datum['student']['_id']%>">
-                  <%= datum['student']['googlename'] %>
-                </a>
+            <td> Name</td>
+            <td> Email</td>
+            <td> Total</td>
+            <% for (skill of skills){%>
+            <td> <button class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title=" <%= skill['name']  %>"><%= skill['name'].slice(0,5)  %><% if (skill['name'].slice(0,5) != skill['name']) { %>...<% } %>
+              </button>
             </td>
-            <td>
-                <%= datum['student']['googleemail'] %>
-           </td>
-            <td>
-                <%= datum['total'] %> 
-            </td>
-            <% for (count in datum['skillCounts']) {%>
-                <td> <%= datum['skillCounts'][count] %> </td>
             <% } %>
           </tr>
-        <% } %>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+          <% for (datum of data){%>
+          <tr>
 
+            <td>
+              <a href="/showOneStudentInfo/<%= courseId %>/<%= datum['student']['_id']%>">
+                <%= datum['student']['googlename'] %>
+              </a>
+            </td>
+            <td>
+              <%= datum['student']['googleemail'] %>
+            </td>
+            <td>
+              <%= datum['total'] %>
+            </td>
+            <% for (count in datum['skillCounts']) {%>
+            <td> <%= datum['skillCounts'][count] %> </td>
+            <% } %>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
 
+    </div>
+  </div>
+</div>
 <%- include('bootfooter') -%>
+<script>
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+<% include('htmlfoot') %>

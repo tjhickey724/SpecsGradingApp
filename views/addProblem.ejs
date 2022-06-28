@@ -1,52 +1,74 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-    <div class="jumbotron">
-        <h1>Add Problem</h1>
-    </div>
-
-    <form method="post" action="/saveProblem/<%= psetId %>">
-        <br>
-         <input type="checkbox" name='visible' checked
-                        value='visible'>
-        Visible: students can see the problem.
-        <br>
-        <input type="checkbox" name='answerable' checked
-                        value='answerable'>
-        Answerable: students can type in an answer to the problem and either
-        save it or submit it.
-        <br>
-        <input type="checkbox" name='submitable' checked
-                        value='submitable'>
-        Submitable: students can submit their answer (otherwise they can only save)
-        <br>
-
-        <input type="checkbox" name='peerReviewable' checked
-                        value='peerReviewable'>
-        Peer Reviewable: students who have submitted their answer can review the
-        answers of their peers in a doubly blind anonymous fashion
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      Add Problem
+    </h1>
+    <div class="p-2">
+      <form method="post" action="/saveProblem/<%= psetId %>">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" name='visible' id="visible" checked>
+          <label class="form-check-label" for="visible">
+            Visible: students can see the problem.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" name='answerable' id="answerable" checked>
+          <label class="form-check-label" for="answerable">
+            Answerable: students can type in an answer to the problem and either
+            save it or submit it. </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" name='submitable' id="submitable" checked>
+          <label class="form-check-label" for="submitable">
+            Submitable: students can submit their answer (otherwise they can only save)
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" name='peerReviewable' id="peerReviewable" checked>
+          <label class="form-check-label" for="peerReviewable">
+            Peer Reviewable: students who have submitted their answer can review the
+            answers of their peers in a doubly blind anonymous fashion
+          </label>
+        </div>
         <hr>
-        Problem Title:<br>
-        <input type="text" name="description">
-        <br>
-        Problem Description:<br>
-        <textarea name="problemText" cols="100" rows="10"></textarea>
-        <br>
-
-        Rubric:<br>
-        Points: <input type="text" name="points"><br>
-        <textarea name="rubric" cols="100" rows="10"></textarea>
+        <div class="mb-3 col-lg-4">
+          <label for="description" class="form-label">Problem Title</label>
+          <input type="text" class="form-control" name="description" id="description">
+        </div>
+        <div class="mb-3">
+          <label for="problemText" class="form-label">Problem Description</label>
+          <textarea name="problemText" class="form-control" cols="100" rows="10"></textarea>
+        </div>
+        <b>Rubric:</b><br>
+        <div class="row mb-1">
+          <label for="points" class="col-sm-1 col-form-label">Points</label>
+          <div class="col-sm-2">
+            <input type="text" class="form-control" name="points" id="points">
+          </div>
+        </div>
+        <textarea class="form-control" name="rubric" cols="100" rows="10"></textarea>
         <hr>
         <h2>Skills required to fully solve this problem</h2>
         Check all that apply.
         <hr>
-          <% for(let i=0; i<skills.length; i++){ %>
-          <input type="checkbox" value="<%= skills[i].id %>"> <%= skills[i].name %> <br>
-          <% } %>
+        <% for(let i=0; i<skills.length; i++){ %>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="<%= skills[i].id %>" id="check<%= skills[i].id %>">
+          <label class="form-check-label" for="check<%= skills[i].id %>">
+            <%= skills[i].name %>
+          </label>
+        </div>
+        <% } %>
         <hr>
         <input class="btn btn-lg btn-primary" type="submit">
-    </form>
+      </form>
 
-    <%= psetId %>
-
+      <%= psetId %>
+    </div>
+  </div>
+</div>
 
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

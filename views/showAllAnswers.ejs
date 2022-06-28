@@ -1,24 +1,25 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
 
-    <script type="text/javascript" src="/js/clickThumb.js"></script>
-
-    <h3><%= problem.description %></h3>
-    <div class="bg-default"
-         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
-       ><%= problem.problemText %></div>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h3 class="pb-2 border-bottom">
+      <%= problem.description %>
+</h3>
+                <div class="p-2">
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
     <hr>
-
+    <script type="text/javascript" src="/js/clickThumb.js"></script>
     <% if (canView) { %>
-    <h2>All <%= answers.length %> Answers with  <%= reviews.length %> Reviews, total</h2>
-    <% for(let i=0; i<answers.length; i++){ %>
+      <h2>All <%= answers.length %> Answers with <%= reviews.length %> Reviews, total</h2>
+      <% for(let i=0; i<answers.length; i++){ %>
         <div class="row" style="padding-top:20px; margin-top:20px; border-top:thick solid black">
           <div class="col-md-12">
             <%= answers[i].createdAt %>
-            <br>
-            <h3>ANSWER</h3>
-            <% if (isTA) {%>
-              <div>
+              <br>
+              <h3>ANSWER</h3>
+              <% if (isTA) {%>
+                 <div>
               <% if (!(answers[i].reviewers.includes(user._id))){  %>
                   <button  class="grader_<%=i%>"
                                   id="cga_<%= i %>"
@@ -34,24 +35,21 @@
                   <button  class="grader_<%=i%>"
                                   id="cga_<%= i %>"
                                   onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
-
-
                 <% } else { %>
                   <a href="/showReviewsOfAnswer/<%= answers[i]._id %>"
                      target="_blank">regrade it</a>
                 <% } %>
               </div>
-            <% } %>
+                <% } %>
 
-            <pre class="bg-warning"
-                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
-                    ><%= answers[i].answer %></pre>
+                  <pre class="bg-warning"
+                    style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answers[i].answer %></pre>
           </div>
         </div>
         <h3> REVIEWS</h3>
         <% let numReviews=0 %>
 
-        <% for (let j=0; j<reviews.length; j++){ %>
+          <% for (let j=0; j<reviews.length; j++){ %>
 
           <% if (reviews[j].answerId.equals(answers[i]._id)) {
              numReviews += 1
@@ -72,23 +70,20 @@
              %>
 
 
-            <div class="row">
-              <div class="col-md-1">
-                <% if (isTAreview){%>
-                  <b style="color:rgb(255,0,0);font-size:16pt">Review by TA!!</b>
-                <% } %>
-              </div>
-               <div class="col">
+              <div class="row">
+                <div class="col-md-1">
+                  <% if (isTAreview){%>
+                    <b style="color:rgb(255,0,0);font-size:16pt">Review by TA!!</b>
+                    <% } %>
+                </div>
+ <div class="col">
                   <i  class="<%= fa_prefixU %> fa-thumbs-up"
                                id='<%= "reviewU"+j %>'
                                onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
-
                   <i  class="<%= fa_prefixD %> fa-thumbs-down"
                               id='<%= "reviewD"+j %>'
                               onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
-
                   <i>
-
                     likes: <span id='<%="likes"+ j %>'>
                              <%= numLikesU-numLikesD %>
                            </span>
@@ -96,47 +91,46 @@
                      <%= rev.points %>/<%= problem.points %>pts
                   </i><br>
                   SKILLS Mastered: [[<%= JSON.stringify(skillnames) %>]]<br>
-                  <% if (isTAreview){%>
-                    <span style="color:rgb(255,0,0);">TA REVIEW!!</span>
+                    <% if (isTAreview){%>
+                      <span style="color:rgb(255,0,0);">TA REVIEW!!</span>
                       <% if (rev.points< problem.points) { %>
-                       <div style="background:rgb(255,0,0);color:rgb(0,0,0);
+                        <div style="background:rgb(255,0,0);color:rgb(0,0,0);
                        <% } else { %>
-                       <div style="background:rgb(0,255,0);color:rgb(0,0,0);
-                       <% } %>
-                  <% } else if (rev.points==0) { %>
-                      <div style="background:rgb(255,255,255);
+                       <div style=" background:rgb(0,255,0);color:rgb(0,0,0); <% } %>
+                          <% } else if (rev.points==0) { %>
+                            <div style="background:rgb(255,255,255);
                   <% }else if (rev.reviewerId.equals(user._id)) {%>
-                       <span style="color:rgb(220,120,255);">YOUR REVIEW!!</span>
-                       <div style="background:rgb(220,120,255);
+                       <span style=" color:rgb(220,120,255);">YOUR REVIEW!!</span>
+                              <div style="background:rgb(220,120,255);<% } else { %>
+                       <div style="background:rgb(120,220,255);<% } %>
+                           padding:5px; margin-bottom:10px;border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= rev.review %></div>
+                            </div>
+                        </div>
+                        <% }%>
+                          <% } %>
+                            <% if (numReviews==0) {%> <b>no reviews yet</b>
+                              <%}%>
 
-                   <% } else { %>
-                       <div style="background:rgb(120,220,255);
-                   <% } %>
-                           padding:5px; margin-bottom:10px;border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
-                           ><%= rev.review
-                   %></div>
-
-              </div>
-            </div>
-              <% }%>
-              <% } %>
-              <% if (numReviews==0) {%> <b>no reviews yet</b> <%}%>
-
-      <%} %>
-    <% } else {%>
-      <h1>More Reviews Needed</h1>
-      You have reviewed <%= numReviews %> answers,
-      but must review at least 2 before you can see
-      all of the answers and reviews for this problem.
-    <% } %>
+                                <%} %>
+                                  <% } else {%>
+                                    <h1>More Reviews Needed</h1>
+                                    You have reviewed <%= numReviews %> answers,
+                                      but must review at least 2 before you can see
+                                      all of the answers and reviews for this problem.
+                                      <% } %>
 
 
-    <hr>
-            <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-            <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your Reviews of other's answers</a>
-            <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
-            <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+                                        <hr>
+                                        <a href="/reviewAnswers/<%= problem._id %>"
+                                          class="btn btn-small btn-warning">Review others answers</a>
+                                        <a href="/showReviewsByUser/<%= problem._id %>"
+                                          class="btn btn-small btn-info">Your Reviews of other's answers</a>
+                                        <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back
+                                          to the Problem</a>
+                                        <a href="/showProblemSet/<%= problem.psetId %>"
+                                          class="btn btn-small btn-primary">Back to the Problem Set</a>
 
 
-
+                </div></div></div>
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

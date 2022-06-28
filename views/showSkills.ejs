@@ -1,24 +1,31 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-
-<hr>
-<b>Skills</b>
-    <ul>
-    <% for(i = 0; i<= skills.length-1; i++){  %>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h6 class="pb-2 border-bottom fw-bold"> Skills
+    </h6>
+    <div class="p-2">
+      <ul>
+        <% for(i=0; i<=skills.length-1; i++){ %>
         <li>
 
-            <a href="/showSkill/<%= skills[i]._id %>">
-                <%= skills[i].name %>
-            </a>
-                <i><small><%= skills[i].createdAt %></small></i>
+          <a href="/showSkill/<%= skills[i]._id %>">
+            <%= skills[i].name %>
+          </a>
+          <i><small>
+              <%= skills[i].createdAt %>
+            </small></i>
         </li>
-    <% } %>
-    </ul>
-<hr>
+        <% } %>
+      </ul>
+      <hr>
 
-<a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-danger">
-    Return Home
-</a>
+      <a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-danger">
+        Return Home
+      </a>
 
-
+    </div>
+  </div>
+</div>
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

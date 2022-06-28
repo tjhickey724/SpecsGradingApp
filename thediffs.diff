@@ -1466,6 +1466,9 @@ index 1e487c8..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/bootheader.ejs b/views/bootheader.ejs
 index b6655e5..b3e8139 100644
 --- a/views/bootheader.ejs
@@ -1484,7 +1487,7 @@ index 071d54e..2749a87 100644
 --- a/views/createCourse.ejs
 +++ b/views/createCourse.ejs
 @@ -2,12 +2,26 @@
- <%- include('menubar') -%>
+<%- include('menubar') -%>
      <div class="jumbotron">
          <h1>Create a Course</h1>
 -        <p> add your info below</p>
@@ -1511,7 +1514,10 @@ index 071d54e..2749a87 100644
 +    </p>
  
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/editProblem.ejs b/views/editProblem.ejs
 index 8459448..56921fc 100644
 --- a/views/editProblem.ejs
@@ -1583,6 +1589,9 @@ index a9da20a..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/editSkill.ejs b/views/editSkill.ejs
 deleted file mode 100644
 index c0fb0ad..0000000
@@ -1608,6 +1617,9 @@ index c0fb0ad..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/gradeProblemSet.ejs b/views/gradeProblemSet.ejs
 index b1e74bf..2e3ac89 100644
 --- a/views/gradeProblemSet.ejs
@@ -1659,7 +1671,7 @@ index 5f32ad6..53f4459 100644
 --- a/views/login.ejs
 +++ b/views/login.ejs
 @@ -1,7 +1,9 @@
- <%- include('bootheader') -%>
+<%- include('bootheader') -%>
      <div class="jumbotron">
 -        <h1>Login to the Specs Grading App </h1>
 -        <p> You must have a gmail account to login to the Peer Review App </p>
@@ -1698,8 +1710,8 @@ index 4e78472..fa325a7 100644
 --- a/views/reviewAnswer.ejs
 +++ b/views/reviewAnswer.ejs
 @@ -1,12 +1,17 @@
- <%- include('bootheader') -%>
- <%- include('menubar') -%>
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
  
 -
 +  <h2>Grading </h2>
@@ -1767,18 +1779,18 @@ index 31d45df..e2fdc70 100644
 +              <% if (!(answers[i].reviewers.includes(user._id))){  %>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
 +                  <a  href="/showReviewsOfAnswer/<%= answers[i]._id %>"
 +                     target="_blank">grade it</a>
 +                   <button  class="grader_<%=i%>"
 +                                   id="cga_<%= i %>"
-+                                   onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
++                                   onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
 +                  <button  class="grader_<%=i%>"
 +                                  id="cga_<%= i %>"
-+                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
++                                  onclick="clickThumb(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
 +
 +
 +                <% } else { %>
@@ -1970,7 +1982,10 @@ index 346ca8b..fecb39d 100644
 -
  
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showOneStudentInfo.ejs b/views/showOneStudentInfo.ejs
 index 9cde173..1412f61 100644
 --- a/views/showOneStudentInfo.ejs
@@ -1989,7 +2004,7 @@ index b694d25..7d19f05 100644
 --- a/views/showProblem.ejs
 +++ b/views/showProblem.ejs
 @@ -2,11 +2,7 @@
- <%- include('menubar') -%>
+<%- include('menubar') -%>
  
      <h3><%= problem.description %></h3>
 -		<% if (course.ownerId ==user.id ) {%>
@@ -2090,14 +2105,17 @@ index b694d25..7d19f05 100644
 -
 -
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showProblemSet.ejs b/views/showProblemSet.ejs
 index 6d5cc50..c1b896d 100644
 --- a/views/showProblemSet.ejs
 +++ b/views/showProblemSet.ejs
 @@ -1,35 +1,29 @@
- <%- include('bootheader') -%>
- <%- include('menubar') -%>
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
 -    <h1><%= problemSet.name %></h1>
 -
 -
@@ -2143,7 +2161,10 @@ index 6d5cc50..c1b896d 100644
 -
 -
  
- <%- include('bootfooter') -%>
+<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showSkill.ejs b/views/showSkill.ejs
 deleted file mode 100644
 index b04caad..0000000
@@ -2170,6 +2191,9 @@ index b04caad..0000000
 -<a class="btn btn-primary" href="/showSkills/<%= skill.courseId %>">back to skills list</a><br>
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showSkills.ejs b/views/showSkills.ejs
 deleted file mode 100644
 index 83e4f48..0000000
@@ -2200,6 +2224,9 @@ index 83e4f48..0000000
 -
 -
 -<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/showStudentInfo.ejs b/views/showStudentInfo.ejs
 index 174e8bc..2fc5d4e 100644
 --- a/views/showStudentInfo.ejs
@@ -2295,6 +2322,9 @@ index 0000000..5ec2c8f
 +
 +
 +<%- include('bootfooter') -%>
+</body>
+
+</html>
 diff --git a/views/stats.ejs b/views/stats.ejs
 new file mode 100644
 index 0000000..39fb644
@@ -2325,3 +2355,6 @@ index 0000000..39fb644
 +        </li>
 +    </ul>
 +<%- include('bootfooter') -%>
+</body>
+
+</html>

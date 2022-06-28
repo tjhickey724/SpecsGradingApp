@@ -1,64 +1,80 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-  <% if (!course.ownerId.equals(user._id)) { %>
-      You must own the course to edit the problems
-  <% } else { %>
-    <div class="jumbotron">
-        <h1>Edit Problem</h1>
-    </div>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
 
-    <form method="post" action="/updateProblem/<%= problem._id %>">
-        <br>
-        <input type="checkbox" name='visible'
-                       <% if (problem.visible) {%> checked <% }%>
-                       value='visible'>
-        Visible:
-        <br>
-        <input type="checkbox" name='answerable'
-                      <% if (problem.answerable) {%> checked <% }%>
-                      value='answerable'>
-        Answerable:
-        <br>
-        <input type="checkbox" name='submitable'
-                       <% if (problem.submitable) {%> checked <% }%>
-                       value='submitable'>
-        Submitable:
-        <br>
-        <input type="checkbox" name='peerReviewable'
-                      <% if (problem.peerReviewable) {%> checked <% }%>
-                      value='peerReviewable'>
-        Peer Reviewable:
-        <br>
+    <% if (!course.ownerId.equals(user._id)) { %>
+    <div class="p-2">
+      You must own the course to edit the problems.</div>
+    <% } else { %>
+
+    <h1 class="pb-2 border-bottom">Edit Problem</h1>
+    <div class="p-2">
+      <form method="post" action="/updateProblem/<%= problem._id %>">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" <% if (problem.visible) {%> checked <% }%> value='visible' name='visible' id="visible">
+          <label class="form-check-label" for="visible">
+            Visible: students can see the problem.
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name='answerable' id="answerable" <% if
+                    (problem.answerable) {%> checked <% }%> value='answerable'>
+          <label class="form-check-label" for="answerable">
+            Answerable: students can type in an answer to the problem and either
+            save it or submit it. </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name='submitable' id="submitable" <% if
+                    (problem.submitable) {%> checked <% }%> value='submitable'>
+          <label class="form-check-label" for="submitable">
+            Submitable: students can submit their answer (otherwise they can only save)
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name='peerReviewable' id="peerReviewable" <% if
+                    (problem.peerReviewable) {%> checked <% }%> value='peerReviewable'> <label class="form-check-label" for="peerReviewable">
+            Peer Reviewable: students who have submitted their answer can review the
+            answers of their peers in a doubly blind anonymous fashion
+          </label>
+        </div>
         <hr>
-
-        Problem Title:<br>
-        <input type="text" name="description" value="<%= problem.description %>">
-        <br>
-        Problem Description:<br>
-        <textarea name="problemText" cols="100" rows="10"><%= problem.problemText %></textarea>
-        <br>
-        Problem Template:<br>
-        <textarea name="problemTemplate" cols="100" rows="10"><%= problem.problemTemplate %></textarea>
-        <br>
-        Rubric:<br>
-        Points: <input type="text" name="points" value="<%= problem.points %>"><br>
-        <textarea name="rubric" cols="100" rows="10"><%= problem.rubric %></textarea>
-        <h2>Skills</h2>
-        <% let skillIds=skills.map((x)=>x.id); console.log(skillIds) %>
+        <div class="mb-3 col-lg-4">
+          <label for="description" class="form-label">Problem Title</label>
+          <input type="text" class="form-control" name="description" id="description" value="<%= problem.description %>">
+        </div>
+        <div class="mb-3">
+          <label for="problemText" class="form-label">Problem Description</label>
+          <textarea name="problemText" class="form-control" cols="100" rows="10"><%= problem.problemText %></textarea>
+        </div>
+        <b>Rubric:</b><br>
+        <div class="row mb-1">
+          <label for="points" class="col-sm-1 col-form-label">Points</label>
+          <div class="col-sm-2">
+            <input type="text" class="form-control" name="points" id="points">
+          </div>
+        </div>
+        <textarea class="form-control" name="rubric" cols="100" rows="10"><%= problem.problemTemplate %></textarea>
+        <hr>
+        <h2>Skills required to fully solve this problem</h2>
+        Check all that apply.
+        <hr>
+        <% let skillIds=skills.map((x)=>x.id); console.log(skills);console.log(skillIds) %>
         <% for(let i=0;i<allSkills.length;i++){%>
-        <input type="checkbox"
-               name="skill"
-               value="<%= allSkills[i]._id%>"
-               <% if (skillIds.includes(allSkills[i].id)) {%> checked <%}%>
-               >
-        <%= allSkills[i].name %><br>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="<%= allSkills[i].id %>" id="check<%= allSkills[i].id %>" <% if
+                        (skillIds.includes(allSkills[i].id)) {%> checked <%}%>>
+                        <label class="form-check-label" for="check<%= allSkills[i].id %>">
+          <%= allSkills[i].name %>
+          </label>
+        </div>
         <% } %>
         <hr>
-
-        <br>
         <input class="btn btn-lg btn-primary" type="submit">
-    </form>
-
-  <% } %>
-
+      </form>
+    </div>
+    <% } %>
+  </div>
+</div>
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

@@ -1,63 +1,81 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h2 class="pb-2 border-bottom">
+                    Grading </h2>
+                <div class="p-2">
+                    <% if (student && user.taFor && (user.taFor).indexOf(problem.courseId)>=0) { %>
+                        <%= student.googlename %>
+                            <%= student.googleemail %>
+                                <% } %>
+                                    <hr>
+                                    <h3>
+                                        <%= problem.description %>
+                                    </h3>
+                                    <b>The Question</b>
+                                    <div class="bg-default"
+                                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+                                    <% if (answer) { %>
+                                        <hr>
 
-  <h2>Grading </h2>
-      <% if (student && user.taFor && (user.taFor).indexOf(problem.courseId)>=0) { %>
-            <%= student.googlename %> <%= student.googleemail %>
-      <% } %>
-    <hr>
-    <h3><%= problem.description %></h3>
-    <b>The Question</b>
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
-    <% if (answer) { %>
-        <hr>
-
-        <b>Their Answer</b>
-        <small>Submission time and date:<%= answer.createdAt %> </small>
-        <pre class="bg-default"
-             style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"
-             ><%= answer.answer %></pre>
-        <br>
+                                        <b>Their Answer</b>
+                                        <small>Submission time and date:<%= answer.createdAt %> </small>
+                                        <pre class="bg-default"
+                                            style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></pre>
+                                        <br>
 
 
 
-        <b>Your Review</b>
-        You have reviewed  <%= numReviewsByMe %> answers for this problem
-        <br>
 
-        <div class="row">
-            <div class="col-md-6">
+                                        <b>Your Review</b>
+                                        You have reviewed <%= numReviewsByMe %> answers for this problem
+                                            <br>
 
-                <form method="post" action="/saveReview/<%= problem._id %>/<%= answer._id %>">
-                    Points:
-                    <select name="points">
-                        <% for(let j = 0;j<=problem.points; j++) { %>
-                            <option> <%= j %> </option>
-                        <% } %>
-                    </select><br>
-                      <div class="form-group">
-                          <label for="review">Enter your review below:</label>
-                          <textarea class="form-control rounded-0" id="review" name="review" rows="10"></textarea>
-                      </div>
-                      <br>
-                      <input class="btn btn-lg btn-warning" type="submit">
-                </form>
-            </div>
-            <div class="col-md-6">
-                <b>Rubric</b>
-                <hr>
-                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.rubric %>
+                                            <div class="row">
+                                                <div class="col-md-6">
+
+                                                    <form method="post"
+                                                        action="/saveReview/<%= problem._id %>/<%= answer._id %>">
+                                                        Points:
+                                                        <select name="points">
+                                                            <% for(let j=0;j<=problem.points; j++) { %>
+                                                                <option>
+                                                                    <%= j %>
+                                                                </option>
+                                                                <% } %>
+                                                        </select><br>
+                                                        <div class="form-group">
+                                                            <label for="review">Enter your review below:</label>
+                                                            <textarea class="form-control rounded-0" id="review"
+                                                                name="review" rows="10"></textarea>
+                                                        </div>
+                                                        <br>
+                                                        <input class="btn btn-lg btn-warning" type="submit">
+                                                    </form>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <b>Rubric</b>
+                                                    <hr>
+                                                    <div class="bg-default"
+                                                        style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.rubric %></div>
+
+                                                </div>
+                                                <div>
+                                                    <% } else { %>
+                                                        <hr>
+                                                        <b class="text-bg-danger px-4 rounded-pill shadow" style="padding:10px">There is nothing for
+                                                            you to review
+                                                        </b>
+
+                                                        <% } %>
+                                                            <hr>
+                                                            <a href="/showProblemSet/<%= problem.psetId %>"
+                                                                class="btn btn-small btn-primary">Back to the Problem
+                                                                Set</a>
+                                                            <hr>
+                                                </div>
+                                            </div>
                 </div>
-
-            </div>
-        <div>
-    <% } else { %>
-        <hr>
-        <b class="bg-danger" style="padding:10px">There is nothing for you to review </b>
-
-    <% } %>
-    <hr>
-    <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
-    <hr>
-
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

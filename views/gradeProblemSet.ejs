@@ -1,6 +1,10 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-    <h1><%= problemSet.name %></h1>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h1 class="pb-2 border-bottom">
+                    <%= problemSet.name %> </h1>
+                <div class="p-2">
     <% jsonGrades = [] %>
     <table class="table table-bordered table-striped">
         <thead>
@@ -112,16 +116,13 @@
 
     </table>
 <hr>
-    <pre>
-
-<%  jsonGrades.sort((row1,row2)=>
+    <pre><%  jsonGrades.sort((row1,row2)=>
       row1.grades[row1.grades.length-1] - row2.grades[row2.grades.length-1])
     for (let i=0; i<jsonGrades.length; i++){
             let row = jsonGrades[i]
             let gs = row.grades
 %><%= row.email %>, <%= row.name %> <% for(let j=0; j<gs.length; j++){ %>, <%= gs[j] %> <% } %>
-<% } %>
-    </pre>
+<% } %></pre>
 
     <%= JSON.stringify(jsonGrades) %>
 
@@ -137,6 +138,7 @@
     <% } %>
 
 
-
+                </div></div></div>
 
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

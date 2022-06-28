@@ -1,6 +1,8 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <div class="p-2">
 <script type="text/javascript" src="/js/clickThumb.js"></script>
     <hr>
     <h3 class="bg-danger">
@@ -106,15 +108,10 @@
             <% }%>
 
             <% if (yourReview){%>
-                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } else if (isTAreview) {%>
+                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } else if (isTAreview) {%>
                 <b>TA Review</b>
-                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } else {%>
-                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
-            <% } %>
-            <%= reviews[i].review %></div>
-            <br>
+                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } else {%>
+                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } %><%= reviews[i].review %></div>
             <!-- allow user to request regrades of their answers -->
             <% if (answer.studentId==user.id) {%>
                 <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
@@ -227,6 +224,7 @@
 
     <% } %>
 
-
+</div></div></div>
 
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

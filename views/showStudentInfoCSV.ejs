@@ -1,12 +1,19 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-<script type="text/javascript" src="/js/sort-table.js"></script>
-<style type="text/css">
-    th,td {border:1px solid black}
-</style>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom"></h1>
+    <div class="p-2">
+      <script type="text/javascript" src="/js/sort-table.js"></script>
+      <style type="text/css">
+        th,
+        td {
+          border: 1px solid black
+        }
+      </style>
 
-     Name,Email,Problems Completed, Number of Reviewed Answers, Number of Reviews, Quality of their Reviews ,ThumbsUp ,ThumbsDown ,Avg Review Score <br>
-        <% for(let i=0; i<studentsInfo.length; i++) {
+      Name,Email,Problems Completed, Number of Reviewed Answers, Number of Reviews, Quality of their Reviews ,ThumbsUp ,ThumbsDown ,Avg Review Score <br>
+      <% for(let i=0; i<studentsInfo.length; i++) {
             let grades = gradeSheet.grades[studentsInfo[i]._id]
             let avgReviews = []
             let numReviews = 0
@@ -33,11 +40,14 @@
                 numReviews = numReviews + reviews.length
               } %>
 
-          <%= studentsInfo[i].googlename %>,<%= studentsInfo[i].googleemail %>,<%= numAnswers %>,<%= numReviewed %>,<%= numReviews %>,<%= thumbsUp - thumbsDown %>,<%= thumbsUp  %>,<%= thumbsDown %>,<%= (avgReviews.reduceRight((x,y)=>(x+y),0)/numReviewed).toFixed(0) || 0%>
-          <br>
-        <% } %>
-
+      <%= studentsInfo[i].googlename %>,<%= studentsInfo[i].googleemail %>,<%= numAnswers %>,<%= numReviewed %>,<%= numReviews %>,<%= thumbsUp - thumbsDown %>,<%= thumbsUp  %>,<%= thumbsDown %>,<%= (avgReviews.reduceRight((x,y)=>(x+y),0)/numReviewed).toFixed(0) || 0%>
+      <br>
+      <% } %>
+    </div>
+  </div>
+</div>
 
 
 
 <%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

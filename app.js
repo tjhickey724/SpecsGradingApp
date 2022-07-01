@@ -13,7 +13,7 @@ var logger = require("morgan");
 var livereload = require("livereload");
 var connectLiveReload = require("connect-livereload");
 // require the socket.io module
-require('dotenv').config()
+require("dotenv").config();
 
 // Models!
 const Course = require("./models/Course");
@@ -47,7 +47,7 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://"+process.env.MONGO_USER+":"+process.env.MONGO_PW+"@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
@@ -148,6 +148,35 @@ app.get(
     failureRedirect: "/loginerror",
   })
 );
+
+app.get("/login/local", async (req, res, next) => {
+  res.locals.routeName = " login";
+  res.render("localLogin");
+});
+
+app.post("/auth/local/register", function (req, res, next) {
+  console.log("registering user");
+  User.register(new User({googleemail: req.body.username, googlename: req.body.name}), req.body.password, function (err) {
+    if (err) {
+      console.log("error while user register!", err);
+      // try {
+      //   User.changePassword(undefined, req.body.password);
+      //   User.save()
+      // } catch (e) {
+      // next(e);
+      // }
+      return next(err);
+    }
+
+    console.log("user registered!");
+
+    res.redirect("/login/local");
+  });
+});
+
+app.post("/auth/local/login", passport.authenticate("local", {failureRedirect: "/loginerror"}), function (req, res) {
+  res.redirect("/");
+});
 
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {

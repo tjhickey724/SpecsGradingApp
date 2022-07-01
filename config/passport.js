@@ -1,7 +1,7 @@
 // config/passport.js
 
 // load all the things we need
-//var LocalStrategy    = require('passport-local').Strategy;
+var LocalStrategy = require("passport-local").Strategy;
 //var FacebookStrategy = require('passport-facebook').Strategy;
 //var TwitterStrategy  = require('passport-twitter').Strategy;
 var GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
@@ -11,7 +11,7 @@ var User = require("../models/User");
 
 // load the auth variables
 //var configAuth = require('./auth');
-require("dotenv").config(); //new 
+require("dotenv").config(); //new
 
 module.exports = function (passport) {
   // used to serialize the user for the session
@@ -95,4 +95,6 @@ module.exports = function (passport) {
       }
     )
   );
+  // local
+  passport.use(new LocalStrategy(User.authenticate()));
 };

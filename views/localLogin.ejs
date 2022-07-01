@@ -1,0 +1,36 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-5 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1>Login to the Mastery App</h1>
+    <div class="mx-3 my-3">
+      <p class="mt-3 mb-0">Click below to log in (if you normally sign in with Google, <a class="text-decoration-none" href="/auth/google">sign in with Google <i class="bi bi-box-arrow-up-right"></i></a>)</p>
+      <p class="text-muted fw-light small mb-3">(or: register a new account, then sign in)</p>
+      <form method="post">
+        <div class="form-floating mb-3">
+          <input type="text" class="form-control" id="floatingInput" placeholder="Firsty Lasty" name="name">
+          <label for="floatingInput">First and last name (if registering)</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="username" required>
+          <label for="floatingInput">Email address</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password" required>
+          <label for="floatingPassword">Password</label>
+        </div>
+        <button class="btn btn-lg btn-danger border border-grey shadow-sm" type="submit" formaction="/auth/local/login">
+          Log In
+          <!-- <span class="fa fa-google-plus">Google</span> -->
+        </button>
+        <button class="btn btn-lg btn-outline-danger shadow-sm" type="submit" formaction="/auth/local/register">
+          Register
+          <!-- <span class="fa fa-google-plus">Google</span> -->
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<hr>
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

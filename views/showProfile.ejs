@@ -15,9 +15,9 @@
           Show <select id="enNum" name="enNum" onchange="this.form.submit()" class="form-select form-select-sm d-inline-block
          w-auto">
             <option <% if (entryNum == "all"){ %> selected <% } %> value="all">all</option>
-            <% for(let i=user.logintime.length - 1; i>0; i--){ %>
+            <% for(let i=2; i < user.logintime.length + 1; i++) {%>
             <option <% if (entryNum == i){ %> selected <% } %> value="<%= i %> ">
-              last <%= i %>
+              last <%= user.logintime.length - i + 1%>
             </option>
             <% } %>
           </select><span class="d-lg-inline d-none"> login time</span><span class="d-lg-none d-inline"> login</span><% if (entryNum != 1 && user.logintime.length != 1) {%>s<% } %> <span class="small text-muted">(<%= user.logintime.length %> total)</span>
@@ -25,15 +25,15 @@
       </div>
     </div>
     <ul class="pb-3 px-lg-5 px-0 list-group list-group-flush">
-      <li class="list-group-item list-group-item-light border <% if (user.logintime.length == 1 || entryNum == 1) { %>
+      <% if (entryNum == "all") {sentryNum = 1 } else  {sentryNum = entryNum }; for(let i= user.logintime.length-1; i >= sentryNum - 1; i--){ %><% if (i == user.logintime.length - 1) { %>
+      <li class="list-group-item list-group-item-light border <% if (sentryNum-1 == i ) { %>
        rounded-bottom 
       <% } %> border-2 border-top border-grey" style="border-top-right-radius: var(--bs-border-radius)!important;">
-        <%= user.logintime[0].toLocaleString() %>
-      </li>
-      <% if (entryNum == "all") {sentryNum =user.logintime.length } else  {sentryNum = entryNum }; for(let i=1; i < sentryNum; i++){ %>
-      <li class="list-group-item list-group-item-light <% if (sentryNum - 1 == i ) { %>
+
+        <% } else { %>
+      <li class="list-group-item list-group-item-light <% if (sentryNum-1 == i ) { %>
        rounded-bottom 
-      <% } %> border border-top-0 border-2 border-grey">
+      <% } %> border border-top-0 border-2 border-grey"><% } %>
         <%= user.logintime[i].toLocaleString() %>
       </li>
       <% } %>

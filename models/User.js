@@ -16,6 +16,7 @@ var userSchema = Schema({
   password: String,
   // localpw: String,
   taFor: [Schema.Types.ObjectId],
+  logintime: [Date]
 });
 
 userSchema.plugin(passportLocalMongoose, {usernameField: "googleemail"});

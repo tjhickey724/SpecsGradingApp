@@ -6,6 +6,28 @@
     </h1>
     <hr>
     <p> Welcome, <%= user.googlename %>!</p>
+    <span class="badge ms-5 mb-0 border border-dark border-bottom-0 rounded-0 rounded-top text-dark bg-white">Last logins</span>
+    <ul class="pb-3 px-5 list-group list-group-flush">
+      <li class="list-group-item list-group-item-light border border-top border-dark">
+        <%= user.logintime[0] %>
+      </li>
+      <% if (entryNum == "all") {sentryNum =user.logintime.length } else  {sentryNum = entryNum }; for(let i=1; i < sentryNum; i++){ %>
+      <li class="list-group-item list-group-item-light border border-top-0 border-dark">
+        <%= user.logintime[i] %>
+      </li>
+      <% } %>
+    </ul>
+    <form method="post" class="px-5 me-auto ms-0">
+      Show <select id="enNum" name="enNum" onchange="this.form.submit()" class="form-select d-inline-block
+ w-auto">
+        <option <% if (entryNum == "all"){ %> selected <% } %> value="all">all</option>
+        <% for(let i=user.logintime.length; i>0; i--){ %>
+        <option <% if (entryNum == i){ %> selected <% } %> value="<%= i %> ">
+          Last <%= i %>
+        </option>
+        <% } %>
+      </select> login times
+    </form>
   </div>
 </div>
 

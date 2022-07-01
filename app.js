@@ -144,7 +144,7 @@ app.get("/auth/google", passport.authenticate("google", {scope: ["profile", "ema
 app.get(
   "/login/authorized",
   passport.authenticate("google", {
-    successRedirect: "/",
+    successRedirect: "/lrec",
     failureRedirect: "/loginerror",
   })
 );
@@ -175,7 +175,25 @@ app.post("/auth/local/register", function (req, res, next) {
 });
 
 app.post("/auth/local/login", passport.authenticate("local", {failureRedirect: "/loginerror"}), function (req, res) {
-  res.redirect("/");
+  res.redirect("/lrec");
+});
+
+app.get("/lrec", async (req, res, next) => {
+  try {
+    //console.log("in addTA handler "+req.body.email)
+    let loginer = await User.findOne({_id: req.user._id});
+    if (loginer) {
+      loginer.logintime = loginer.logintime || [];
+      loginer.logintime.push(new Date());
+      loginer.markModified("logintime");
+      //console.log("updating ta "+ta._id)
+      //console.dir(ta)
+      await loginer.save();
+    }
+    res.redirect("/");
+  } catch (e) {
+    next(e);
+  }
 });
 
 // route middleware to make sure a user is logged in
@@ -212,6 +230,15 @@ app.get("/", isLoggedIn, async (req, res, next) => {
 });
 
 app.get("/profile", async (req, res, next) => {
+  if (res.locals.entryNum == undefined) {
+    res.locals.entryNum = "all";
+  }
+  res.locals.routeName = " profile";
+  res.render("showProfile");
+});
+
+app.post("/profile", async (req, res, next) => {
+  res.locals.entryNum = req.body.enNum;
   res.locals.routeName = " profile";
   res.render("showProfile");
 });

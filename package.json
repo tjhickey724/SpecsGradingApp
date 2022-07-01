@@ -23,12 +23,12 @@
     "passport": "^0.4.0",
     "passport-google-oauth": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.4.1",
+    "connect-livereload": "^0.6.1",
+    "livereload": "^0.9.3",
+    "ejs-lint": "^1.2.2"
   },
   "devDependencies": {
-    "connect-livereload": "^0.6.1",
-    "ejs-lint": "^1.2.2",
-    "livereload": "^0.9.3",
     "nodemon": "^2.0.16"
   }
 }

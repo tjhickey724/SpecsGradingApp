@@ -1,20 +1,49 @@
-
-'use strict';
-const mongoose = require( 'mongoose' );
+"use strict";
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
+const bcrypt = require("bcrypt"),
+  SALT_WORK_FACTOR = 10;
 
 //var userSchema = mongoose.Schema( {any:{}})
 
-var userSchema = Schema( {
+var userSchema = Schema({
   googleid: String,
   googletoken: String,
-  googlename:String,
-  googleemail:String,
+  googlename: String,
+  googleemail: String,
+  localpw: String,
   taFor: [Schema.Types.ObjectId],
-} );
+});
 
-module.exports = mongoose.model( 'User', userSchema );
+userSchema.pre('save', function (next) {
+  var user = this;
+
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified("localpw")) return next();
+
+  // generate a salt
+  bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
+    if (err) return next(err);
+
+    // hash the password using our new salt
+    bcrypt.hash(user.localpw, salt, function (err, hash) {
+      if (err) return next(err);
+
+      // override the cleartext password with the hashed one
+      user.localpw = hash;
+      next();
+    });
+  });
+});
+
+userSchema.methods.comparePassword = function (candidatePassword, cb) {
+  bcrypt.compare(candidatePassword, this.localpw, function (err, isMatch) {
+    if (err) return cb(err);
+    cb(null, isMatch);
+  });
+};
+
+module.exports = mongoose.model("User", userSchema);
 
 /*
 newUser.google.id    = profile.id;

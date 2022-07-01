@@ -10,11 +10,13 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var livereload = require("livereload");
-var connectLiveReload = require("connect-livereload");
-// require the socket.io module
 require("dotenv").config();
 
+if (process.env.IS_ON_WEB == "False") {
+  var livereload = require("livereload");
+  var connectLiveReload = require("connect-livereload");
+  // require the socket.io module
+}
 // Models!
 const Course = require("./models/Course");
 const ProblemSet = require("./models/ProblemSet");
@@ -27,12 +29,15 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const ejsLint = require("ejs-lint");
 
-const liveReloadServer = livereload.createServer();
-liveReloadServer.server.once("connection", () => {
-  setTimeout(() => {
-    liveReloadServer.refresh("/");
-  }, 100);
-});
+if (process.env.IS_ON_WEB == "False") {
+  const liveReloadServer = livereload.createServer();
+  liveReloadServer.server.once("connection", () => {
+    setTimeout(() => {
+      liveReloadServer.refresh("/");
+    }, 100);
+  });
+}
+
 //const mongoose = require( 'mongoose' );
 //const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -62,7 +67,9 @@ const configPassport = require("./config/passport");
 configPassport(passport);
 
 var app = express();
-app.use(connectLiveReload());
+if (process.env.IS_ON_WEB == "False") {
+  app.use(connectLiveReload());
+}
 
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
@@ -227,6 +234,11 @@ app.get("/", isLoggedIn, async (req, res, next) => {
 
   res.locals.routeName = " index";
   res.render("index");
+});
+
+app.get("/about", (req, res, next) => {
+  res.locals.routeName = " about";
+  res.render("about");
 });
 
 app.get("/profile", async (req, res, next) => {

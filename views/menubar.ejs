@@ -9,6 +9,12 @@
         <li class="nav-item">
           <a class="nav-link active <% if (routeName == " index" || routeName==" login" ) { %> fw-bold <% } %> " href="/">Home</a>
         </li>
+        <% if (loggedIn) { %>
+        <li class="nav-item">
+          <a class="nav-link active <% if (routeName == " about") { %> fw-bold <% } %> " href="/about">
+            About </a>
+        </li>
+        <% } %>
         <li class="nav-item">
           <a class="nav-link active <% if (routeName == " stats") { %> fw-bold <% } %> " href="/stats">
             Stats </a>
@@ -16,7 +22,7 @@
         <% if (loggedIn) { %>
         <li class="nav-item">
           <a class="nav-link active <% if (routeName == " profile") { %> fw-bold <% } %> " href="/profile">
-            Profile (<%= user.googleemail %>)
+            Profile <span class="small">(<%= user.googleemail %>)</span>
           </a>
         </li>
         <li class="nav-item">

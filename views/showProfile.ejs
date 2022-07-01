@@ -5,29 +5,40 @@
     <h1>Logged in as <%= user.googleemail %>
     </h1>
     <hr>
-    <p> Welcome, <%= user.googlename %>!</p>
-    <span class="badge ms-5 mb-0 border border-dark border-bottom-0 rounded-0 rounded-top text-dark bg-white">Last logins</span>
+    <p class="mb-0"> Welcome, <%= user.googlename %>!</p>
+    <div class="row align-items-end">
+      <div class="col">
+        <span class="badge ms-5 mt-auto mb-0 border border-grey border-2 border-bottom-0 rounded-0 rounded-top text-dark bg-white">Last logins</span>
+      </div>
+      <div class="col justify-content-end">
+        <form method="post" class="px-5 text-end">
+          Show <select id="enNum" name="enNum" onchange="this.form.submit()" class="form-select d-inline-block
+         w-auto">
+            <option <% if (entryNum == "all"){ %> selected <% } %> value="all">all</option>
+            <% for(let i=user.logintime.length; i>0; i--){ %>
+            <option <% if (entryNum == i){ %> selected <% } %> value="<%= i %> ">
+              last <%= i %>
+            </option>
+            <% } %>
+          </select> login times
+        </form>
+      </div>
+    </div>
     <ul class="pb-3 px-5 list-group list-group-flush">
-      <li class="list-group-item list-group-item-light border border-top border-dark">
+      <li class="list-group-item list-group-item-light border <% if (user.logintime.length == 1 || entryNum == 1) { %>
+       rounded-bottom 
+      <% } %> border-2 border-top border-grey" style="border-top-right-radius: var(--bs-border-radius)!important;">
         <%= user.logintime[0] %>
       </li>
       <% if (entryNum == "all") {sentryNum =user.logintime.length } else  {sentryNum = entryNum }; for(let i=1; i < sentryNum; i++){ %>
-      <li class="list-group-item list-group-item-light border border-top-0 border-dark">
+      <li class="list-group-item list-group-item-light <% if (user.logintime.length - 1 == i ) { %>
+       rounded-bottom 
+      <% } %> border border-top-0 border-2 border-grey">
         <%= user.logintime[i] %>
       </li>
       <% } %>
     </ul>
-    <form method="post" class="px-5 me-auto ms-0">
-      Show <select id="enNum" name="enNum" onchange="this.form.submit()" class="form-select d-inline-block
- w-auto">
-        <option <% if (entryNum == "all"){ %> selected <% } %> value="all">all</option>
-        <% for(let i=user.logintime.length; i>0; i--){ %>
-        <option <% if (entryNum == i){ %> selected <% } %> value="<%= i %> ">
-          Last <%= i %>
-        </option>
-        <% } %>
-      </select> login times
-    </form>
+
   </div>
 </div>
 

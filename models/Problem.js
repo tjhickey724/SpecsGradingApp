@@ -13,7 +13,7 @@ var problemSchema = Schema( {
   pendingReviews: mongoose.Schema.Types.Mixed,
   createdAt: Date,
   allowAnswers: Boolean,
-  skills:[ObjectId],
+  skills:[{type:ObjectId,ref:'Skill'}],
   visible: {type:Boolean, default: true},
   submitable: {type:Boolean,default:true},
   answerable: {type:Boolean, default:true},

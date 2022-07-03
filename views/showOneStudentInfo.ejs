@@ -20,10 +20,41 @@
           let answer = grades.answers[a].answer
           let reviews = grades.answers[a].reviews
           let reviewScores = reviews.map((x)=>(x.points))
+          let skillsMastered = grades.answers[a].answer.skills;
+          let skillNames = skillsMastered?skillsMastered.map(x=>x['name']):[];
+          let skillsTested = problem.skills;
+          let skillsTestedNames =
+            (skillsTested?skillsTested.map(x=>x['name']):[])
           %>
+          
+          
+            
           <h4 style="margin-top: 60px; border-top:thick solid blue"> <%= problem.description %> </h4>
           <h6>Problem:</h6>
           <div class="bg-default" style="border:thin solid black; margin-top:10px; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+          <div class="bg-primary" style="color:white; border:thin solid black; padding:10px">
+            <h4>Skills Tested</h4>
+            <% if (skillsMastered.length==0) {%>
+              ** none mastered ** <br>
+            <% } %>
+            <% if (skillsTestedNames.length==0) {%>
+              none
+            <%} else {%>
+              <ul>
+                <% for (skill of skillsTestedNames) {%>
+                  <li>
+                  <% if (skillNames.includes(skill)) {%>
+                    <span style="color:red;background:white">MASTERED</span>
+                  <% } %>
+                  <%= skill %>
+                </li>
+                <% } %>
+              </ul>
+            <% }%>
+
+
+           
+          </div>
           <h6>Answer:</h6>
           <div class="bg-info" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></div>
           <h6>Reviews:</h6>
@@ -36,6 +67,7 @@
                   >review: <%= review.points %>/<%= problem.points %> <br> <%= review.review %>
              </div>
            <% } %>
+           
       <% } %>
       <h1>Problems not attempted</h1>
       <ol>

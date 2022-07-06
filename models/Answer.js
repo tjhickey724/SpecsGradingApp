@@ -21,7 +21,7 @@ var answerSchema = Schema( {
   officialReviewId: Schema.Types.ObjectId,
   review: String,
   points: Number,
-  skills:[ObjectId],
+  skills:[{type:ObjectId,ref:'Skill'}],
 } );
 
 module.exports = mongoose.model( 'Answer', answerSchema );

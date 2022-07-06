@@ -1642,9 +1642,13 @@ app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
     res.locals.studentsInfo = await User.find({_id: {$in: res.locals.students}});
 
     const courseId = res.locals.courseInfo._id;
-    res.locals.answers = await Answer.find({courseId: courseId});
+    res.locals.answers = 
+       await Answer.find({courseId: courseId})
+             .populate('skills');
 
-    res.locals.problems = await Problem.find({courseId: courseId});
+    res.locals.problems = 
+       await Problem.find({courseId: courseId})
+            .populate('skills');
 
     res.locals.reviews = await Review.find({courseId: courseId});
 

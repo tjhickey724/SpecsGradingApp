@@ -818,9 +818,9 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
       pendingReviews: [],
       allowAnswers: true,
       visible: req.body.visible == "visible",
-      reviewable: req.body.reviewable == "reviewable",
+      submitable: req.body.submitable == "submitable",
       answerable: req.body.answerable == "answerable",
-      peeReviewable: req.body.peerReviewable == "peerReviewable",
+      peerReviewable: req.body.peerReviewable == "peerReviewable",
       createdAt: new Date(),
     });
 

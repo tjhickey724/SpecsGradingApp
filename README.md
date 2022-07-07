@@ -29,7 +29,10 @@ IS_ON_WEB = "False"
 
 # Usage
 Basic usage of the app is as follows:
-* Once the app is installed, log in, generate a PIN for a new class, and send that PIN out to students. They will be able to log in and view problems!
+* Once the app is installed, log in, generate a PIN for a new class, and send that PIN out to students. 
+    * Students will be able to log in and view problems.
+* To make a problem, first make a problem set (such as "Lesson 1") and then create a problem. 
+    * Problem sets can be visible or invisible.
 
 <hr>
 

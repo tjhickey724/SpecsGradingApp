@@ -33,7 +33,7 @@ Basic usage of the app is as follows:
     * Students will be able to log in and view problems.
 * To make a problem, first make a problem set (such as "Lesson 1") and then create a problem. 
     * Problem sets can be visible or invisible.
-* TAs and professors can crea
+* TAs and professors can create skills, which can be attached to problems.
 
 <hr>
 

@@ -24,3 +24,21 @@ IS_ON_WEB = "False"
 ```
 
 `CALLBACK_URL` and `IS_ON_WEB` can be left as-is for local copies, but should be changed for deployment.
+
+<hr>
+
+# Usage
+Basic usage of the app is as follows:
+* Once the app is installed, log in, generate a PIN for a new class, and send that PIN out to students. They will be able to log in and view problems!
+
+<hr>
+
+# Features still missing
+* No way to change password yet
+    * (This is a particular issue for Google users, who have no ability to set a password for usage in local login route)
+* About page is incomplete
+* Many pages are essentially undocumented
+* App does not contain any new features in the main professor/student routes
+
+# CREDITS
+The original version of this app was created initially by Tim Hickey, with contributions by Ella Tuson. Bootstrap 5 redesign by Viridia Weiss.

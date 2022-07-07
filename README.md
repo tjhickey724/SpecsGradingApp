@@ -33,6 +33,7 @@ Basic usage of the app is as follows:
     * Students will be able to log in and view problems.
 * To make a problem, first make a problem set (such as "Lesson 1") and then create a problem. 
     * Problem sets can be visible or invisible.
+* TAs and professors can crea
 
 <hr>
 
@@ -44,4 +45,4 @@ Basic usage of the app is as follows:
 * App does not contain any new features in the main professor/student routes
 
 # CREDITS
-The original version of this app was created initially by Tim Hickey, with contributions by Ella Tuson. Bootstrap 5 redesign by Viridia Weiss.
+The original version of this app was created initially by Tim Hickey, with contributions by Ella Tuson. Bootstrap 5.2.0 overhaul by Viridia Weiss.

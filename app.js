@@ -10,10 +10,13 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var livereload = require("livereload");
-var connectLiveReload = require("connect-livereload");
-// require the socket.io module
+require("dotenv").config();
 
+if (process.env.IS_ON_WEB == "False") {
+  var livereload = require("livereload");
+  var connectLiveReload = require("connect-livereload");
+  // require the socket.io module
+}
 // Models!
 const Course = require("./models/Course");
 const ProblemSet = require("./models/ProblemSet");
@@ -26,12 +29,15 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const ejsLint = require("ejs-lint");
 
-const liveReloadServer = livereload.createServer();
-liveReloadServer.server.once("connection", () => {
-  setTimeout(() => {
-    liveReloadServer.refresh("/");
-  }, 100);
-});
+if (process.env.IS_ON_WEB == "False") {
+  const liveReloadServer = livereload.createServer();
+  liveReloadServer.server.once("connection", () => {
+    setTimeout(() => {
+      liveReloadServer.refresh("/");
+    }, 100);
+  });
+}
+
 //const mongoose = require( 'mongoose' );
 //const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -46,7 +52,7 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
@@ -61,7 +67,9 @@ const configPassport = require("./config/passport");
 configPassport(passport);
 
 var app = express();
-app.use(connectLiveReload());
+if (process.env.IS_ON_WEB == "False") {
+  app.use(connectLiveReload());
+}
 
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
@@ -143,10 +151,57 @@ app.get("/auth/google", passport.authenticate("google", {scope: ["profile", "ema
 app.get(
   "/login/authorized",
   passport.authenticate("google", {
-    successRedirect: "/",
+    successRedirect: "/lrec",
     failureRedirect: "/loginerror",
   })
 );
+
+app.get("/login/local", async (req, res, next) => {
+  res.locals.routeName = " login";
+  res.render("localLogin");
+});
+
+app.post("/auth/local/register", function (req, res, next) {
+  console.log("registering user");
+  User.register(new User({googleemail: req.body.username, googlename: req.body.name}), req.body.password, function (err) {
+    if (err) {
+      console.log("error while user register!", err);
+      // try {
+      //   User.changePassword(undefined, req.body.password);
+      //   User.save()
+      // } catch (e) {
+      // next(e);
+      // }
+      return next(err);
+    }
+
+    console.log("user registered!");
+
+    res.redirect("/login/local");
+  });
+});
+
+app.post("/auth/local/login", passport.authenticate("local", {failureRedirect: "/loginerror"}), function (req, res) {
+  res.redirect("/lrec");
+});
+
+app.get("/lrec", async (req, res, next) => {
+  try {
+    //console.log("in addTA handler "+req.body.email)
+    let loginer = await User.findOne({_id: req.user._id});
+    if (loginer) {
+      loginer.logintime = loginer.logintime || [];
+      loginer.logintime.push(new Date());
+      loginer.markModified("logintime");
+      //console.log("updating ta "+ta._id)
+      //console.dir(ta)
+      await loginer.save();
+    }
+    res.redirect("/");
+  } catch (e) {
+    next(e);
+  }
+});
 
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
@@ -181,7 +236,21 @@ app.get("/", isLoggedIn, async (req, res, next) => {
   res.render("index");
 });
 
+app.get("/about", (req, res, next) => {
+  res.locals.routeName = " about";
+  res.render("about");
+});
+
 app.get("/profile", async (req, res, next) => {
+  if (res.locals.entryNum == undefined) {
+    res.locals.entryNum = "all";
+  }
+  res.locals.routeName = " profile";
+  res.render("showProfile");
+});
+
+app.post("/profile", async (req, res, next) => {
+  res.locals.entryNum = req.body.enNum;
   res.locals.routeName = " profile";
   res.render("showProfile");
 });
@@ -749,9 +818,9 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
       pendingReviews: [],
       allowAnswers: true,
       visible: req.body.visible == "visible",
-      reviewable: req.body.reviewable == "reviewable",
+      submitable: req.body.submitable == "submitable",
       answerable: req.body.answerable == "answerable",
-      peeReviewable: req.body.peerReviewable == "peerReviewable",
+      peerReviewable: req.body.peerReviewable == "peerReviewable",
       createdAt: new Date(),
     });
 

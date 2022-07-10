@@ -25,9 +25,12 @@
           Reviews: <%= reviewCount %>
         </div>
         <div class="col-md">
-          Average Review: <%= Math.round(100*averageReview/problem.points)
+          Average Review: <% if (Math.round(100*averageReview/problem.points) == NaN) { %>
+
+          <%= Math.round(100*averageReview/problem.points)
 															%>%
-          = <%= averageReview.toFixed(2) %>/<%= problem.points %>
+          = <%= averageReview.toFixed(2) %>/<%= problem.points %><% } else { %><span class="text-muted fst-italic">No reviews yet!</span>
+          <% } %>
         </div>
         <div class="col-md text-right">
           <a href="/editProblem/<%= problem._id %>" class="btn btn-sm btn-info">
@@ -38,7 +41,7 @@
       <% } %>
 
 
-      <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%= problem.problemText %><% } else {%>This problem is not active at the moment.<% } %></div>
+      <div class="bg-default border border-dark rounded border-2" style="white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%= problem.problemText %><% } else {%>This problem is not active at the moment.<% } %></div>
       <hr>
       <% if (answers.length> 0 && problem.submitable
 														|| course.ownerId.equals(user._id) ) { %>

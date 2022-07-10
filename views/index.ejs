@@ -43,7 +43,7 @@
 <div class="card-group">
   <div class="card text-bg-warning">
     <div class="card-header">Courses I'm taking</div>
-    <ul>
+    <ul class="pt-1 mb-2">
       <% for(i=0; i<=coursesTaken.length-1; i++){ %>
       <li>
         <a href="/showCourse/<%= coursesTaken[i]._id %>">
@@ -55,7 +55,7 @@
   </div>
   <div class="card bg-primary">
     <div class="card-header">Courses I'm TAing</div>
-    <ul>
+    <ul class="pt-1 mb-2">
       <% for(i=0; i<=coursesTAing.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesTAing[i]._id %>">
@@ -68,7 +68,7 @@
   </div>
   <div class="card bg-danger">
     <div class="card-header">Courses I'm Teaching</div>
-    <ul>
+    <ul class="pt-1 mb-2">
       <% for(i=0; i<=coursesOwned.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesOwned[i]._id %>">

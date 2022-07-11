@@ -52,7 +52,9 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+//mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
@@ -77,6 +79,8 @@ var io = require("socket.io")(http);
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
+
+app.disable('etag'); // get rid of 304 error?
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -345,6 +349,29 @@ app.get("/showRoster/:courseId", async (req, res, next) => {
     //console.dir(res.locals.members)
     res.locals.routeName = " showRoster";
     res.render("showRoster");
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.get("/dumpStats/:courseId", async (req, res, next) => {
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+
+    const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
+    const memberIds = memberList.map((x) => x.studentId);
+    //console.log("memberIds = "+JSON.stringify(memberIds))
+    const members = await User.find({_id: {$in: memberIds}});
+    const grades = 
+        await Answer.find({courseId:id,studentId:{$in: memberIds}})
+              .populate('skills')
+              .populate('studentId')
+              .populate('psetId')
+              .populate('problemId')
+                ;
+    //console.dir(res.locals.members)
+    res.json(grades);
   } catch (e) {
     next(e);
   }
@@ -839,6 +866,7 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
 
 app.post("/updateProblem/:probId", async (req, res, next) => {
   try {
+    console.log('in updateProblem')
     const problem = await Problem.findOne({_id: req.params.probId});
 
     problem.description = req.body.description;
@@ -853,7 +881,7 @@ app.post("/updateProblem/:probId", async (req, res, next) => {
     problem.peerReviewable = req.body.peerReviewable == "peerReviewable";
 
     console.log("in updateProblem", problem.visible, req.body.visible, problem.submitable, req.body.submitable, problem.answerable, req.body.answerable, problem.peerReviewable, req.body.peerReviewable);
-
+    console.dir(req.body);
     let skills = req.body.skill;
     console.log("skills=" + JSON.stringify(skills));
     console.log("typeof(skills=" + typeof skills);

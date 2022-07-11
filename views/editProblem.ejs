@@ -62,7 +62,11 @@
         <% let skillIds=skills.map((x)=>x.id); console.log(skills);console.log(skillIds) %>
         <% for(let i=0;i<allSkills.length;i++){%>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="<%= allSkills[i].id %>" id="check<%= allSkills[i].id %>" <% if
+          <input class="form-check-input" 
+                 type="checkbox" 
+                 value="<%= allSkills[i].id %>" 
+                 name='skill' 
+                 id="check<%= allSkills[i].id %>" <% if
                         (skillIds.includes(allSkills[i].id)) {%> checked <%}%>>
                         <label class="form-check-label" for="check<%= allSkills[i].id %>">
           <%= allSkills[i].name %>
@@ -75,6 +79,7 @@
     </div>
     <% } %>
   </div>
+  <pre><%= JSON.stringify(allSkills,null,5) %></pre>
 </div>
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

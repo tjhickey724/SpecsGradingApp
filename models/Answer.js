@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
 var answerSchema = Schema( {
-  studentId: ObjectId,
+  studentId: {type:ObjectId, ref:'User'},
   courseId: {type:ObjectId,index:true},
-  psetId: ObjectId,
-  problemId: {type:ObjectId,index:true},
+  psetId: {type:ObjectId, ref:'ProblemSet'},
+  problemId: {type:ObjectId,index:true,ref:'Problem'},
   answer: String,
   reviewers: [Schema.Types.ObjectId],
   numReviews: Number,

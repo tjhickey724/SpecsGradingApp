@@ -51,10 +51,10 @@
         <div class="row mb-1">
           <label for="points" class="col-sm-1 col-form-label">Points</label>
           <div class="col-sm-2">
-            <input type="text" class="form-control" name="points" id="points">
+            <input type="text" class="form-control" name="points" value="<%= problem.points%>" id="points">
           </div>
         </div>
-        <textarea class="form-control" name="rubric" cols="100" rows="10"><%= problem.problemTemplate %></textarea>
+        <textarea class="form-control" name="rubric" cols="100" rows="10"><%= problem.rubric %></textarea>
         <hr>
         <h2>Skills required to fully solve this problem</h2>
         Check all that apply.

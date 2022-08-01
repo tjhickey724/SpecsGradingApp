@@ -20,7 +20,7 @@ if (process.env.IS_ON_WEB == "False") {
 
 // Routes
 const reviews = require('./routes/reviews');
-const auth = require('./routes/auth');
+const auth = require('./routes/authRouter');
 
 
 // Models!
@@ -59,7 +59,7 @@ const MongoStore = require("connect-mongo")(session);
 const mongoose = require("mongoose");
 
 //mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
-mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -104,29 +104,20 @@ app.use(
   })
 );
 app.use(flash());
-app.use(passport.initialize());
-app.use(passport.session());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(auth);
 
-const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
-
-// here is where we check on their logged in status
-app.use((req, res, next) => {
-  res.locals.title = "Peer Review App";
-  res.locals.loggedIn = false;
-  if (req.isAuthenticated()) {
-    res.locals.user = req.user;
-    res.locals.loggedIn = true;
-  } else {
-    res.locals.loggedIn = false;
-  }
-  next();
-});
+//const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 
 
 
-app.get("/lrec", async (req, res, next) => {
+
+
+
+app.get("/lrec", 
+ async (req, res, next) => {
   try {
     //console.log("in addTA handler "+req.body.email)
     let loginer = await User.findOne({_id: req.user._id});
@@ -178,7 +169,7 @@ app.get("/", isLoggedIn, async (req, res, next) => {
 });
 
 app.use(reviews);
-app.use(auth);
+
 
 app.get("/about", (req, res, next) => {
   res.locals.routeName = " about";
@@ -1546,6 +1537,7 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.locals.routeName = " error";
+  res.locals.user= req.user||{}
   res.render("error");
 });
 

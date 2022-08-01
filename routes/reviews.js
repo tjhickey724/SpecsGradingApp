@@ -1,8 +1,59 @@
-// this router handles the reviewing of answers
-// and everything related to reviews
+/*     routes/reviews.js
 
-/*
-there is a lot of "cruft" in this code that needs to be cleaned up
+These routes handle the peer review and grading features of the app.
+See the README.md file for a discussion of the algorithm. The key idea
+is we want to fairly assign answers to be reviewed and so we need 
+to update the following fields 
+
+problem.pendingReviews [{answerId,reviewerId,createdAt}]
+answer.numReviews (including both completed and pending)
+answer.reviewers [reviewerId]
+
+A user can either directly grade a specified students answer to a problem
+which is fairly simple)
+or they can request to grade an answer to a problem.
+
+In the former case, the route specifies a problem and student id.
+If the specified user has answered that problem, then the route
+renders a view with that problem and answer and generates a form
+where the reviewer can complete and submit their review.
+It also updates both the problem and the answer to indicate that the
+reviewer will potentially submit a review. Thus the list of pending
+reviewers for answers to the problem is stored in the problem (along
+  with the answerId, reviewerId, and createdAt time) and the answer
+  itself has a list of the reviewerIds of pending reviewers, as well
+  as a list of the reviewers that have completed their reviews.
+
+When a user submits a review, their id is added to the answer.reviewers list
+and removed from the answer.pendingreviewers list
+
+Also their entry in the problem is removed.
+
+One complication is that they system will remove expired pending reviews.
+In this case, if the user does eventually submit a review, then the system
+will attempt to remove their pendingReviewer information, but it won't be there.
+This shouldn't create any kind of problem. The one issue is that it would allow
+a user to create two or more reviews of the same answer by expiring one or more
+reviews and then submitting them.
+We should probably check for this and refuse to accept the new review,
+or replace the old review with the new review..
+
+The latter case is where all of the complexity lies.
+The system attempts to find an answer with the fewest reviews (easy)
+but also keeps track of pending reviews so that it fairly distributes problems
+to the class.
+
+In the latter case, the system finds an answer with the fewest reviews
+(actual + pending) that the user has not already reviewed and whose review
+is not pending.
+
+NOTES:
+Does this allow a user to review an answer twice?
+Also /saveReview is probably cruft, replaced with /saveReview2
+and the latter still uses .save() when it should be using .findByIdAndUpdate
+and it should probably use $pull instead of $set.
+Indeed, $set is dangerous in this context ...
+
 */
 
 const express = require("express");
@@ -51,9 +102,13 @@ const RegradeRequest = require("../models/RegradeRequest");
           return true;
         }
       });
-      problem.pendingReviews = pendingReviews;
-      problem.markModified("pendingReviews");
-      await problem.save();
+      //problem.pendingReviews = pendingReviews;
+      //problem.markModified("pendingReviews");
+      //await problem.save();
+      if (expiredReviews.length>0){
+        await Problem.findByIdAndUpdate(problem._id,{$set:{pendingReviews}});
+      }
+      
   
       expiredReviews.forEach(async function (x) {
         // remove the reviewerId from the list of pendingReviewers
@@ -71,8 +126,11 @@ const RegradeRequest = require("../models/RegradeRequest");
             return true;
           }
         });
-        tempAnswer.markModified("pendingReviewers");
-        await tempAnswer.save();
+        //tempAnswer.markModified("pendingReviewers");
+        //await tempAnswer.save();
+        await Answer.findByIdAndUpdate(tempAnswer._id,
+              {$set:{numReviews:tempAnswer.numReviews,
+                      pendingReviewers:tempAnswer.pendingReviewers }})
       });
   
       // next, we find all answers to this Problem, sorted by numReviews
@@ -85,19 +143,27 @@ const RegradeRequest = require("../models/RegradeRequest");
         answer = answers[i];
         //console.log(`user=${req.user._id}`)
         //console.log(`answers[${i}] = ${JSON.stringify(answer)}`)
-        if (!answer.reviewers.find((x) => x.equals(req.user._id)) && !answer.pendingReviewers.find((x) => x.equals(req.user._id))) {
+        if (!answer.reviewers.find((x) => x.equals(req.user._id)) 
+            && !answer.pendingReviewers.find((x) => x.equals(req.user._id))) {
           // we found an answer the user hasn't reviewed!
           answer.numReviews += 1; // we optimistically add 1 to numReviews
           answer.pendingReviewers.push(req.user._id);
-          answer.markModified("pendingReviewers");
-          await answer.save();
+          //answer.markModified("pendingReviewers");
+          //await answer.save();
+
+          // I should use $incr and $push for this one, 
+          // instead of $set by itself ***
+          await Answer.findByIdAndUpdate(answer._id,
+              {$set:{numReviews:answer.numReviews, pendingReviewers:answer.pendingReviewers}})
   
           // {answerId,reviewerId,timeSent}
           problem.pendingReviews.push({answerId: answer._id, reviewerId: req.user._id, timeSent: new Date().getTime()});
-  
-          problem.markModified("pendingReviews");
-  
-          await problem.save();
+          //problem.markModified("pendingReviews");
+          //await problem.save();
+
+          // also use $push for this one ****
+          await Problem.findByIdAndUpdate(problem._id,
+              {$set:{pendingReviews:problem.pendingReviews}})
           break;
         } else {
           //console.log("reviewed this one!")
@@ -120,7 +186,9 @@ const RegradeRequest = require("../models/RegradeRequest");
       if (answer) {
         res.redirect("/showReviewsOfAnswer/" + answer._id);
       } else {
+        // this is the case where there is nothing left for the user to review
         res.locals.routeName = " reviewAnswer";
+        // replace this with a call to "reviewsCompleted" ***
         res.render("reviewAnswer");
       }
     } catch (e) {
@@ -132,8 +200,11 @@ const RegradeRequest = require("../models/RegradeRequest");
 
 
 
-// this is the route for writing a review of a particular student's answer to a problem
-app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
+/*
+ this is the route for writing a review of a particular student's answer to a problem
+ this is what TAs do when grading a problem set
+*/
+ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
   try {
     const probId = req.params.probId;
     const studentId = req.params.studentId;
@@ -157,11 +228,16 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
 
     //console.log('\n\n\nmy reviews='+JSON.stringify(myReviews))
     //console.log(res.locals.numReviewsByMe)
-    if (true || res.locals.alreadyReviewed) {
+
+    // *** Handle the case where the user hasn't answered this one yet.
+    // need a new view "noAnswerToReview"  ***
+    if (answer) {
       res.redirect("/showReviewsOfAnswer/" + answer._id);
     } else {
-      res.locals.routeName = " reviewAnswer";
-      res.render("reviewAnswer");
+      // this is ugly and I'll need to fix it soon
+      res.send("the user has not yet submitted an answer to this problem")
+      //res.locals.routeName = " reviewAnswer";
+      //res.render("reviewAnswer");
     }
   } catch (e) {
     next(e);
@@ -209,6 +285,8 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
         answer.reviewers.push(req.user._id);
         answer.numReviews += 1;
   
+        // this code removes the req.user._id from the pending reviewers
+        // simplify it using a $pull request ***
         let pendingReviewers = [];
   
         for (let i = 0; i < answer.pendingReviewers.length; i++) {
@@ -231,6 +309,11 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
         // to remove this reviewer on this answer, if necessary
         // the reviewInfo might have been removed earlier if they
         // timed out before completing their review...
+
+        // we should use a $pull request for this one ***
+        // the reason we keep a list of pending review objects 
+        // in the problem is so that we can remove them when
+        // they are expired...
         let pendingReviews = [];
         for (let i = 0; i < problem.pendingReviews.length; i++) {
           reviewInfo = problem.pendingReviews[i];
@@ -316,6 +399,9 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
         answer.reviewers.push(req.user._id);
         answer.numReviews += 1;
   
+        // this loop is for removing the req.user._id from the
+        // list of pendingReviewers for a problem
+        // we need to redo this using $pull ***
         let pendingReviewers = [];
   
         for (let i = 0; i < answer.pendingReviewers.length; i++) {
@@ -338,6 +424,8 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
         // to remove this reviewer on this answer, if necessary
         // the reviewInfo might have been removed earlier if they
         // timed out before completing their review...
+
+        // redo this using $incr and $pull ***
         let pendingReviews = [];
         for (let i = 0; i < problem.pendingReviews.length; i++) {
           reviewInfo = problem.pendingReviews[i];
@@ -373,7 +461,7 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
   app.post("/removeReviews", async (req, res, next) => {
     try {
       /*
-        We need to remove delete the Review, but also
+        We need to remove/delete the Review, but also
         to remove the reviewerId from the list of reviewers
         for the answer...
         */
@@ -402,6 +490,8 @@ app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
       //console.log(answer.reviewers.indexOf(reviewerIds[0]))
       const newReviewerIds = removeElements(answer.reviewers, reviewerIds);
       //console.log('nri = '+JSON.stringify(newReviewerIds))
+
+      // try to use $pullAll instead of .save() ***
       answer.reviewers = newReviewerIds;
       await answer.save();
       await Review.deleteMany({_id: {$in: deletes}});

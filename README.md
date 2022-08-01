@@ -32,9 +32,9 @@ This still has an issue... it is often the case that a reviewer will decide not 
 
 Our solution to this is to keep track of when reviews were assigned to reviewer and to then remove expired reviews (i.e. more than N minutes old), before selecting an answer for a reviewer. Thus, in summary we have three new fields that need to be maintained
 
-problem.pendingReviews  [{answerId,reviewerId,createdAt}]
-answer.numReviews  (including both completed and pending)
-answer.reviewers [reviewerId]
+* problem.pendingReviews  [{answerId,reviewerId,createdAt}]
+* answer.numReviews  (including both completed and pending)
+* answer.reviewers [reviewerId]
 
 These fields need to be updated whenever 
 * an answer is given to a reviewer to review,

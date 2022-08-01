@@ -19,16 +19,34 @@ This tool also allows for specification based grading by providing checkboxes in
 ### Peer Review
 This system also is designed to support Peer Review. The instructor (or TA) can adjust settings for a problem to allow Peer Review or not.  If it is allowed, then all students who have submitted an answer to a problem can click the "Review Others" button and they will be provided an (anonymous) answer to (anonymously) review. The Review form is exactly the same as that for the TAs and in particular, they will be able to see the Rubric with a fully-worked out example. When they have reviewed some number of answers for a problem (currently 2), they will be able to view all answers and reviews for that problem sorted lexicographically.  This allows them to learn from their peers answers, both the correct ones and the incorrect ones. They can also learn how to write good reviews by seeing the best reviews, and they can mark reviews with a thumbs-up or thumbs-down to indicate their view of the quality of that review.
 
-The code to select an answer to review is the most complex part of this system.  The easiest approach would be to just get all of the answers to a problem and then randomly pick one to give to the reviewer.  We rejected this approach because we wanted something that would guarantee, under normal circumstances in a large class, that every answer gets roughly the same number of reviews at any given time.  A first attempt to meet this goal would be to keep track of the number of reviews of each ansewr which has not already been reviewed by the reviewer, and then to sort those answers by the number of reviews and then select a random element of that list of answers with the smallest number of reviews.  This requires that we keep track of the number of reviews of each answer, as well as a list of the reviewers for each answer.
+### Peer Review Selection Algorithm
 
-Alas, this behaves poorly when there are only a few answers with the minimal number as then every one who is looking to review will be given one of those and in a large class this can result in dozens of simultaneous reviews of a few answers.
+The code to select an anonymous answer to give to a peer reviewer is the most complex part of this system.  The easiest approach would be to just get all of the answers to a problem and then randomly pick one to give to the reviewer.  We rejected this approach because we wanted something that would guarantee, under normal circumstances in a large class, that every answer gets roughly the same number of reviews at any given time.  A first attempt to meet this goal would be to keep track of the number of reviews of each ansewr which has not already been reviewed by the reviewer, and then to sort those answers by the number of reviews and then select an element of that list of answers with the smallest number of reviews.
+This requires that we keep track of the number of reviews of each answer, as well as a list of the reviewers for each answer.
 
-Our solution is to keep track of pending reviews in addition to completed reviews and to sort the list of answers by the number of reviews that are completed or pending. This requires keeping a list of the pendingreviewers for each answer and updating that list when the reviewer submits a review. 
+This runs into major problems though in a large class, as the first such answer will be assigned to all reviewers until one of them submits a review, and hence there will be a very unbalanced assignment of answers to reviewers. A partial solution would be to randomly select on of the answers with the minimal number or reviews. This also breaks down when there are only a few answers with the minimal number of reviews. 
 
-This still has an issue... it is often the case that a reviewer will decide not to submit a review after having it assigned, e.g. by closing the browser.  They will then no longer be able to review that problem because they have an outstanding review.  If this happens frequently (which it does), it will also distort the count of reviews as there will be
-problems with few reviews but many uncompleted pending reviews, and they will have low priority when assigning reviewers.
+Our solution is to keep track of pending reviews in addition to completed reviews and to sort the list of answers by the number of reviews that are completed or are pending. This requires keeping a list of the pendingreviewers for each answer and updating that list when the reviewer submits a review.
 
-Our solution to this is to keep track of when reviews were assigned to reviewer and to then removed expired reviews (i.e. more than N minutes old), before assigning selecting an answer for a reviewer.
+This still has an issue... it is often the case that a reviewer will decide not to submit a review after having it assigned, e.g. by closing the browser. If this happens frequently (which it does), it will distort the count of reviews as there will be problems with few reviews but many uncompleted pending reviews which may never be completed, and such answers will have low priority when assigning reviewers.
+
+Our solution to this is to keep track of when reviews were assigned to reviewer and to then remove expired reviews (i.e. more than N minutes old), before selecting an answer for a reviewer. Thus, in summary we have three new fields that need to be maintained
+
+problem.pendingReviews  [{answerId,reviewerId,createdAt}]
+answer.numReviews  (including both completed and pending)
+answer.reviewers [reviewerId]
+
+These fields need to be updated whenever 
+* an answer is given to a reviewer to review,
+* a pending review has expired,
+* a review is submitted,
+* a review is deleted (by a TA or by a student reviewer, we probably should timestamp reviews rather than deleting them).
+
+There are some edge cases to consider as well such 
+* if the reviewer has reviewed all of the answers currently available,
+* if the reviewer asks for a review, but has a pending review outstanding
+* if the reviewer attempts to submit a review for a problem they have already reviewed
+
 
 
 

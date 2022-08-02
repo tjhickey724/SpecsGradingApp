@@ -1,6 +1,66 @@
 Here is where we describe some of the testing.
 Eventually, this will go into a formal testing framework...
 
+Typical usage scenario.
+This tool is designed to be used in large classes with 200+ students.
+The instructor will create problem sets and problems, sometimes in
+real time during the class.
+
+Once a problem is created and assigned the following happens.
+
+1) All 200+ students view the problem and type their answer into a form.
+   When each student submits their form it creates an Answer document
+   and brings them back to the showProblem page.
+2) Most of the 200+ students will then press the Review Others button, though it will
+   be staggered over 5 minutes or so; and they will keep reviewing until the problem
+   session is over.
+3) For each request, to review an Answer to the problem, the server will first iterate
+   through the list or pendingReviews and remove any pending reviews that have expired
+   and it will use the pendingReview objects to remove the pendingReviewer from the
+   corresponding answer object.  This will make these answers more likely to get reviewed
+   if the original reviewer abandoned them.
+
+   The server will then find all answers sorted by the number of reviews
+   (including pendingReviews) and will find the first answer (ordered by number of reviews)
+   which has not been reviewed by this user. The userId will be put into the list of 
+   pendingReviewers in the answer object and the numReviews field will be incremented.
+   Also, a reviewObject containing the userId, answerid, and time will be created and pushed
+   onto the pendingReviews field of the problem object, to allow for abandoned reviews to be
+   cleared.
+
+   If there are no more answers to review, the system will state that there is nothing left
+   to review. Note that the system sorts all of the answers, so it only reports that there
+   is nothing to review if the user has reviewed all answers submitted up to that point.
+
+To eliminate race conditions, we use $inc, $push, and $pull to update the appropriate fields.
+One issue that could arise is that we update the pendingReviewers for an answer object, but
+before we update the pendingReviews field of the corresponding problem, another user asks
+for a review. It could be the case that the corresponding reviewObject will have expired
+and when the server tries to update the numReviews and pendingReviewers fields, it will
+already have been updated...  So we should update the problems pendingReviews field first!
+We could probably also do this using Mongoose transactions, but that adds a different layer
+of complexity.
+
+
+4) Once the user has an answer to review there are three things that can happen
+  a) they write a review and submit it before the pending review expires or 
+     after it expires, but before it has been removed.
+  b) they write a review and submit it after the pending review expires and has
+     been removed
+  c) they abandon the review by hitting the back key or closing the tab, etc.
+  In case (a) when the review is submitted, a review document is created and the pendingReviews
+  field is updated to remove the userId from the list of pendingReviews. Also, the pendingReview
+  object is removed from the problem document. We should update the problem document first to 
+  maintain the invariant that each reviewObject corresponds to an answer with a pendingReview.
+
+  In case (b), the review document is created, but there is nothing to remove from the pendingReviewers
+  or the pendingReviews fields
+
+  In case (c), the next time a user asks for an answer to review, the system will check to see
+  if the user has an abandoned review and if so it assigns the corresponding answer. Otherwise,
+  it removes the reviewObject from the problem and updates the numReviews and pendingReviewers fields
+  of the corresponding answer, and then proceeds as in (3)
+
 Reviews ..
 * TEST1
  user asks to review an answer to a problem

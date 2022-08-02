@@ -94,7 +94,7 @@ const RegradeRequest = require("../models/RegradeRequest");
       // time to review the problem and use an adaptive timeout,
       // but let's do that later!
 
-      const tooOld = new Date().getTime() - 10 * 60 *1000; // 10 minutes
+      const tooOld = new Date().getTime() - 1 *1000; // 1 second
       let expiredReviews = [];
       let pendingReviews = problem.pendingReviews.filter((x) => {
         if (x.timeSent < tooOld) {
@@ -123,23 +123,20 @@ const RegradeRequest = require("../models/RegradeRequest");
         // pendingReviews has form x = {answerId,reviewerId,timeSent}
 
         let tempAnswer = await Answer.findOne({_id: x.answerId});
-        tempAnswer.pendingReviewers = tempAnswer.pendingReviewers.filter((r) => {
-          if (r.equals(x.reviewerId)) {
-            tempAnswer.numReviews -= 1;
-            //console.log("\nremoved reviewer '+r+' from pending reviews: ")
-            //console.dir(x)
-            return false;
-          } else {
-            //console.log('not removing '+r+' from pending reviewers')
-            return true;
-          }
+        let expiredReviewers =  tempAnswer.pendingReviewers.filter((r) => {
+          return (r.equals(x.reviewerId))     
         });
         // this will update the answer by removing the pendingReviewer
         // but we really should use pull all.
         // I'll test this first and then make the change and test it.
         await Answer.findByIdAndUpdate(tempAnswer._id,
-              {$set:{numReviews:tempAnswer.numReviews,
-                      pendingReviewers:tempAnswer.pendingReviewers }})
+          {$inc:{numReviews:-expiredReviewers.length},
+           $pullAll:{pendingReviewers:expiredReviewers}})
+
+        // await Answer.findByIdAndUpdate(tempAnswer._id,
+        //       {$set:{numReviews:tempAnswer.numReviews,
+        //               pendingReviewers:tempAnswer.pendingReviewers }});
+
       });
 
 
@@ -219,7 +216,8 @@ const RegradeRequest = require("../models/RegradeRequest");
           // this is the case where there is nothing left for the user to review
           res.locals.routeName = " reviewAnswer";
           // replace this with a call to "reviewsCompleted" ***
-          res.render("reviewAnswer");
+          res.send('nothing to review');
+          //res.render("reviewAnswer");
         }
       }
     } catch (e) {

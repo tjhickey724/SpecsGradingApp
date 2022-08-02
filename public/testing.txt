@@ -1,0 +1,30 @@
+Here is where we describe some of the testing.
+Eventually, this will go into a formal testing framework...
+
+Reviews ..
+* TEST1
+ user asks to review an answer to a problem
+ -> user gets the answer with the least reviews so far 
+    problem.pendingReviews is updated
+    answer.numReviews is incremented
+    answer.pendingReviewers has req.user._id added to it 
+I ran this test and it worked...
+It might be just a little more work to have created an automated test
+for this case and to have run the automated testing suite...
+but I would need to pick and learn a testing suite 
+and I don't think I have the time to do that this summer, alas.
+I can learn and teach this kind of testing in CS103a next Spring.
+
+* TEST2
+ -> user asks to review an answer, but doesn't make the review
+    then goes back and asks to review an answer again
+    System either removes their pending review (if it has expired)
+    or gives them their original pending review
+ I ran this test with a short expiration time and it did indeed
+ remove the pending review. Next I ought to set a long time for the
+ timeout and see if it gives me back the original review...
+ and it worked!!
+
+
+
+

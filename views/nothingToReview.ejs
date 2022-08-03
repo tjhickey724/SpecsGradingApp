@@ -1,0 +1,31 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <h2 class="pb-2 border-bottom">
+                    You have reviewed all answers </h2>
+                <div class="p-2">
+                    <hr>
+                    <h3>
+                        <%= problem.description %>
+                    </h3>
+                    <b>The Question</b>
+                    <div class="bg-default"
+                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
+                        <%= problem.problemText %>
+                    </div>
+                    <hr>
+                    <b class="text-bg-danger px-4 rounded-pill shadow" style="padding:10px">There is nothing for
+                        you to review
+                    </b>
+
+                    <hr>
+                    <a href="/showProblemSet/<%= problem.psetId %>"
+                        class="btn btn-small btn-primary">Back to the Problem
+                        Set</a>
+                    <hr>
+                </div>
+            </div>
+        </div>
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

@@ -56,11 +56,11 @@ const MongoStore = require("connect-mongo")(session);
 
 // END OF AUTHENTICATION MODULES
 
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); 
 
 //mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
-mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
-
+//mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+mongoose.connect(process.env.MONGODB_URL, {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {

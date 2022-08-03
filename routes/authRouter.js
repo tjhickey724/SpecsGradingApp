@@ -38,6 +38,8 @@ app.get("/loginerror", function (req, res) {
   
   app.get("/login", function (req, res) {
     res.locals.routeName = " login";
+    res.locals.allow_local_login = process.env.ALLOW_LOCAL_LOGIN;
+    console.log('in /login: allow_local_login = '+res.locals.allow_local_login);
     res.render("login", {});
   });
   

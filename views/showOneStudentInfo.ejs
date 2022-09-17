@@ -73,7 +73,9 @@
       <ol>
       <% 
         for (p of problems) {
-          if (!answeredProblemIds.includes(""+p['_id'])){
+          if (!answeredProblemIds.includes(""+p['_id'])
+              && p.visible
+             ){
             %>
             <li><a href="/showProblem/<%= p['_id']%>">
               <%= p.description %></a>

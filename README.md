@@ -64,8 +64,7 @@ To run this app locally you need to
 ## .env format
 The .env file has the form
 ``` javascript
-MONGO_USER = "your mongo access"
-MONGO_PW = "your mongo password"
+MONGO_URL = "your mongo URL"
 CLIENT_ID = "your Google OAuth2.0 clientID"
 CLIENT_SECRET = "your Google OAuth2.0 Secret"
 CALLBACK_URL = "http://127.0.0.1:5500/login/authorized"

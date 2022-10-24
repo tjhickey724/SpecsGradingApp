@@ -22,10 +22,10 @@
               <pre class="bg-default"
                 style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"><%= skill.description %></pre>
                 <ul>
-                  <% for(i=1; i<=5; i++){ %>
+                  <% for(i=0; i<=problemsBySkill.length - 1; i++){ %>
                   <li>
-                    <a href="/editSkill/<%= skill._id %>">
-                      <%= "Question " + i %>
+                    <a href="/showProblem/<%= problemsBySkill[i]._id %>">
+                      <%= problemsBySkill[i].description %>
                     </a>
                   </li>
                   <% } %>

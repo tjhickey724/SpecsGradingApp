@@ -1,37 +1,21 @@
+<html>
 <%- include('bootheader') -%>
 <% if (loggedIn) { %>
 <%- include('menubar') -%>
 <% } %>
-
-<div class="p-lg-5 p-4 mb-lg-3 mb-0 bg-light border">
+<body style="background-color:rgb(248, 238, 221)">
+<div class="p-lg-5 p-4 mb-lg-3 mb-0 bg-white">
   <div class="container-fluid">
-    <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
-    <span class="lead fs-2">Promoting Effective and Engaged Learning</span>
-    <% if (loggedIn){ %>
-    <form method="post" action="/joinCourse">
-      <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
-        <div class="col-auto">
-          <label for="inputPassword6" class="col-form-label"> Enroll in a course
-          </label>
-        </div>
-        <div class="col-auto">
-          <div class="input-group">
-            <input required type="input" name="coursePin" class="form-control" aria-describedby="ccInline" placeholder="7 digit pin">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-box-arrow-in-right"></i>
-            </button>
-          </div>
-        </div>
-        <div class="col-auto">
-          <span id="ccInline" class="form-text">(or
-            <a href="/createCourse" class="text-decoration-none">create a new
-              course</a>,
-            or
-            <a href="/stats" class="text-decoration-none">view usage
-              statistics</a>)</span>
-        </div>
-      </div>
-    </form>
-    <% } %>
+    <span class="text-center"><h1>
+      <span style="color:rgb(0, 0, 0)" >Mastery Learning</span>
+      <span class="lead fs-2 text-secondary" >/</span>
+      <span style="color:rgb(1, 1, 1)" >Specs Grading</span>
+      <span class="lead fs-2 text-secondary">/</span>
+      <span style="color:rgb(0, 0, 0)" >Peer Review App</span>
+    </h1></span>
+    <p class="lead fs-2 text-center">Promoting Effective and Engaged Learning</p>
+    
+ 
   </div>
 </div>
 <% if (!loggedIn){ %>
@@ -42,8 +26,28 @@
 <hr>
 <div class="card-group">
   <div class="card text-bg-warning">
-    <div class="card-header">Courses I'm taking</div>
-    <ul class="pt-1 mb-2">
+    <div class="card-header text-white text-center"><h4>Courses I'm taking</h4></div>
+
+    <% if (loggedIn){ %>
+      <form method="post" action="/joinCourse">
+        <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center justify-content-center">
+          <div class="col-auto">
+            <div class="input-group">
+              <input required type="input" name="coursePin" class="form-control-sm" aria-describedby="ccInline" placeholder="7 digit pin">
+              <button class="btn" style="background-color:rgb(255, 234, 184)" type="submit"><i class="bi bi-box-arrow-in-right"></i>
+              </button>
+            </div>  
+            <div class="row">
+              <label for="inputPassword6" class=" col-form-label"><small> Enroll in a course
+              </small></label>
+            </div>           
+          </div>
+
+        </div>
+      </form>
+      <% } %>
+
+    <ul>
       <% for(i=0; i<=coursesTaken.length-1; i++){ %>
       <li>
         <a href="/showCourse/<%= coursesTaken[i]._id %>">
@@ -54,8 +58,8 @@
     </ul>
   </div>
   <div class="card bg-primary">
-    <div class="card-header">Courses I'm TAing</div>
-    <ul class="pt-1 mb-2">
+    <div class="card-header text-white text-center"><h4>Courses I'm TAing<h4></div>
+    <ul class="pt-3 mb-2">
       <% for(i=0; i<=coursesTAing.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesTAing[i]._id %>">
@@ -67,8 +71,18 @@
 
   </div>
   <div class="card bg-danger">
-    <div class="card-header">Courses I'm Teaching</div>
-    <ul class="pt-1 mb-2">
+    <div class="card-header text-white text-center"><h4>Courses I'm Teaching</h4></div>
+    <% if (loggedIn){ %>
+      <form method="post" action="/joinCourse">
+        <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
+          <div class="col text-center">
+            <a href="/createCourse" class=" btn btn-sm"; style="background-color:rgb(255, 174, 174)" >Create a new course</a>
+          </div>
+
+        </div>
+      </form>
+      <% } %>
+    <ul class="pt-3 mb-5">
       <% for(i=0; i<=coursesOwned.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesOwned[i]._id %>">
@@ -87,3 +101,5 @@
 
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>
+</body>
+</html>

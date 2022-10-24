@@ -19,17 +19,15 @@
                 style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"><%= skill.description %></pre>
               <hr>
               <h3>Related Problems: <%= problemsBySkill.length %> </h3>
-              <pre class="bg-default"
-                style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"><%= skill.description %></pre>
-                <ul>
-                  <% for(i=0; i<=problemsBySkill.length - 1; i++){ %>
-                  <li>
-                    <a href="/showProblem/<%= problemsBySkill[i]._id %>">
-                      <%= problemsBySkill[i].description %>
-                    </a>
-                  </li>
-                  <% } %>
-                </ul>
+              <ul>
+                <% for(i=0; i<=problemsBySkill.length - 1; i++){ %>
+                <li>
+                  <a href="/showProblem/<%= problemsBySkill[i]._id %>">
+                    <%= problemsBySkill[i].description %>
+                  </a>
+                </li>
+                <% } %>
+              </ul>
               <hr>
               <a class="btn btn-danger" href="/showCourse/<%= skill.courseId %>">back to course</a><br>
               <br>

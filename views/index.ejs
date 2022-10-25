@@ -30,22 +30,28 @@
 
     <% if (loggedIn){ %>
       <form method="post" action="/joinCourse">
-        <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center justify-content-center">
+        <div class="mx-lg-3 mx-5 my-1 row g-lg-3 g-3 align-items-center justify-content-center">
           <div class="col-auto">
             <div class="input-group">
-              <input required type="input" name="coursePin" class="form-control-sm" aria-describedby="ccInline" placeholder="7 digit pin">
-              <button class="btn" style="background-color:rgb(255, 234, 184)" type="submit"><i class="bi bi-box-arrow-in-right"></i>
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1"; style="background-color:rgb(255, 234, 184)"><small> Enroll in a course</small></span>
+              </div>
+              <input type="text" name="coursePin" class="form-control-sm aria-describedby="ccInline" placeholder="7 digit pin">
+              <button class="btn" style="background-color:rgb(170, 170, 170)" type="submit"><i class="bi bi-box-arrow-in-right"></i>
               </button>
             </div>  
-            <div class="row">
+
+            <!-- <div class="row">
               <label for="inputPassword6" class=" col-form-label"><small> Enroll in a course
               </small></label>
-            </div>           
+            </div>            -->
+
           </div>
 
         </div>
       </form>
-      <% } %>
+    <% } %>
+      
 
     <ul>
       <% for(i=0; i<=coursesTaken.length-1; i++){ %>
@@ -59,7 +65,7 @@
   </div>
   <div class="card bg-primary">
     <div class="card-header text-white text-center"><h4>Courses I'm TAing<h4></div>
-    <ul class="pt-3 mb-2">
+    <ul class="pt-3 mb-5">
       <% for(i=0; i<=coursesTAing.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesTAing[i]._id %>">
@@ -82,7 +88,7 @@
         </div>
       </form>
       <% } %>
-    <ul class="pt-3 mb-5">
+    <ul class="pt-2 mb-5">
       <% for(i=0; i<=coursesOwned.length-1; i++){ %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesOwned[i]._id %>">

@@ -245,7 +245,8 @@ app.post("/createNewCourse", async (req, res, next) => {
     newCourse
       .save()
       .then((a) => {
-        res.redirect("/");
+        // res.redirect("/");
+        res.redirect("/showCourse/" + newCourse._id);
       })
       .catch((error) => {
         res.send(error);

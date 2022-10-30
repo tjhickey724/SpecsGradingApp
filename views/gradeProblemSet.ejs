@@ -2,8 +2,18 @@
 <%- include('menubar') -%>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
-    <h1 class="pb-2 border-bottom">
-      <%= problemSet.name %> </h1>
+    <h1 class="pb-2 border-bottom"> <%= problemSet.name %> </h1>
+    <div>
+      <form method="get" action="/gradeProblemSet/<%= psetId %>">
+        <label for="appt">Select a time to limit:</label>
+        <input 
+          type="datetime-local" 
+          name="dueTime" 
+          pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}" 
+          required>
+        <input type="submit">
+      </form>
+    </div>
     <div class="p-2">
       <% jsonGrades = [] %>
       <table class="table table-bordered table-striped">
@@ -11,11 +21,12 @@
           <tr>
             <th>N </th>
             <th>Student</th>
-            <% for(i = 0; i<= problems.length-1; i++){  %>
-            <th> <a href="/showProblem/<%= problems[i]._id %>">
-                P<%= i %><br> <%= problems[i].points %>
-
-              </a></th>
+              <% for(i = 0; i<= problems.length-1; i++){  %>
+              <th> 
+                <a href="/showProblem/<%= problems[i]._id %>"> 
+                  P<%= i %><br> <%= problems[i].points %> 
+                </a> 
+              </th>
             <% } %>
             <th>Total</th>
             <!--
@@ -28,79 +39,63 @@
           <% for(i = 0; i< studentsInfo.length; i++){
                 let psetScore = 0
                 let psetCount = 0 // number of problems graded by TAs
-                let jsonRow = {email:studentsInfo[i].googleemail, name:studentsInfo[i].googlename,grades:[]}
-                %>
+                let jsonRow = {email:studentsInfo[i].googleemail, name:studentsInfo[i].googlename,grades:[]} %>
           <tr>
             <td><%= i %></td>
-            <td> <%= studentsInfo[i].googleemail %>
+            <td> <%= studentsInfo[i].googleemail %> </td>
+            <% dueTime = new Date(dueTime)
+            for(j = 0; j<= problems.length-1; j++){
+              // find the scores of the reviews of this problem
+              const studentAnswers = answers.filter(
+                a =>{ return a.studentId.equals(studentsInfo[i]._id) && a.problemId.equals(problems[j]._id) })
+                //console.log(`\n\n${i} ${j} studentAnswers= ${JSON.stringify(studentAnswers)}`)
 
-            </td>
-            <% for(j = 0; j<= problems.length-1; j++){
-                        // find the scores of the reviews of this problem
-                     const studentAnswers =
-                         answers.filter(a =>{
-                             return a.studentId.equals(studentsInfo[i]._id) &&
-                                    a.problemId.equals(problems[j]._id)
-                         })
-                     //console.log(`\n\n${i} ${j} studentAnswers= ${JSON.stringify(studentAnswers)}`)
-
-
-
-                     const grades =
-                        taReviews
-                          .filter(
-                           r =>{
-                               let zz = (r.problemId && r.problemId.equals(problems[j]._id))
-                                   && (r.studentId && r.studentId.equals(studentsInfo[i]._id))
-                                   //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
-
-                               return(zz)
-                           })
-                           answerId = null
-                           if (grades.length>0) {
-                             answerId = grades[0].answerId
-                           }
-
-
-
-                        %>
-            <td>
-              <% if (studentAnswers.length == 0){
-                                    jsonRow.grades.push(-1)
-                                    %>
-              <!-- No answer to review -->
-
-              <% } else if (!answerId) {
-                                    jsonRow.grades.push(0)
-                                   %>
-              <a style="color:red" href="/gradeProblem/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
-                No TA reviews yet
-              </a>
-              <% } else { %>
-
-              <a href="/showReviewsOfAnswer/<%= answerId %>">
-                <% let scores = grades.map((r) => r.points)
-                                       let avgScore =
-                                            Math.ceil(
-                                                scores.reduce((a,b) => a + b, 0)/scores.length
-                                                )
-                                       psetScore += avgScore
-                                       psetCount += 1
-                                       jsonRow.grades.push(avgScore)
-                                    %>
-                <%= JSON.stringify(scores) %> <br>
-                <%=  avgScore %>
-              </a>
-              <% } %>
-            </td>
+              const grades = taReviews.filter(
+                r =>{ return (r.problemId && r.problemId.equals(problems[j]._id)) 
+                  && (r.studentId && r.studentId.equals(studentsInfo[i]._id))})
+              answerId = null
+              
+              if (studentAnswers.length>0) {
+                submitTime = studentAnswers[0].createdAt
+                console.log(dueTime)
+                console.log(submitTime)
+              }
+              
+              if (grades.length>0) { answerId = grades[0].answerId }%>
+              <td>
+                <% if (studentAnswers.length == 0){ %>
+                  
+                  <!-- No answer to review -->
+                  <% jsonRow.grades.push(-1)  %>
+                <% } else if (dueTime < submitTime) { %>
+                  <p style="color:blue"> Late </p>
+                <% } else if (!answerId) {
+                  jsonRow.grades.push(0) %>
+                  <a style="color:red" href="/gradeProblem/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
+                    No TA reviews yet
+                  </a>
+                <% } else { %>
+                  <a href="/showReviewsOfAnswer/<%= answerId %>">
+                    <% let scores = grades.map((r) => r.points)
+                    let avgScore = Math.ceil( scores.reduce((a,b) => a + b, 0)/scores.length )
+                    psetScore += avgScore
+                    psetCount += 1
+                    jsonRow.grades.push(avgScore) %>
+                    <%= JSON.stringify(scores) %> <br>
+                    <%=  avgScore %>
+                  </a>
+                <% } %>
+              </td>
             <% } %>
-            <td> <% jsonRow.grades.push(psetScore)
-                            jsonRow.grades.push(psetCount)
-                            let average = psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
-                            jsonRow.grades.push(average)
-                            jsonGrades.push(jsonRow)%>
+            <td> 
+              <% jsonRow.grades.push(psetScore)
+                jsonRow.grades.push(psetCount)
+                let average = psetCount>0?Math.round(psetScore/psetCount*10)/10:-1
+                jsonRow.grades.push(average)
+                jsonGrades.push(jsonRow) %>
               <% if (psetCount>0){%>
-              <%= psetScore %> </td>
+              <%= psetScore %> 
+            </td>
             <!--
                          <td><%= psetCount %></td>
                          <td> <% if (psetCount>0){%>
@@ -116,16 +111,10 @@
 
       </table>
       <hr>
-      <pre><%  jsonGrades.sort((row1,row2)=>
-      row1.grades[row1.grades.length-1] - row2.grades[row2.grades.length-1])
-    for (let i=0; i<jsonGrades.length; i++){
-            let row = jsonGrades[i]
-            let gs = row.grades
-%><%= row.email %>, <%= row.name %> <% for(let j=0; j<gs.length; j++){ %>, <%= gs[j] %> <% } %><% } %></pre>
-
-      <%= JSON.stringify(jsonGrades) %>
-
-
+      <% jsonGrades.sort((row1,row2)=> row1.grades[row1.grades.length-1] - row2.grades[row2.grades.length-1])
+        for (var i = 0; i<jsonGrades.length; i++){ %>
+          <p><%= JSON.stringify(jsonGrades[i]) %></p>
+        <% } %>
 
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
@@ -135,8 +124,6 @@
       <% if ((user.taFor).indexOf(problemSet.courseId)>=0) { %>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
       <% } %>
-
-
     </div>
   </div>
 </div>

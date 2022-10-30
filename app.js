@@ -676,8 +676,21 @@ app.get("/gradeProblemSet/:psetId/json", async (req, res, next) => {
   res.json(jsonGrades);
 });
 
+// app.post("/gradeProblemSet/dueTime", async (req, res, next) => {
+//   const dueTime = req.body.dueTime;
+//   res.locals.dueTime = dueTime;
+//   const url = require("url")
+//   res.redirect(url.format({
+//     pathname: "/gradeProblemSet/" + req.body.psetId,
+//     query: {
+//       dueTime : dueTime
+//     }
+//   }));
+// });
+
 app.get("/gradeProblemSet/:psetId", async (req, res, next) => {
   const psetId = req.params.psetId;
+  res.locals.dueTime = req.query.dueTime
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
   res.locals.problems = await Problem.find({psetId: psetId});

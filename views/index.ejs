@@ -37,7 +37,7 @@
                 <span class="input-group-text border border-white border-0  id="basic-addon1"; style="background-color:rgb(255, 233, 182)"><small> Enroll in a course</small></span>
               </div>
               <input type="text" name="coursePin" class="form-control-sm aria-describedby="ccInline" placeholder="7 digit pin">
-              <button class="btn" style="background-color:rgb(170, 170, 170)" type="submit"><i class="bi bi-box-arrow-in-right"></i>
+              <button class="btn" style="background-color:rgb(167, 167, 167)" type="submit"><i class="bi bi-box-arrow-in-right"></i>
               </button>
             </div>  
 
@@ -45,16 +45,14 @@
               <label for="inputPassword6" class=" col-form-label"><small> Enroll in a course
               </small></label>
             </div>            -->
-
           </div>
-
         </div>
       </form>
-    <% } %>
-      
+    <% } %> 
 
-    <ul>
+    <ul class="pt-2 mb-5">
       <% for(i=0; i<=coursesTaken.length-1; i++){ %>
+
       <li>
         <a href="/showCourse/<%= coursesTaken[i]._id %>">
           <%= coursesTaken[i].name %>
@@ -62,6 +60,7 @@
       </li>
       <% } %>
     </ul>
+
   </div>
   <div class="card bg-primary">
     <div class="card-header text-white text-center"><h4>Courses I'm TAing<h4></div>

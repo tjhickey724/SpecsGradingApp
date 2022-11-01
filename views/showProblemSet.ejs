@@ -5,6 +5,15 @@
     <h1 class="pb-2 border-bottom">
       <%= problemSet.name.trim() || "Problem Set" %>
     </h1>
+    <form method="post" action="/updateProblemSet/<%= psetId %>" >
+      <div>
+        <br>
+        visible: <input type="checkbox" name="visible" <% if (problemSet.visible) {%> checked <% }
+                                %> value="visible">
+        <br>
+        <input class="btn btn-primary" type="submit" value="Save">
+      </div>
+    </form>
     <div class="p-2">
 
       <ul>

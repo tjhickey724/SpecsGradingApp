@@ -116,11 +116,11 @@
       <hr>
 
       <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-        <div class="alert alert-danger d-flex align-items-center" role="alert">
-          <div>
+        <div class="alert alert-danger align-items-center" role="alert">
+          <div style="margin-top:-2px; margin-bottom:-2px">
             <i class='fas fa-exclamation-triangle ' style='font-size:15px'></i>
             <a href="/showRegradeRequests/<%= courseInfo.id %>" style="color:rgb(172, 2, 33)">
-              <span style="color:rgb(1, 0, 0); margin-left:5px; font-size: 25px"><%= regradeRequests.length %></span> regrade requests outstanding
+              <span style="color:rgb(1, 0, 0); margin-left:5px; font-size: 20px"><%= regradeRequests.length %></span> regrade requests outstanding
             </a>
           </div>
         </div>

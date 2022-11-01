@@ -575,7 +575,7 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
     console.log("id=" + id);
-    pset.name = req.body.name;
+
     pset.visible = req.body.visible == "visible";
     await pset.save();
 
@@ -584,6 +584,8 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     next(e);
   }
 });
+
+
 
 const getStudentSkills = async (studentId) => {
   try {

@@ -1,26 +1,62 @@
-<%- include('bootheader') -%>
-<%- include('menubar') -%>
-    <div class="p-3 mb-4 bg-light">
-      <div class="container-fluid ">
-        <div class="p-2">
-          <% if (isOwner) { %>
-            <a href="/editSkill/<%= skill._id %>" class="btn btn-sm btn-info">
+<%- include('bootheader') -%> <%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid">
+    <div class="p-2">
+      <% if (isOwner) { %>
+      <!-- <a href="/editSkill/<%= skill._id %>" class="btn btn-sm btn-info">
               Edit
-            </a>
-            <% } %>
-              <h1>
-                Skill Name and Description </h1>
-              <h3>Course: <%= courseInfo.name %>
-              </h3>
-              <h3>Name: <%= skill.name %>
-              </h3>
-              <h3>Description:</h3>
-              <pre class="bg-default"
-                style="border:thin solid red; white-space: pre-wrap; font-family:monospace; padding:10px"><%= skill.description %></pre>
-              <hr>
-              <a class="btn btn-danger" href="/showCourse/<%= skill.courseId %>">back to course</a><br>
-              <br>
-              <a class="btn btn-primary" href="/showSkills/<%= skill.courseId %>">back to skills list</a><br></div></div></div>
+            </a> -->
+      <% } %>
+      <h1>Skill Name and Description</h1>
+      <h3>Course: <%= courseInfo.name %></h3>
+      <h3>Name: <%= skill.name %></h3>
+      <h3>Description:</h3>
+      <pre
+        class="bg-default"
+        style="
+          border: thin solid red;
+          white-space: pre-wrap;
+          font-family: monospace;
+          padding: 10px;
+        "
+      >
+<%= skill.description %></pre
+      >
+      <hr />
+      <form method="post" action="/editSkill/<%= skill._id %>">
+        <div class="mb-3">
+          <label for="name" class="form-label">Skill Name</label>
+          <input
+            required
+            class="form-control"
+            type="text"
+            name="name"
+            value="<%= skill.name %>"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Skill Description</label>
+          <textarea
+            class="form-control"
+            name="description"
+            cols="100"
+            rows="10"
+          >
+<%= skill.description %></textarea
+          >
+        </div>
 
-<%- include('bootfooter') -%>
-<%- include('htmlfoot') -%>
+        <input class="btn btn-lg btn-primary" type="submit" />
+      </form>
+      <a class="btn btn-danger" href="/showCourse/<%= skill.courseId %>"
+        >back to course</a
+      ><br />
+      <br />
+      <a class="btn btn-primary" href="/showSkills/<%= skill.courseId %>"
+        >back to skills list</a
+      ><br />
+    </div>
+  </div>
+</div>
+
+<%- include('bootfooter') -%> <%- include('htmlfoot') -%>

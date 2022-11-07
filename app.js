@@ -841,11 +841,12 @@ app.get("/showProblem/:probId", async (req, res, next) => {
     const reviews = await Review.find({problemId: probId});
     res.locals.reviewCount = reviews.length;
     res.locals.averageReview = reviews.reduce((t, x) => t + x.points, 0) / reviews.length;
-    res.locals.answers = await Answer.find({problemId: probId, studentId: res.locals.user._id});
-
+    let answers = await Answer.find({ problemId: probId, studentId: res.locals.user._id });
+    console.log("hello " +answers.length)
     res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
     res.locals.skillsMastered = await getStudentSkills(res.locals.user._id);
     res.locals.routeName = " showProblem";
+    res.locals.answers = answers;
     res.render("showProblem");
   } catch (e) {
     console.log("Error in showProblem: " + e);

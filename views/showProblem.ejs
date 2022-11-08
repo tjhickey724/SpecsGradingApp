@@ -43,8 +43,17 @@
 
       <div class="bg-default border border-dark rounded border-2" style="white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%= problem.problemText %><% } else {%>This problem is not active at the moment.<% } %></div>
       <hr>
+      <h1>Plagiarism detection</h1>
+      <% if (course.ownerId.equals(user._id)) { %>
+        <a href="/downloadAnswers/<%= problem.id %>">
+          download answers
+        </a>
+      <% } %>
+      <h1>...</h1>
       <% if (answers.length> 0 && problem.submitable
 														|| course.ownerId.equals(user._id) ) { %>
+     
+                              
       <% if (!course.ownerId.equals(user._id)) { %>
       <h2>Your Answer</h2>
       <small>Submission time and date:<%= problem.createdAt %>

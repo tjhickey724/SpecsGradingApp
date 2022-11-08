@@ -21,6 +21,7 @@ if (process.env.IS_ON_WEB == "False") {
 // Routes
 const reviews = require('./routes/reviews');
 const auth = require('./routes/authRouter');
+const similarity = require('./routes/similarity');
 
 
 // Models!
@@ -108,6 +109,7 @@ app.use(flash());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(auth);
+app.use(similarity);
 
 //const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 

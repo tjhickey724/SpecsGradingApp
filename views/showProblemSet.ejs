@@ -1,63 +1,83 @@
+
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-<div class="p-3 mb-4 bg-light">
-  <div class="container-fluid ">
-    <h1 class="pb-2 border-bottom">
-      <%= problemSet.name.trim() || "Problem Set" %>
-    </h1>
-    <div class="p-2">
 
-      <ul>
-        <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
-                            !(courseInfo.ownerId==user.id) ) { %>
-        <li>Problem Hidden </li>
-        <% } else {%>
-        <li>
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
-          <% const skillsToMaster=problems[i].skills.filter( (skill)=>
-                                        !skills.includes(skill.toString())).length
-                                        %>
-          <% if (skillsToMaster==0){ %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <span style="color:green">
-              <%= problems[i].description || "no name" %>
-              all skills in this problem have been mastered
-            </span>
-          </a>
+    
+  </head>
+  <body>
+    
+    <div class="container">
+      
+      <h1 class="pb-2 border-bottom">
+        <%= problemSet.name.trim() || "Problem Set" %>
+      </h1>
 
-          <% } else { %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <%= problems[i].description || "no name" %>
-          </a>
+     
+      <ul class="nav nav-tabs">
+        <!-- <% for(i=0; i<=problems.length-1; i++){ 
+          if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) { %>
+          <li>Problem Hidden </li>
+          <% } else {%>
+            <li class="active" >
+              <% const skillsToMaster=problems[i].skills.filter( (skill)=>
+              !skills.includes(skill.toString())).length%>
+              <% if (skillsToMaster==0){ %>
+                <a href="#Problem" data-toggle="tab">
+                  <span style="color:green">
+                  <%= problems[i].description || "no name" %>
+                  all skills in this problem have been mastered
+                  </spaan>
+                </a>
+    
+              <% } else { %>
+                <a href="/showProblem/<%= problems[i]._id %>" data-toggle="tab">
+                  <%= problems[i].description || "no name" %>
+                </a>
+    
+              <span style="background-color:rgb(200, 255, 208)"> <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+              master<br> </span>
+              <% } %>
+            
+            </li>
+            <% }} %> -->
 
-          <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
-          master<br>
-          <% } %>
-        </li>
-        <% }} %>
+            <li class="active text-center"><a href="#Problem1" data-toggle="tab">Problem 1</a>
+              <span style="background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px">1/2 skills left to master</span>
+            </li>
+            <li class="text-center"><a href="#Problem2" data-toggle="tab">Problem 2</a>
+              <span style="background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px">2/2 skills left to master</span>
+            </li>
+            <li class="text-center"><a href="#Problem3" data-toggle="tab">Problem 3</a>
+              <span style="background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px">1/3 skills left to master</span>
+            </li>
       </ul>
+      
+      
+      <div class="tab-content">
+        <div id="Problem1" class="tab-pane fade in active">
+          <h3>Problem 1</h3>
+          <p>Test problem 1 </p>
+        </div>
+        <div id="Problem2" class="tab-pane fade">
+          <h3>Problem 2</h3>
+          <p>Test problem 2 </p>
+        </div>
+        <div id="Problem3" class="tab-pane fade">
+          <h3>Problem 3</h3>
+          <p>Test problem 3</p>
+        </div>
 
-
-      <hr>
-      <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
-
-      <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
-      <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
-        of Problem
-        Sets</a>
-      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
-        Problem Set
-      </a>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
-      </a>
-      <% } %>
-    </div>
-  </div>
-</div>
+      </div>
+    
+   </div>
+    
+  </body>
 
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

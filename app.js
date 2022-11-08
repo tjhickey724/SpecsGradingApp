@@ -554,7 +554,7 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
 
     res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
 
-    res.redirect("/showCourse/" + res.locals.courseInfo._id);
+    res.redirect("/showProblemSet/" + newProblemSet.id);
   } catch (e) {
     next(e);
   }

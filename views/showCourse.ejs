@@ -15,7 +15,7 @@
         <%
              if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
              else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
-                 %> <li> HIDDEN
+                 %> <li class="inline"> HIDDEN
                   
           <% } else { %>
         <li>
@@ -38,11 +38,12 @@
           (<%= answerMap.get(problemSets[i]._id.toString()) || 0
                   %>/<%=
                      problemMap.get(problemSets[i]._id.toString()) || 0 %>)
-          <form method="post" action="/updateProblemSet/<%= problemSets[i]._id %>" >
-              visible: <input type="checkbox" name="visible" <% if (problemSets[i].visible) {%> checked <% }
+          <form class="d-inline p-2 " method="post" action="/updateProblemSet/<%= problemSets[i]._id %>" >
+              visible: <input class="mb-3" type="checkbox" name="visible" <% if (problemSets[i].visible) {%> checked <% }
                                       %> value="visible">
               <input class="btn btn-primary" type="submit" value="Save">
           </form>
+          
 
         </li>
 

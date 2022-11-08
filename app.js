@@ -578,8 +578,14 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
 
     pset.visible = req.body.visible == "visible";
     await pset.save();
-
-    res.redirect("/showProblemSet/" + id);
+    console.log(req.originalUrl);
+    console.log(req.headers);
+    if (req.headers.referer.includes("editProblemSet")) {
+      res.redirect("/showProblemSet/" + id);
+    }
+    else {
+      res.redirect('back');
+    }
   } catch (e) {
     next(e);
   }

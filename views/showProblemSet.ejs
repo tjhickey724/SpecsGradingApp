@@ -1,6 +1,6 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-<div id="passLocal" data-problems=<%= JSON.stringify(problems) %>></div>
+<div id="passLocal" data-problems='<%= JSON.stringify(problems) %>' data-skills='<%= JSON.stringify(skills) %>'></div>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
@@ -48,10 +48,13 @@
   document.head.appendChild(extend_link);
   document.head.appendChild(script1);
   document.head.appendChild(script2);
-  console.log(document.getElementsByTagName('head'));
 
+  var d = document.getElementById("passLocal").dataset.problems;
+  console.log(d.length);
+  // console.log(document.getElementById("passLocal").dataset.problems);
   var problems = JSON.parse(document.getElementById("passLocal").dataset.problems);
-
+  var skills = JSON.parse(document.getElementById("passLocal").dataset.skills);
+  // var problems = document.getElementById("passLocal").dataset.problems;
   var ul = document.getElementById("problem-list");
   ul.setAttribute("class", "nav nav-tabs");
   
@@ -62,8 +65,7 @@
     // Span
     var span = document.createElement("span");
     span.setAttribute("style", "background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
-    const skillsToMaster=problems[i].skills.filter( (skill)=>
-              !skills.includes(skill.toString())).length
+    const skillsToMaster=problems[i].skills.filter( (skill)=> !skills.includes(skill.toString())).length
     if (skillsToMaster == 0) {
       span.appendChild(document.createTextNode("mastered"));
     } else {
@@ -118,3 +120,4 @@
   }
   
 </script>
+

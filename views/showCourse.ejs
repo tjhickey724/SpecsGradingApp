@@ -42,50 +42,31 @@
         </li>
         <% } %>
       </ul>
+      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+          Add Problem Set
+        </a>
+      <% } %>
 
       <hr>
+      <b>Reviews</b>
+      <br>
       <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-      <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Add Problem Set
-      </a>
 
-      <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Add a Skill
-      </a>
-
-      <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show Summarized Student Info
-      </a>
-
-      <a class="btn btn-sm btn-info" href="/showRoster/<%= courseInfo._id %>">
-        Show Roster
-      </a>
-
-      <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
-        Show Mastery
-      </a>
       <% } else { %>
       <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
         show all problems and responses
       </a>
-
-      <%} %>
       <br>
+      <%} %>
 
-
+      
       Number of reviews I've made: <%= myReviews.length %>
       with <%= thumbsUp %> thumbs up and
       <%= thumbsDown %> thumb downs
       <hr>
-      <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show TAs
-      </a>
-      <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show Skills
-      </a>
-      <br>
-      <hr>
-      <h2>Skills Mastery Evidence</h2>
+
+      <b>Skills Mastery Evidence</b>
       <ul>
         <% for(i = 0; i< skills.length; i++){  %>
         <li>
@@ -113,9 +94,44 @@
         </li>
         <% } %>
       </ul>
+      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+          Add a Skill
+        </a>
+      <% } %>
+      <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+        Show Skills
+      </a>
+
       <hr>
+      <b>Course statistics</b>
+      <li>
+        <a href="/showTAs/<%= courseInfo._id %>">
+          Show TAs
+        </a>
+      </li>
+      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <li>
+          <a href="/showRoster/<%= courseInfo._id %>">
+            Show Roster
+          </a>
+        </li>
+        <li>
+          <a href="/mastery2/<%= courseInfo._id %>">
+            Show Mastery
+          </a>
+        </li>
+        <li>
+          <a href="/showStudentInfo/<%= courseInfo._id %>">
+            Show Summarized Student Info
+          </a>
+        </li>
+      <% } %>
 
       <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+      <hr>
+      <b>Regrade</b>
+      <br>
       <a href="/showRegradeRequests/<%= courseInfo.id %>">
         <%= regradeRequests.length %> regrade requests outstanding
       </a>

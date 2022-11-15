@@ -1,63 +1,204 @@
+
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
-<div class="p-3 mb-4 bg-light">
-  <div class="container-fluid ">
-    <h1 class="pb-2 border-bottom">
-      <%= problemSet.name.trim() || "Problem Set" %>
-    </h1>
-    <div class="p-2">
 
-      <ul>
-        <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
-                            !(courseInfo.ownerId==user.id) ) { %>
-        <li>Problem Hidden </li>
-        <% } else {%>
-        <li>
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
+    
+  </head>
+  <body style="background-color:rgb(255, 247, 233)">
+    
+    <div class="container">
+      
+      <h1 class="pb-2 border-bottom" style="margin-bottom:10px">
+        <%= problemSet.name.trim() || "Problem Set" %>
+      </h1>
 
-          <% const skillsToMaster=problems[i].skills.filter( (skill)=>
-                                        !skills.includes(skill.toString())).length
-                                        %>
-          <% if (skillsToMaster==0){ %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <span style="color:green">
-              <%= problems[i].description || "no name" %>
-              all skills in this problem have been mastered
-            </span>
-          </a>
+     
+      <ul class="nav nav-tabs">
+        <!-- <% for(i=0; i<=problems.length-1; i++){ 
+          if (!problems[i].visible && !(courseInfo.ownerId==user.id) ) { %>
+          <li>Problem Hidden </li>
+          <% } else {%>
+            <li class="active" >
+              <% const skillsToMaster=problems[i].skills.filter( (skill)=>
+              !skills.includes(skill.toString())).length%>
+              <% if (skillsToMaster==0){ %>
+                <a href="#Problem" data-toggle="tab">
+                  <span style="color:green">
+                  <%= problems[i].description || "no name" %>
+                  all skills in this problem have been mastered
+                  </spaan>
+                </a>
+    
+              <% } else { %>
+                <a href="/showProblem/<%= problems[i]._id %>" data-toggle="tab">
+                  <%= problems[i].description || "no name" %>
+                </a>
+    
+              <span style="background-color:rgb(200, 255, 208)"> <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+              master<br> </span>
+              <% } %>
+            
+            </li>
+            <% }} %> -->
 
-          <% } else { %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <%= problems[i].description || "no name" %>
-          </a>
-
-          <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
-          master<br>
-          <% } %>
-        </li>
-        <% }} %>
+            <li class="active text-center"><a href="#Problem1" data-toggle="tab"><strong>Problem 1</strong>
+              <div style="margin-top:5px; border-radius: 4px; border: white; color:green; padding:1px 10px; 
+              background-color:rgb(218, 255, 223); "><small>1/2 skills left to master</small></div>
+            </a>
+            </li>
+            <li class="text-center"><a href="#Problem2" data-toggle="tab"><strong>Problem 2</strong>
+              <div style="margin-top:5px; border-radius: 4px; border: white; color:green; padding:1px 10px; 
+              
+              background-color:rgb(218, 255, 223); "><small>0/3 skills left to master</small></div>
+            </a></li>
+            <li class="text-center"><a href="#Problem3" data-toggle="tab"><strong>Problem 3</strong>
+              <div style="margin-top:5px; border-radius: 4px; border: white; color:red; padding:1px 10px; background-color:rgb(255, 218, 218); "><small>all skills mastered</small></div>
+            </a></li>
       </ul>
+      
+      
+      <div style="background-color:rgb(255, 255, 255)" class="tab-content">
+        <div id="Problem1" class="tab-pane fade in active" style="margin-left:25px; margin-right:25px;">
+          <!-- question form -->
+          <div class="form-group" style="font-family:'Courier New'">
+            <label for="qustion"><h3><strong>Problem 1</h3></strong></label>
+            <div class="form-question" id="question" ><h4>
+              Create a blender project which demonstrates your mastery of the skills listed below.
+              This is a chance to demonstrate both your mastery of the core skills we've learned and your creativity in applying those skills to create interesting models.
+              <br><br>What to submit ... an link to a google drive folder containing the following:
+              <br>* 3 rendered images (with Cycles) from 3 different viewpoints
+            </h4></div>    
+          </div>
+          <br>
+  
+          <!-- input answer form -->
+          <div id="Problem1" class="form-answer" style="margin-top:20px; margin-bottom:20px">
+            <label for="answer" style="color:rgb(35, 35, 35)"><h4>Your Answer</h4></label>
+            <input required type="input" style="padding: 100px;" class="text-left form-control" aria-describedby="ccInline" 
+            placeholder="Enter your answer here">
+            <button type="button" class="d-grid col-4 mx-auto" style="margin-top:5px; margin-bottom:20px; border-radius: 4px; border: white; color:white; background-color:rgb(66, 126, 255)">submit</button>
 
+            <!-- skills card -->
+            <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+              <div class="card-body" style="margin-left:20px">
+                <h4 class="card-title" style=" margin-top:20px" >2 Skills: </h4>
+                <p class="card-text">
+                  <li style="color:red"><strong>Create a blend mesh</strong>
+                    <span>  - skills mastered</span>
+                  </li>
 
-      <hr>
-      <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+                  <li style="color:green"><strong>Create an animation</strong>
+                    <span>  - skills not yet mastered</span>
+                  </li>
+                </p>
+                
+              </div>
+            </div>
 
-      <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
-      <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
-        of Problem
-        Sets</a>
-      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
-        Problem Set
-      </a>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
-      </a>
-      <% } %>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
+        <div id="Problem2" class="form-answer tab-pane fade" style="margin-left:25px; margin-right:25px;">
+          <!-- question form -->
+          <div class="form-group" style="font-family:'Courier New'">
+            <label for="qustion"><h3><strong>Problem 2</h3></strong></label>
+            <div class="form-question" id="question" ><h4>
+              
+              This is a chance to demonstrate both your mastery of the core skills we've learned and your creativity in applying those skills to create interesting models.
+              <br><br>What to submit ... an link to a google drive folder containing the following:
+              <br>* 3 rendered images (with Cycles) from 3 different viewpoints
+            </h4></div> 
+          </div><br>
+            <!-- answer form -->
+            <div id="Problem2" class="form-answer border border-danger text-center" style="border-radius: 4px; color:crimson; margin-top:20px; margin-bottom:20px">
+              <h2>You
+                may
+                not
+                submit
+                answers
+                at
+                this
+                time!
+              </h2>
+            </div>
+
+              <!-- skills card -->
+              <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+                <div class="card-body" style="margin-left:20px">
+                  <h4 class="card-title" style=" margin-top:20px" >3 Skills: </h4>
+                  <p class="card-text">
+                    <li style="color:green"><strong>A-frame</strong>
+                      <span>  - skills not yet mastered</span>
+                    </li>
+  
+                    <li style="color:green"><strong>Spotlight animation</strong>
+                      <span>  - skills not yet mastered</span>
+                    </li>
+                    <li style="color:green"><strong>Camera animation</strong>
+                      <span>  - skills not yet mastered</span>
+                    </li>
+                  </p>
+                  
+                </div>
+              </div>
+
+            </div>
+          
+        
+        <div id="Problem3" class="tab-pane fade" style="margin-left:25px; margin-right:25px;">
+          <!-- question form -->
+          <div class="form-group" style="font-family:'Courier New'">
+            <label for="qustion"><h3><strong>Problem 3</h3></strong></label>
+            <div class="form-question" id="question" ><h4>
+              Create a blender project which demonstrates your mastery of the skills listed below.
+              This is a chance to demonstrate both your mastery of the core skills we've learned and your creativity in applying those skills to create interesting models.
+              <br><br>What to submit ... an link to a google drive folder containing the following:
+              <br>* 3 rendered images (with Cycles) from 3 different viewpoints
+            </h4></div>    
+          </div>
+          <br>
+  
+          <!-- input answer form -->
+          <div id="Problem1" class="form-answer" style="margin-top:20px; margin-bottom:20px">
+            <label for="answer" style="color:rgb(35, 35, 35)"><h4>Your Answer</h4></label>
+            <div class="card" style="color:rgb(35, 35, 35); font-family:'Courier New';">
+              <h4 style="margin-left:10px">
+              This is a short answer.
+              <br>
+              This is a test.
+            </h4></div>
+
+            <!-- skills card -->
+            <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+              <div class="card-body" style="margin-left:20px">
+                <h4 class="card-title" style=" margin-top:20px" >2 Skills: </h4>
+                <p class="card-text">
+                  <li style="color:red"><strong>Create a blend mesh</strong>
+                    <span>  - skills mastered</span>
+                  </li>
+
+                  <li style="color:red"><strong>Submit your photo for attendance</strong>
+                    <span>  - skills mastered</span>
+                  </li>
+                </p>
+                
+              </div>
+            </div>
+        </div>
+        </div>
+
+      </div>
+      <div>
+        <button style="border-radius: 4px; border: white; color:white; background-color:rgb(255, 66, 66)">Back to Problem set</button>
+      </div>
+   </div>
+ 
+  </body>
 
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

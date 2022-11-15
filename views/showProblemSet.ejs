@@ -1,5 +1,6 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
+
 <div id="passLocal" data-problems='<%= JSON.stringify(problems) %>' data-skills='<%= JSON.stringify(skills) %>'></div>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
@@ -62,15 +63,15 @@
 
   for (var i = 0; i < problems.length; i++) {
     console.log(problems[i]);
-    // Span
-    var span = document.createElement("span");
-    span.setAttribute("style", "background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
+    // Span 
+    var span = document.createElement("button");
+    span.setAttribute("style", "border-radius: 4px; border: white; color:green ;padding: 1px 20px;background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
     const skillsToMaster=problems[i].skills.filter( (skill)=> !skills.includes(skill.toString())).length
     if (skillsToMaster == 0) {
       span.appendChild(document.createTextNode("mastered"));
     } else {
       span.appendChild(document.createTextNode(skillsToMaster.toString() + "/" 
-      + problems[i].skills.length.toString() + "skills left"));
+      + problems[i].skills.length.toString() + " " + "skills left"));
     }
 
     // a
@@ -120,4 +121,7 @@
   }
   
 </script>
+
+
+
 

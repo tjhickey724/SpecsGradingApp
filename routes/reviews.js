@@ -91,7 +91,6 @@ const RegradeRequest = require("../models/RegradeRequest");
       // e.g. we could be ambitious and keep track of the average
       // time to review the problem and use an adaptive timeout,
       // but let's do that later!
-
       const tooOld = new Date().getTime() - 1 *1000*60*10; // 10 minutes
       let expiredReviews = [];
       let pendingReviews = problem.pendingReviews.filter((x) => {
@@ -185,14 +184,121 @@ const RegradeRequest = require("../models/RegradeRequest");
           res.locals.routeName = " nothingToReview";
           // Here we set up the local variables we'll need for rendering:
           res.locals.problem = problem;
-          res.render('nothingToReview');
+          // res.render('nothingToReview');
+          res.redirect("/showReviewsOfAnswer/" + answers[0]._id);
         }
+        res.redirect("/showReviewsOfAnswer/" + answers[0]._id);
       }
     } catch (e) {
       next(e);
     }
   });
 
+
+  app.get("/editReviews/:probId", async (req, res, next) => {
+    try {
+      const probId = req.params.probId;  
+      let problem = await Problem.findOne({_id: probId});
+  
+      //first we remove all pendingReviews that have exceeded
+      // the time limit is currently 10 minutes, but could be adjusted
+      // e.g. we could be ambitious and keep track of the average
+      // time to review the problem and use an adaptive timeout,
+      // but let's do that later!
+
+      const tooOld = new Date().getTime() - 1 *1000*60*10; // 10 minutes
+      let expiredReviews = [];
+      let pendingReviews = problem.pendingReviews.filter((x) => {
+        if (x.timeSent < tooOld) {
+          expiredReviews.push(x);
+          return false;
+        } else {
+          return true;
+        }
+      });
+      // we should try to use a $pull instead of $set
+      // but first lets see if this works....
+      // and I'll set the timeout to be relatively short
+
+      if (expiredReviews.length>0){
+        await Problem.findByIdAndUpdate(problem._id,
+          {$pullAll:{pendingReviews:expiredReviews}});
+      }
+      
+  
+      // next we use the expiredReviews from the problem object
+      // to update the numReviews and pendingReviewers fields of the answers
+
+      expiredReviews.forEach(async function (x) {
+        // remove the reviewerId from the list of pendingReviewers
+        // and decrement the optimistic numReview field
+        // pendingReviews has form x = {answerId,reviewerId,timeSent}
+
+        let tempAnswer = await Answer.findOne({_id: x.answerId});
+        let expiredReviewers =  tempAnswer.pendingReviewers.filter((r) => {
+          return (r.equals(x.reviewerId))     
+        });
+        // this will update the answer by removing the 
+        // expiredReviewers from the pendingReviewer using $pullAll
+
+        await Answer.findByIdAndUpdate(tempAnswer._id,
+          {$inc:{numReviews:-expiredReviewers.length},
+           $pullAll:{pendingReviewers:expiredReviewers}})
+
+      });
+
+
+       
+
+      // next, we look to see if there is an answer which the user is already
+      // supposed to be reviewing, i.e. the user is a pendingReviewer
+      // if there is such an answer then we return that one to the user.
+
+      let answer = await Answer.findOne({problemId:probId,pendingReviewers:req.user._id});
+      if (answer) {
+        // send the user the review they were already assigned!
+        res.redirect("/showReviewsOfAnswer/" + answer._id);
+      } else {
+        // the user has not yet been assigned an answer for this problem
+        // next, we find all answers to this Problem, sorted by numReviews
+        let answers = await Answer.find({problemId: probId}).sort({numReviews: "asc"});
+    
+        // find first answer not already reviewed by the user
+        let i = 0;
+        answer = null;
+        while (i < answers.length) {
+          answer = answers[i];
+
+          if (!answer.reviewers.find((x) => x.equals(req.user._id)) ) {
+            // we found an answer the user hasn't reviewed!
+
+            // update the answer to have the user as a pending reviewer
+            await Answer.findByIdAndUpdate(answer._id,
+                {$inc:{numReviews:1},
+                 $push:{pendingReviewers:req.user._id}})
+  
+
+            // update the problem to record this pending review
+            let review = {answerId: answer._id, 
+                          reviewerId: req.user._id, 
+                          timeSent: new Date().getTime()};
+            await Problem.findByIdAndUpdate(problem._id,
+                    {$push:{pendingReviews:review}});
+            break;
+          } else {
+            answer = null;
+          }
+          i++;
+        }
+    
+        
+        res.redirect("/showReviewsOfAnswer/" + answer._id);
+        
+      }
+    } catch (e) {
+      next(e);
+    }
+  });
 
 
 

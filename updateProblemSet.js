@@ -470,7 +470,6 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
   try {
     const probId = req.params.probId;
     let problem = await Problem.findOne({_id: probId});
-
     //first we remove all pendingReviews that have exceeded
     // the time limit of 60 secs = 60,000 ms
     // 60 is a magic number and should be moved up somewhere...
@@ -543,12 +542,97 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
     res.locals.answer = answer;
     res.locals.problem = problem;
     res.locals.numReviewsByMe = await Review.find({problemId: problem._id, reviewerId: req.user._id}).length;
-
+    console.log("test123");
     res.render("reviewAnswer");
   } catch (e) {
     next(e);
   }
 });
+
+app.get("/editReviews/:probId", async (req, res, next) => {
+  try {
+    const probId = req.params.probId;
+    let problem = await Problem.findOne({_id: probId});
+    //first we remove all pendingReviews that have exceeded
+    // the time limit of 60 secs = 60,000 ms
+    // 60 is a magic number and should be moved up somewhere...
+    const tooOld = new Date().getTime() - 60 * 1000;
+    let expiredReviews = [];
+    let pendingReviews = problem.pendingReviews.filter((x) => {
+      if (x.timeSent < tooOld) {
+        expiredReviews.push(x);
+        console.log("\nremoved an expired review ");
+        console.dir(x);
+
+        return false;
+      } else {
+        return true;
+      }
+    });
+    problem.pendingReviews = pendingReviews;
+    problem.markModified("pendingReviews");
+    await problem.save();
+
+    expiredReviews.forEach(async function (x) {
+      // remove the reviewerId from the list of pendingReviewers
+      // and decrement the optimistic numReview field
+      // pendingReviews has form x = {answerId,reviewerId,timeSent}
+      let tempAnswer = await Answer.findOne({_id: x.answerId});
+      tempAnswer.pendingReviewers = tempAnswer.pendingReviewers.filter((r) => {
+        if (r.equals(x.reviewerId)) {
+          tempAnswer.numReviews -= 1;
+          console.log("\nremoved reviewer '+r+' from pending reviews: ");
+          console.dir(x);
+          return false;
+        } else {
+          console.log("not removing " + r + " from pending reviewers");
+          return true;
+        }
+      });
+      tempAnswer.markModified("pendingReviewers");
+      await tempAnswer.save();
+    });
+
+    // next, we find all answers to this Problem, sorted by numReviews
+    let answers = await Answer.find({problemId: probId}).sort({numReviews: "asc"});
+
+    // find first answer not already reviewed or being reviewed by user
+    let i = 0;
+    let answer = null;
+    while (i < answers.length) {
+      answer = answers[i];
+      if (!answer.reviewers.find((x) => x.equals(req.user._id)) && !answer.pendingReviewers.find((x) => x.equals(req.user._id))) {
+        // we found an answer the user hasn't reviewed!
+        answer.numReviews += 1; // we optimistically add 1 to numReviews
+        answer.pendingReviewers.push(req.user._id);
+        answer.markModified("pendingReviewers");
+        await answer.save();
+
+        // {answerId,reviewerId,timeSent}
+        problem.pendingReviews.push({answerId: answer._id, reviewerId: req.user._id, timeSent: new Date().getTime()});
+
+        problem.markModified("pendingReviews");
+
+        await problem.save();
+        break;
+      } else {
+        answer = null;
+      }
+      i++;
+    }
+
+    // and we need to add it to the problem.pendingReviews
+    res.locals.answer = answer;
+    res.locals.problem = problem;
+    res.locals.numReviewsByMe = await Review.find({problemId: problem._id, reviewerId: req.user._id}).length;
+    console.log("test123");
+    res.render("editReview");
+  } catch (e) {
+    next(e);
+  }
+});
+
+
 
 /*  saveReview
     when we save a review we need to create a new review document

@@ -21,6 +21,8 @@
             console.log(answer)%>
           <pre class="bg-warning" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></pre>
           Reviews:<br>
+          <a href="/reviewAnswers/<%= problem._id %>"
+            class="btn btn-small btn-primary">Check details</a>
           <ul>
             <% for(let j=0; j< allReviews.length; j++){
                       let rev = allReviews[j]

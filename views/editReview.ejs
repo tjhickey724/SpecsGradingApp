@@ -16,7 +16,7 @@
                                     <b>The Question</b>
                                     <div class="bg-default"
                                         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
-                                    <% if (answer) { %>
+                                    
                                         <hr>
 
                                         <b>Their Answer</b>
@@ -62,19 +62,7 @@
 
                                                 </div>
                                                 <div>
-                                                    <% } else { %>
-                                                        <hr>
-                                                        <b class="text-bg-danger px-4 rounded-pill shadow" style="padding:10px">There is nothing for
-                                                            you to review
-                                                        </b>
-
-                                                        
-
-                                                        <% } %>
                                                             <hr>
-                                                            <a href="/editReviews/<%= problem.psetId %>"
-                                                                class="btn btn-small btn-primary">Edit
-                                                                Set</a>
                                                             <a href="/showProblemSet/<%= problem.psetId %>"
                                                                 class="btn btn-small btn-primary">Back to the Problem
                                                                 Set</a>

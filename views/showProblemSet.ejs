@@ -8,7 +8,38 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
-    
+    <!-- timer -->
+    <script>
+      // Set the date we're counting down to
+      var countDownDate = new Date("Nov 20, 2022 15:37:25").getTime();
+      
+      // Update the count down every 1 second
+      var x = setInterval(function() {
+      
+        // Get today's date and time
+        var now = new Date().getTime();
+      
+        // Find the distance between now and the count down date
+        var distance = countDownDate - now;
+      
+        // Time calculations for days, hours, minutes and seconds
+        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      
+        // Display the result in the element with id="demo"
+        document.getElementById("demo").innerHTML = days + "d " + hours + "h "
+        + minutes + "m " + seconds + "s ";
+      
+        // If the count down is finished, write some text
+        if (distance < 0) {
+          clearInterval(x);
+          document.getElementById("demo").innerHTML = "EXPIRED";
+        }
+      }, 1000);
+      </script>
+
   </head>
   <body style="background-color:rgb(255, 247, 233)">
     
@@ -32,7 +63,7 @@
                   <span style="color:green">
                   <%= problems[i].description || "no name" %>
                   all skills in this problem have been mastered
-                  </spaan>
+                  </span>
                 </a>
     
               <% } else { %>
@@ -63,7 +94,7 @@
       </ul>
       
       
-      <div style="background-color:rgb(255, 255, 255)" class="tab-content">
+      <div style="background-color:rgb(255, 255, 255); margin-bottom:20px" class="tab-content">
         <div id="Problem1" class="tab-pane fade in active" style="margin-left:25px; margin-right:25px;">
           <!-- question form -->
           <div class="form-group" style="font-family:'Courier New'">
@@ -76,16 +107,20 @@
             </h4></div>    
           </div>
           <br>
-  
-          <!-- input answer form -->
+          
+          <!-- contents for tabs -->
+          <!-- Problem 1 - the version that allows to submit answers -->
           <div id="Problem1" class="form-answer" style="margin-top:20px; margin-bottom:20px">
+            <!-- input answer form -->
             <label for="answer" style="color:rgb(35, 35, 35)"><h4>Your Answer</h4></label>
-            <input required type="input" style="padding: 100px;" class="text-left form-control" aria-describedby="ccInline" 
-            placeholder="Enter your answer here">
-            <button type="button" class="d-grid col-4 mx-auto" style="margin-top:5px; margin-bottom:20px; border-radius: 4px; border: white; color:white; background-color:rgb(66, 126, 255)">submit</button>
-
+            <textarea style="font-family:'Courier New'; font-size:12pt" class="form-control form-control-lg" id="Problem1" rows="10" placeholder="Enter your answer here"></textarea>
+            <button type="button" class="d-grid col-4 mx-auto " style="font-size:12pt; margin-top:5px; margin-bottom:20px; border-radius: 4px; 
+            border: white; color:white; background-color:rgb(66, 126, 255)">Submit<span id="demo" style="color:rgb(172, 190, 253); font-size:9pt"></span></button>
+            
+            <br><br>
             <!-- skills card -->
-            <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+            <div class="card" style="margin-bottom:20px; border:white; border-radius: 4px; 
+            background-color:rgb(218, 249, 255); margin-left:-25px; margin-right:-25px;">
               <div class="card-body" style="margin-left:20px">
                 <h4 class="card-title" style=" margin-top:20px" >2 Skills: </h4>
                 <p class="card-text">
@@ -103,6 +138,8 @@
 
           </div>
         </div>
+
+        <!-- Problem 2 - the version that not allow to submit answers (out of limited time) -->
         <div id="Problem2" class="form-answer tab-pane fade" style="margin-left:25px; margin-right:25px;">
           <!-- question form -->
           <div class="form-group" style="font-family:'Courier New'">
@@ -114,7 +151,7 @@
               <br>* 3 rendered images (with Cycles) from 3 different viewpoints
             </h4></div> 
           </div><br>
-            <!-- answer form -->
+            <!-- Alert -->
             <div id="Problem2" class="form-answer border border-danger text-center" style="border-radius: 4px; color:crimson; margin-top:20px; margin-bottom:20px">
               <h2>You
                 may
@@ -126,12 +163,13 @@
                 time!
               </h2>
             </div>
-
+            <br><br>
               <!-- skills card -->
-              <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+              <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255); 
+              margin-left:-25px; margin-right:-25px;">
                 <div class="card-body" style="margin-left:20px">
                   <h4 class="card-title" style=" margin-top:20px" >3 Skills: </h4>
-                  <p class="card-text">
+                  <p class="card-text" >
                     <li style="color:green"><strong>A-frame</strong>
                       <span>  - skills not yet mastered</span>
                     </li>
@@ -149,7 +187,7 @@
 
             </div>
           
-        
+        <!-- Problem 3 - the version that shows all your answers -->
         <div id="Problem3" class="tab-pane fade" style="margin-left:25px; margin-right:25px;">
           <!-- question form -->
           <div class="form-group" style="font-family:'Courier New'">
@@ -163,18 +201,41 @@
           </div>
           <br>
   
-          <!-- input answer form -->
-          <div id="Problem1" class="form-answer" style="margin-top:20px; margin-bottom:20px">
+          <!-- answer form -->
+          <div id="Problem3" class="form-answer" style="margin-top:20px; margin-bottom:20px">
             <label for="answer" style="color:rgb(35, 35, 35)"><h4>Your Answer</h4></label>
-            <div class="card" style="color:rgb(35, 35, 35); font-family:'Courier New';">
-              <h4 style="margin-left:10px">
+            <div class="card" style="color:rgb(35, 35, 35); background-color:rgb(255, 218, 218); font-family:'Courier New'; font-size:12pt">
+              <p style="margin-left:10px; margin-top:10px">
               This is a short answer.
               <br>
               This is a test.
-            </h4></div>
+              </p> 
+          </div>
+          <p class="text-right" style="margin-top:3px;font-size:9pt; color:rgb(255, 128, 128); margin-right:1px">
+            Submission time and date:Wed Nov 16 2022 15:50:50 GMT-0500 (Eastern Standard Time)
+          </p>
+          
+
+          <div>
+
+          </div>
+
+          <!-- buttons class -->
+          <div class="btn-group btn-group-toggle" data-toggle="buttons" style="margin-bottom:30px">
+            <label class="btn btn-success text-white active">
+              <input type="radio" name="options" id="review" autocomplete="off" checked > Reviews of your answer
+            </label>
+            <label class="btn btn-outline-white btn-info">
+              <input type="radio" name="options" id="reviewOthers" autocomplete="off"> Your review of other's answers
+            </label>
+            <label class="btn btn-warning">
+              <input type="radio" name="options" id="showAll" autocomplete="off"> Show all answers
+            </label>
+          </div>
 
             <!-- skills card -->
-            <div class="card" style="border:white; border-radius: 4px; background-color:rgb(218, 249, 255)">
+            <div class="card" style="margin-top:30px; border:white; border-radius: 4px; 
+            background-color:rgb(218, 249, 255); margin-left:-25px; margin-right:-25px;">
               <div class="card-body" style="margin-left:20px">
                 <h4 class="card-title" style=" margin-top:20px" >2 Skills: </h4>
                 <p class="card-text">
@@ -193,8 +254,11 @@
         </div>
 
       </div>
+
+      <!-- back to ProblemSet button -->
       <div>
-        <button style="border-radius: 4px; border: white; color:white; background-color:rgb(255, 66, 66)">Back to Problem set</button>
+        <button type="button" style="border-radius: 4px; border: white; color:white; background-color:rgb(255, 66, 66)"
+        class="btn">Back to Problem set</button>
       </div>
    </div>
  

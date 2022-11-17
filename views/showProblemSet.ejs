@@ -5,7 +5,7 @@
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
-      <%= problemSet.name.trim() || "Problem Set" %>
+      <%= problemSet.name.trim() || "Problem Set" %> 
     </h1>
     <div class="p-2">
       <ul id="problem-list"></ul>
@@ -16,7 +16,7 @@
       <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
       <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
       <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
+      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-danger">Back to List
         of Problem
         Sets</a>
       <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
@@ -65,10 +65,10 @@
     console.log(problems[i]);
     // Span 
     var span = document.createElement("button");
-    span.setAttribute("style", "border-radius: 4px; border: white; color:green ;padding: 1px 20px;background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
+    span.setAttribute("style", "font-size:9pt; border-radius: 4px; border: white; color:green ;padding: 1px 15px;background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
     const skillsToMaster=problems[i].skills.filter( (skill)=> !skills.includes(skill.toString())).length
     if (skillsToMaster == 0) {
-      span.appendChild(document.createTextNode("mastered"));
+      span.appendChild(document.createTextNode("All skills mastered"));
     } else {
       span.appendChild(document.createTextNode(skillsToMaster.toString() + "/" 
       + problems[i].skills.length.toString() + " " + "skills left"));
@@ -76,9 +76,13 @@
 
     // a
     var a = document.createElement("a");
-    a.setAttribute("href", "#Problem"+i.toString());
+    a.setAttribute("style", "font-weight: bold;");
+    a.setAttribute("href", "#Problem",  +i.toString());
     a.setAttribute("data-toggle", "tab");
-    a.appendChild(document.createTextNode(problems[i].description || "no name"));
+    a.appendChild(document.createTextNode(problems[i].description || "no name" ));
+    a.appendChild(document.createElement('br'));
+    a.appendChild(span);
+    
 
     // li
     var li = document.createElement("li");
@@ -90,7 +94,7 @@
     }
     
     li.appendChild(a);
-    li.appendChild(span);
+    
 
     ul.appendChild(li);
   }

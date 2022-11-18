@@ -1,22 +1,22 @@
 // // head
-// var extend_link = document.createElement("link");
-// extend_link.setAttribute("rel", "stylesheet");
-// extend_link.setAttribute("type", "text/css");
-// extend_link.setAttribute("href", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
+var extend_link = document.createElement("link");
+extend_link.setAttribute("rel", "stylesheet");
+extend_link.setAttribute("type", "text/css");
+extend_link.setAttribute("href", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
 var script1 = document.createElement("script");
 script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js");
 var script2 = document.createElement("script");
 script2.setAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js");
 
-// document.head.appendChild(extend_link);
+document.head.appendChild(extend_link);
 document.head.appendChild(script1);
 document.head.appendChild(script2);
 
 var [problems, skills] = data_loader();
 
-var activeId = nav_tab(problems, skills);
+var activeId = problem_list(problems, skills);
 
-problem_component(problems);
+problem_content(problems);
 
 
 
@@ -33,8 +33,8 @@ function data_loader() {
 }
 
 
-function nav_tab(problems, skills) {
-  var ul = document.getElementById("problem-list");
+function problem_list(problems, skills) {
+  var ul = document.getElementById("problem_list");
   ul.setAttribute("class", "nav nav-tabs");
   
   var activeId = -1;
@@ -98,9 +98,9 @@ function nav_tab(problems, skills) {
   return activeId;
 }
 
-function problem_component(problems) {
+function problem_content(problems) {
   // problem content start
-  var problemContent = document.getElementById("problem-content");
+  var problemContent = document.getElementById("problem_content");
   problemContent.setAttribute("class", "tab-content");
   problemContent.setAttribute("style", "background-color:rgb(255, 255, 255); margin-bottom:20px");
   for (var i = 0; i < problems.length; i++) {
@@ -126,7 +126,6 @@ function problem_component(problems) {
     problemContent.appendChild(prob);
   }
 }
-
 
 function question_from(i) {
   // ---- Quetion from ----

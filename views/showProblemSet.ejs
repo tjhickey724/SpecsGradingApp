@@ -7,9 +7,8 @@
       <%= problemSet.name.trim() || "Problem Set" %> 
     </h1>
     <div class="p-2">
-      <ul id="problem-list"></ul>
-      <div id="problem-content">
-      </div>
+      <ul id="problem_list"></ul>
+      <div id="problem_content"></div>
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
       <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>

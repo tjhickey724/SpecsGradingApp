@@ -86,9 +86,10 @@ function problem_list(problems, courseInfo, skills) {
   return activeId;
 }
 
-function problem_content(problems) {
+function problem_content(problems, courseInfo, myAnswers, psetReviews, skills) {
   // problem content start
   var problemContent = document.getElementById("problem_content");
+  problemContent.setAttribute("id", "not-answer-yet");
   problemContent.setAttribute("class", "tab-content");
   problemContent.setAttribute("style", "background-color:rgb(255, 255, 255); margin-bottom:20px");
   for (var i = 0; i < problems.length; i++) {
@@ -103,9 +104,8 @@ function problem_content(problems) {
     prob.setAttribute("style", "margin-left:25px; margin-right:25px; font-family:'Courier New'")
     
     var question = question_from(i);
-    var answer = answer_from(i);
+    var answer = answer_from(i, courseInfo, myAnswers, psetReviews, skills);
 
-    // prob.appendChild(title);
     prob.appendChild(question);
     prob.appendChild(document.createElement("br"));
     prob.appendChild(answer);
@@ -120,7 +120,7 @@ function question_from(i) {
   var question = document.createElement("div");
   // Quetion title
   var question_title = document.createElement("h3");
-  question_title.setAttribute("style", "font-weight: bold;");
+  question_title.setAttribute("style", "font-family:'Courier New'; font-weight: bold;");
   question_title.appendChild(document.createTextNode(problems[i].description));
 
   // Quetion description
@@ -134,11 +134,11 @@ function question_from(i) {
   return question;
 }
 
-function answer_from(i) {
+function answer_from(i, courseInfo, myAnswers, psetReviews, skills) {
   // ---- answer from ----
     // answer from start
     var answer = document.createElement("div");
-    answer.setAttribute("id", "not-answer-yet");
+    answer.setAttribute("class", "form-answer");
     answer.setAttribute("style", "margin-top:20px; margin-bottom:20px");
 
     // Your answer
@@ -168,6 +168,52 @@ function answer_from(i) {
     answer.appendChild(answer_label);
     answer.appendChild(text_area);
     answer.appendChild(button);
+    answer.appendChild(document.createElement("br"));
+    answer.appendChild(document.createElement("br"));
+    var skill = skill_from(i, courseInfo, myAnswers, psetReviews, skills);
+    answer.appendChild(skill);
 
     return answer;
+}
+
+function skill_from(i, courseInfo, myAnswers, psetReviews, skills) {
+  // skill from start
+  var skill = document.createElement("div");
+  skill.setAttribute("class", "card");
+  skill.setAttribute("style", "margin-bottom:margin-bottom:20px; border:white; border-radius: 4px; \
+    background-color:rgb(218, 249, 255); margin-left:-25px; margin-right:-25px;");
+  
+  // body start
+  var skill_body = document.createElement("div");
+  skill_body.setAttribute("class", "card-body");
+  skill_body.setAttribute("style", "margin-left:20px")
+
+  // title
+  var skill_body_h4 = document.createElement("h4");
+  skill_body_h4.setAttribute("class", "card-title");
+  skill_body_h4.setAttribute("style", "margin-top:20px; font-weight: bold;");
+  skill_body_h4.appendChild(document.createTextNode("2 Skills: "));
+
+  // content
+  var skill_body_p = document.createElement("p");
+  skill_body_p.setAttribute("class", "card-text");
+  
+  var skill_body_p_li = document.createElement("li");
+  skill_body_p_li.setAttribute("style", "color:red; font-weight: bold;");
+  skill_body_p_li.appendChild(document.createTextNode("Created"));
+  var skill_body_p_li_span = document.createElement("span");
+  skill_body_p_li_span.appendChild(document.createTextNode("  - skills mastered"))
+  skill_body_p_li.appendChild(skill_body_p_li_span)
+
+  skill_body_p.appendChild(skill_body_p_li);
+  
+  
+  // body end
+  skill_body.appendChild(skill_body_h4);
+  skill_body.appendChild(skill_body_p);
+
+  // skill from end
+  skill.appendChild(skill_body);
+
+  return skill;
 }

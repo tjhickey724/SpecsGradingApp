@@ -1,7 +1,6 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
 
-<div id="passLocal" data-problems='<%= JSON.stringify(problems) %>' data-skills='<%= JSON.stringify(skills) %>'></div>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
@@ -29,99 +28,5 @@
     </div>
   </div>
 </div>
-
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>
-
-
-
-<script>
-  // head
-  var extend_link = document.createElement("link");
-  extend_link.setAttribute("rel", "stylesheet");
-  extend_link.setAttribute("type", "text/css");
-  extend_link.setAttribute("href", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
-  var script1 = document.createElement("script");
-  script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js");
-  var script2 = document.createElement("script");
-  script2.setAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js");
-
-  document.head.appendChild(extend_link);
-  document.head.appendChild(script1);
-  document.head.appendChild(script2);
-
-  var d = document.getElementById("passLocal").dataset.problems;
-  console.log(d.length);
-  // console.log(document.getElementById("passLocal").dataset.problems);
-  var problems = JSON.parse(document.getElementById("passLocal").dataset.problems);
-  var skills = JSON.parse(document.getElementById("passLocal").dataset.skills);
-  // var problems = document.getElementById("passLocal").dataset.problems;
-  var ul = document.getElementById("problem-list");
-  ul.setAttribute("class", "nav nav-tabs");
-  
-  var activeId = -1;
-
-  for (var i = 0; i < problems.length; i++) {
-    console.log(problems[i]);
-    // Span 
-    var span = document.createElement("button");
-    span.setAttribute("style", "border-radius: 4px; border: white; color:green ;padding: 1px 20px;background-color:rgb(218, 255, 223); margin-left:7px;margin-right:7px");
-    const skillsToMaster=problems[i].skills.filter( (skill)=> !skills.includes(skill.toString())).length
-    if (skillsToMaster == 0) {
-      span.appendChild(document.createTextNode("mastered"));
-    } else {
-      span.appendChild(document.createTextNode(skillsToMaster.toString() + "/" 
-      + problems[i].skills.length.toString() + " " + "skills left"));
-    }
-
-    // a
-    var a = document.createElement("a");
-    a.setAttribute("href", "#Problem"+i.toString());
-    a.setAttribute("data-toggle", "tab");
-    a.appendChild(document.createTextNode(problems[i].description || "no name"));
-
-    // li
-    var li = document.createElement("li");
-    if (activeId==-1) {
-      li.setAttribute("class", "active text-center");
-      activeId = i;
-    } else {
-      li.setAttribute("class", "text-center");
-    }
-    
-    li.appendChild(a);
-    li.appendChild(span);
-
-    ul.appendChild(li);
-  }
-
-  var problemContent = document.getElementById("problem-content");
-  problemContent.setAttribute("class", "tab-content");
-  for (var i = 0; i < problems.length; i++) {
-    // title
-    var title = document.createElement("h3");
-    title.appendChild(document.createTextNode(problems[i].description));
-    
-    // content
-    var content = document.createElement("p");
-    content.appendChild(document.createTextNode(problems[i].problemText));
-    
-    // problem
-    var prob = document.createElement("div");
-    prob.setAttribute("id", "Problem"+i.toString());
-    activeId=0
-    if (i==activeId) {
-      prob.setAttribute("class", "tab-pane fade in active");
-    } else {
-      prob.setAttribute("class", "tab-pane fade");
-    }
-    prob.appendChild(title);
-    prob.appendChild(content);
-    problemContent.appendChild(prob);
-  }
-  
-</script>
-
-
-
-

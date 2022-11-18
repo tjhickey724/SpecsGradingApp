@@ -1,16 +1,14 @@
-// import {nav_tab} from "/web-js-component/showProblemSet_js/nav_tab.js";
-
-// head
-var extend_link = document.createElement("link");
-extend_link.setAttribute("rel", "stylesheet");
-extend_link.setAttribute("type", "text/css");
-extend_link.setAttribute("href", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
+// // head
+// var extend_link = document.createElement("link");
+// extend_link.setAttribute("rel", "stylesheet");
+// extend_link.setAttribute("type", "text/css");
+// extend_link.setAttribute("href", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
 var script1 = document.createElement("script");
 script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js");
 var script2 = document.createElement("script");
 script2.setAttribute("src", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js");
 
-document.head.appendChild(extend_link);
+// document.head.appendChild(extend_link);
 document.head.appendChild(script1);
 document.head.appendChild(script2);
 

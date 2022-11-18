@@ -6,7 +6,7 @@
     <h1 class="pb-2 border-bottom">
       <%= problemSet.name.trim() || "Problem Set" %> 
     </h1>
-    <div class="p-2">
+    <div class="wrapper">
       <ul id="problem_list"></ul>
       <div id="problem_content"></div>
       <hr>
@@ -14,7 +14,7 @@
       <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
       <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
       <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-danger">Back to List
+      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
         of Problem
         Sets</a>
       <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
@@ -28,9 +28,12 @@
   </div>
 </div>
 
-<div id="passLocal" data-problems='<%= JSON.stringify(problems) %>' data-skills='<%= JSON.stringify(skills) %>'></div>
-<!-- <script type="text/javascript" src="/web-js-component/showProblemSet_js/main.js"></script> -->
-<script type="module" src="/web-js-component/showProblemSet_js.js"></script>
+<div id="passLocal" 
+  data-problems='<%= JSON.stringify(problems) %>' 
+  data-skills='<%= JSON.stringify(skills) %>'
+  data-courseinfo='<%= JSON.stringify(courseInfo) %>'
+</div>
+<script src="/web-js-component/showProblemSet_js.js"></script>
 
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

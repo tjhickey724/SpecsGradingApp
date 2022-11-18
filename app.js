@@ -608,8 +608,8 @@ app.get("/showProblemSet/:psetId", async (req, res, next) => {
     return x.problemId.toString();
   });
   res.locals.skills = await getStudentSkills(req.user._id);
-  console.log("pids = ");
-  console.dir(res.locals.pids);
+  // console.log("pids = ");
+  // console.dir(res.locals.pids);
   res.locals.routeName = " showProblemSet";
   res.render("showProblemSet");
 });

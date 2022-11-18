@@ -1,9 +1,9 @@
-// // Add
-var [problems, courseInfo, skills] = data_loader();
+var [problems, courseInfo, myAnswers, psetReviews, skills] = data_loader();
 
 var activeId = problem_list(problems, courseInfo, skills);
 
 problem_content(problems);
+
 
 // *************************    function defination    *************************
 function data_loader() {
@@ -11,11 +11,15 @@ function data_loader() {
   var d = document.getElementById("passLocal").dataset.problems;
   console.log(d.length);
   var problems = JSON.parse(document.getElementById("passLocal").dataset.problems);
-  // console.log(document.getElementById("passLocal").dataset.problems);
+  
   var courseInfo = JSON.parse(document.getElementById("passLocal").dataset.courseinfo);
+  var myAnswers = JSON.parse(document.getElementById("passLocal").dataset.myanswers);
+  console.log(document.getElementById("passLocal").dataset.myanswers);
+  var psetReviews = JSON.parse(document.getElementById("passLocal").dataset.psetreviews);
+  console.log(document.getElementById("passLocal").dataset.psetreviews);
   var skills = JSON.parse(document.getElementById("passLocal").dataset.skills);
   
-  return [problems, courseInfo, skills];
+  return [problems, courseInfo, myAnswers, psetReviews, skills];
 }
 
 function problem_list(problems, courseInfo, skills) {

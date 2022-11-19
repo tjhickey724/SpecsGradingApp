@@ -1,40 +1,32 @@
 <%- include('bootheader') -%>
 <%- include('menubar') -%>
 
-<div class="p-3 mb-4 bg-light">
-  <div class="container-fluid ">
-    <h1 class="pb-2 border-bottom">
+<body style="background-color:rgb(255, 247, 233)">
+  <div class="container">
+    <h1 class="pb-2 border-bottom" style="margin-bottom:10px">
       <%= problemSet.name.trim() || "Problem Set" %> 
     </h1>
+    
     <div class="wrapper">
       <ul id="problem_list"></ul>
       <div id="problem_content"></div>
-      <hr>
-      <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
-      <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
-      <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
-        of Problem
-        Sets</a>
-      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
-        Problem Set
-      </a>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
-      </a>
-      <% } %>
+    </div>
+    <!-- back to ProblemSet button -->
+    <div>
+      <button type="button" style="border-radius: 4px; border: white; color:white; background-color:rgb(255, 66, 66)"
+      class="btn">Back to Problem set</button>
     </div>
   </div>
-</div>
+</body>
 
 <div id="passLocal" 
   data-problems='<%= JSON.stringify(problems) %>' 
   data-courseinfo='<%= JSON.stringify(courseInfo) %>'
   data-myanswers='<%= JSON.stringify(myAnswers) %>'
   data-psetreviews='<%= JSON.stringify(psetReviews) %>'
-  data-skills='<%= JSON.stringify(skills) %>'
+  data-skills='<%= JSON.stringify(skills) %>'>
 </div>
+
 <script src="/web-js-component/showProblemSet_js.js"></script>
 
 <%- include('bootfooter') -%>

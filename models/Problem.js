@@ -15,8 +15,8 @@ var problemSchema = Schema( {
   allowAnswers: Boolean,
   skills:[{type:ObjectId,ref:'Skill'}],
   visible: {type:Boolean, default: true},
-  submitable: {type:Boolean,default:true},
-  answerable: {type:Boolean, default:true},
+  submitable: {type:Boolean,default:true}, // When it's true, it allows users to submit their answers(For muliple submit).
+  answerable: {type:Boolean, default:true}, // When it's true, it means the problem is answerable(For close a problem).
   peerReviewable:{type:Boolean, default:true}
 } );
 /*

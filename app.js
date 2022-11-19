@@ -57,6 +57,8 @@ const MongoStore = require("connect-mongo")(session);
 // END OF AUTHENTICATION MODULES
 
 const mongoose = require("mongoose"); 
+const { exit } = require("process");
+const { reset } = require("nodemon");
 
 //mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 //mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
@@ -925,39 +927,48 @@ app.get("/editProblem/:probId", async (req, res, next) => {
   been reviewed and they can't update it. 
 */
 app.post("/saveAnswer/:probId", async (req, res, next) => {
+  console.log("In saveAnswer");
+  // res.json(req.params);
   const id = req.params.probId;
-  res.locals.problem = await Problem.findOne({_id: id});
-  const problem = res.locals.problem;
 
+  // res.locals.problem = await Problem.findOne({_id: id});
+  // const problem = res.locals.problem;
+  const problem = await Problem.findOne({_id: id});
   const answers = await Answer.find({studentId: req.user._id, problemId: problem._id});
+  // const answerIds = answers.map((x) => x._id);
+  // const reviews = await Review.find({answerId: {$in: answerIds}});
+  // console.dir(reviews);
+  // res.json(problem);
+  let newAnswer = new Answer({
+    studentId: req.user._id,
+    courseId: problem.courseId,
+    psetId: problem.psetId,
+    problemId: problem._id,
+    answer: req.body.answer,
+    reviewers: [],
+    numReviews: 0,
+    pendingReviewers: [],
+    createdAt: new Date(),
+  });
 
-  const answerIds = answers.map((x) => x._id);
-  const reviews = await Review.find({answerId: {$in: answerIds}});
-  console.log("about to try to save the new answer");
-  console.dir(reviews);
-  if (reviews.length > 0) {
-    res.redirect("/showReviewsOfAnswer/" + answerIds[0]);
-  } else {
-    let newAnswer = new Answer({
-      studentId: req.user._id,
-      courseId: problem.courseId,
-      psetId: problem.psetId,
-      problemId: problem._id,
-      answer: req.body.answer,
-      reviewers: [],
-      numReviews: 0,
-      pendingReviewers: [],
-      createdAt: new Date(),
-    });
-
-    // we might want to move old answers to another collection
-    // rather than deleting them... or set a "deleted" flag
-    await Answer.deleteMany({studentId: req.user._id, problemId: problem._id});
-
+  if (answers.length > 0) {
+    // Problem is answered.
+    if (problem.answerable && problem.submitable) {
+      // Problem is opening, and can be submited.
+      console.log("Update answer");
+      // we might want to move old answers to another collection
+      // rather than deleting them... or set a "deleted" flag
+      await Answer.deleteMany({studentId: req.user._id, problemId: problem._id});
+      await newAnswer.save(); 
+    } else {
+      console.log("Cannot update answer");
+    }
+  } else if (problem.answerable) {
+    // Problem isn't answered and it's opening.
+    console.log("Save answer");
     await newAnswer.save();
-
-    res.redirect("/showProblem/" + id);
-  }
+  } else {/* Problem is closed and cannot be answer anymore. */ console.log("Do nothing");}
+  res.redirect("/showProblemSet/" + problem.psetId);
 });
 
 

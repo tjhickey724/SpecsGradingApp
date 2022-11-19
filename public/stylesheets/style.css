@@ -5365,7 +5365,7 @@ a.oldlinkcolor {
   content: " ";
 }
 .wrapper .nav-tabs {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 0px solid #ddd;
 }
 .wrapper .nav-tabs > li {
   float: left;

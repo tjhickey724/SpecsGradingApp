@@ -55,6 +55,7 @@
 																	course.ownerId.equals(user._id)) { %>
       <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others
         answers</a>
+        <a href="/editAnswer/<%= problem._id %>" class="btn btn-small btn-warning">Edit your answer</a>
       <% } %>
 
       <% if (!course.ownerId.equals(user._id)) {%>
@@ -127,6 +128,9 @@
         </div>
         <br>
 
+        <input type="file" accept="image/*" onchange="handleImageUpload(event);">
+
+
         <% if
 																																(problem.submitable)
 																																{%>
@@ -198,5 +202,6 @@
     </div>
   </div>
 </div>
+
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

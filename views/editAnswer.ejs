@@ -1,0 +1,114 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h3 class="pb-2 border-bottom">
+      <%= problem.description %>
+    </h3>
+    <div class="p-2">
+      <hr>
+      <% 
+																												let
+																												theAnswer=(answers.length>
+																												0?answers[0]:{answer:problem.problemTemplate||""})
+																												console.log('template='+problem.problemTemplate)
+																												%>
+      <% if
+																													(!problem.answerable){%>
+      <h1>You
+        may
+        not
+        submit
+        answers
+        at
+        this
+        time
+      </h1>
+      <% } else
+																														{
+																														%>
+      <form method="post" action="/saveAnswer/<%= problem._id %>">
+        <div class="form-group">
+          <label for="answer">Enter
+            your
+            answer
+            below:</label>
+          <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%=theAnswer.answer%></textarea>
+        </div>
+        <br>
+
+        <input type="file" accept="image/*" onchange="handleImageUpload(event);">
+
+
+        <% if
+																																(problem.submitable)
+																																{%>
+        <input class="btn btn-lg btn-danger" type="submit" value="submit">
+        <% } else
+																																	{%>
+        <input class="btn btn-lg btn-warning" type="submit" value="save">
+        <% }
+																																		%>
+
+        <% if
+																																			(theAnswer.createdAt)
+																																			{%>
+        <br>
+        Last
+        save
+        at
+        <%= theAnswer.createdAt
+																																				%>
+        <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return
+          to
+          Problem
+          Set
+          without
+          saving</a>
+        <% }
+																																					%>
+
+
+      </form>
+      <% }
+																															%>
+
+      <hr>
+      <%= skills.length
+																																	%>
+      Skills:
+      <ul>
+        <% for(let
+																																			i=0;i<skills.length;i++){%>
+        <%if (skillsMastered.includes(skills[i]._id.toString()))
+																																				{%>
+        <li style="color:blue">
+          <%= skills[i].name
+																																						%>
+          --
+          mastered!
+        </li>
+        <%} else
+																																					{%>
+        <li style="color:red">
+          <%= skills[i].name
+																																							%>
+          --
+          not
+          yet
+          mastered
+        </li>
+        <% }
+																																						%>
+
+        <% }
+																																							%>
+      </ul>
+
+
+    </div>
+  </div>
+</div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

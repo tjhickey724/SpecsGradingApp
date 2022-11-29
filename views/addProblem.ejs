@@ -6,7 +6,7 @@
       Add Problem
     </h1>
     <div class="p-2">
-      <form method="post" action="/saveProblem/<%= psetId %>">
+      <form id ="new-question-form" method="post" action="/saveProblem/<%= psetId %>">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" value='visible' name='visible' id="visible" checked>
           <label class="form-check-label" for="visible">
@@ -39,18 +39,19 @@
         </div>
         <div class="mb-3">
           <label for="problemText" class="form-label">Problem Description</label>
+          <input name="problemText" type="hidden">
           <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
           <!-- Create the editor container -->
-          <div id ="problemText", name="problemText">
-            <p>Hello World!</p>
-            <p>Some initial <strong>bold</strong> text</p>
-            <p><br></p>
-          </div>
+          <div class="quill-textarea"></div>
           <!-- Include the Quill library -->
           <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
           <!-- Initialize Quill editor -->
           <script>
-            var quill = new Quill('#problemText', {
+            // if(typeof window === 'undefined') {
+            //     console.log("11111")
+            //     return;
+            // } else {
+              var quill = new Quill('.quill-textarea', {
               modules: {
                 toolbar: [
                     [{ "font": [] }, { "size": ["small", false, "large", "huge"] }], // custom dropdown
@@ -71,9 +72,14 @@
 
                     ["clean"]
                 ]
-            },
+              },
               theme: 'snow'
             });
+            var form = document.querySelector('#new-question-form');
+              form.onsubmit = function() {
+                var comment = document.querySelector('input[name=problemText]');
+                comment.value = JSON.stringify(quill.root.innerHTML);
+            };
           </script>
           </div>
           <br>
@@ -85,42 +91,7 @@
             <input type="text" class="form-control" name="points" id="points">
           </div>
         </div>
-        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-        <!-- Create the editor container -->
-        <div id ="rubricText", name="problemText">
-          <p>Hello World!</p>
-          <p>Some initial <strong>bold</strong> text</p>
-          <p><br></p>
-        </div>
-        <!-- Include the Quill library -->
-        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-        <!-- Initialize Quill editor -->
-        <script>
-          var quill = new Quill('#rubricText', {
-            modules: {
-              toolbar: [
-                  [{ "font": [] }, { "size": ["small", false, "large", "huge"] }], // custom dropdown
-
-                  ["bold", "italic", "underline", "strike"],
-
-                  [{ "color": [] }, { "background": [] }],
-
-                  [{ "script": "sub" }, { "script": "super" }],
-
-                  [{ "header": 1 }, { "header": 2 }, "blockquote", "code-block"],
-
-                  [{ "list": "ordered" }, { "list": "bullet" }, { "indent": "-1" }, { "indent": "+1" }],
-
-                  [{ "direction": "rtl" }, { "align": [] }],
-
-                  ["link", "image", "video", "formula"],
-
-                  ["clean"]
-              ]
-          },
-            theme: 'snow'
-          });
-        </script>
+        <textarea class="form-control" name="rubric" cols="100" rows="10"></textarea>
         <hr>
         <h2>Skills required to fully solve this problem</h2>
         Check all that apply.

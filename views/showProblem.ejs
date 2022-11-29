@@ -40,8 +40,13 @@
       </div>
       <% } %>
 
-
-      <div class="bg-default border border-dark rounded border-2" style="white-space: pre-wrap; font-family:monospace; padding:10px"><% if (problem.allowAnswers) { %><%= problem.problemText %><% } else {%>This problem is not active at the moment.<% } %></div>
+      <div class="bg-default border border-dark rounded border-2">
+        <% if (problem.allowAnswers) { %>
+          <%= problem.problemText %>
+        <% }else {%>
+          This problem is not active at the moment.<% } 
+      %>
+    </div>
       <hr>
       <% if (answers.length> 0 && problem.submitable
 														|| course.ownerId.equals(user._id) ) { %>
@@ -119,66 +124,52 @@
 																														%>
       <form method="post" action="/saveAnswer/<%= problem._id %>">
         <div class="form-group">
-          <label for="answer">Enter your answer below:</label>
-          <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-          <!-- Create the editor container -->
-          <div id="answer" name="answer">
-            <textarea><%=theAnswer.answer%></textarea>
-            <p>Hello World!</p>
-            <p>Some initial <strong>bold</strong> text</p>
-            <p><br></p>
-          </div>
-          <!-- Include the Quill library -->
-          <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-          <!-- Initialize Quill editor -->
-          <script>
-            var quill = new Quill('#answer', {
-              modules: {
-                toolbar: [
-                    [{ "font": [] }, { "size": ["small", false, "large", "huge"] }], // custom dropdown
-
-                    ["bold", "italic", "underline", "strike"],
-
-                    [{ "color": [] }, { "background": [] }],
-
-                    [{ "script": "sub" }, { "script": "super" }],
-
-                    [{ "header": 1 }, { "header": 2 }, "blockquote", "code-block"],
-
-                    [{ "list": "ordered" }, { "list": "bullet" }, { "indent": "-1" }, { "indent": "+1" }],
-
-                    [{ "direction": "rtl" }, { "align": [] }],
-
-                    ["link", "image", "video", "formula"],
-
-                    ["clean"]
-                ]
-            },
-              theme: 'snow'
-            });
-          </script>
-            <!-- <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%=theAnswer.answer%></textarea> -->
-          </div>
-          <br>
-        
+          <label for="answer">Enter
+            your
+            answer
+            below:</label>
+          <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%=theAnswer.answer%></textarea>
+        </div>
         <br>
-        <% if (problem.submitable) {%>
+
+        <% if
+																																(problem.submitable)
+																																{%>
         <input class="btn btn-lg btn-danger" type="submit" value="submit">
-        <% } else {%>
+        <% } else
+																																	{%>
         <input class="btn btn-lg btn-warning" type="submit" value="save">
-        <% } %>
+        <% }
+																																		%>
 
-        <% if (theAnswer.createdAt) {%>
+        <% if
+																																			(theAnswer.createdAt)
+																																			{%>
         <br>
-        Last save at <%= theAnswer.createdAt%>
-        <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return to Problem Set without saving</a>
-        <% }%>
+        Last
+        save
+        at
+        <%= theAnswer.createdAt
+																																				%>
+        <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return
+          to
+          Problem
+          Set
+          without
+          saving</a>
+        <% }
+																																					%>
+
+
       </form>
-      <% }%>
-      <% }%>
+      <% }
+																															%>
+      <% }
+																																%>
 
       <hr>
-      <%= skills.length%>
+      <%= skills.length
+																																	%>
       Skills:
       <ul>
         <% for(let

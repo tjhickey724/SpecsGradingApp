@@ -5,6 +5,17 @@
     <h1 class="pb-2 border-bottom">
       <%= courseInfo.name %>
     </h1>
+    <% if (user._id.equals(courseInfo.ownerId)) { %>
+      <div class="btn-group btn-group-toggle mb-lg-1" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+          <input type="radio" name="options" id="option1" autocomplete="off" checked> Instructor Mode
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" name="options" id="option2" autocomplete="off"> Student Mode
+        </label>
+      
+      </div>
+    <% } %>
     <div class="p-2">
       studentPin: <%= courseInfo.coursePin %>
       <br>

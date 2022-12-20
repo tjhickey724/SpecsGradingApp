@@ -193,7 +193,44 @@ const RegradeRequest = require("../models/RegradeRequest");
     }
   });
 
+/*
+ this is the route for writing a review of a particular student's answer to a problem
+ this is what TAs do when grading a problem set
+*/
+app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) => {
+  try {
+    const probId = req.params.probId;
+    const studentId = req.params.studentId;
 
+    let problem = await Problem.findOne({_id: probId});
+    res.locals.student = await User.findOne({_id: studentId});
+
+    const answers = await Answer.find({studentId: studentId, problemId: probId});
+    if (!answers){
+      res.send("this user already has answered the question")
+    }else {
+      let answer = await Answer.findOne({problemId: probId, studentId: studentId});
+      let newAnswer = new Answer({
+        studentId: studentId,
+        courseId: problem.courseId,
+        psetId: problem.psetId,
+        problemId: problem._id,
+        answer: "no answer",
+        reviewers: [],
+        numReviews: 0,
+        pendingReviewers: [],
+        createdAt: new Date(),
+      });
+
+      await newAnswer.save();
+      
+      res.redirect('/gradeProblem/'+probId+"/"+studentId)
+    }
+  } catch (e) {
+      next(e);
+  }
+   
+})
 
 
 

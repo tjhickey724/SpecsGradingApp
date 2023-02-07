@@ -10,6 +10,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const cors = require('cors');
 require("dotenv").config();
 
 if (process.env.IS_ON_WEB == "False") {
@@ -89,7 +90,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
+app.use(cors());
 /*************************************************************************
      HERE ARE THE AUTHENTICATION ROUTES
 **************************************************************************/
@@ -168,6 +169,28 @@ app.get("/", isLoggedIn, async (req, res, next) => {
 
   res.locals.routeName = " index";
   res.render("index");
+});
+
+app.get("/top.json", isLoggedIn, async (req, res, next) => {
+  if (!req.user) next();
+
+  let coursesOwned = await Course.find({ownerId: req.user._id}, "name");
+  res.locals.coursesOwned = coursesOwned;
+  res.locals.coursesTAing = [];
+
+  let registrations = await CourseMember.find({studentId: req.user._id}, "courseId");
+  res.locals.registeredCourses = registrations.map((x) => x.courseId);
+
+  let coursesTaken = await Course.find({_id: {$in: res.locals.registeredCourses}}, "name");
+  res.locals.coursesTaken = coursesTaken;
+
+  let coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
+  res.locals.coursesTAing = coursesTAing;
+
+  res.locals.title = "PRA";
+
+  res.locals.routeName = " index";
+  res.json(res.locals);
 });
 
 app.use(reviews);

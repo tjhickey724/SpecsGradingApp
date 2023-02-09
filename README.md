@@ -1,5 +1,4 @@
 # Mastery (Specs Grading) App
-A version of this is live at [sgav3.herokuapp.com](https://sgav3.herokuapp.com/).
 
 ## Overview
 This is an app designed to be used to support three innovative pedagogies, especially for large classes (> 100 students).

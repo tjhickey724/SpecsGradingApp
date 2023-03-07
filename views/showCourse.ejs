@@ -116,9 +116,15 @@
       <hr>
 
       <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-      <a href="/showRegradeRequests/<%= courseInfo.id %>">
-        <%= regradeRequests.length %> regrade requests outstanding
-      </a>
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+          <div>
+            <i class='fas fa-exclamation-triangle ' style='font-size:15px'></i>
+            <a href="/showRegradeRequests/<%= courseInfo.id %>" style="color:rgb(172, 2, 33)">
+              <span style="color:rgb(1, 0, 0); margin-left:5px; font-size: 25px"><%= regradeRequests.length %></span> regrade requests outstanding
+            </a>
+          </div>
+        </div>
+
       <% } %>
       <hr>
 

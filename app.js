@@ -496,6 +496,7 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
     let courseId = res.locals.skill.courseId;
     res.locals.courseInfo = await Course.findOne({_id: courseId}, "name ownerId");
     res.locals.isOwner = res.locals.courseInfo.ownerId == req.user.id;
+    res.locals.problemsBySkill = await Problem.find({skills: skillId});
     res.locals.routeName = " showSkill";
     res.render("showSkill");
   } catch (e) {

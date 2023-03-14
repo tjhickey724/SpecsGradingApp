@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2023-03-14
+### added
+- add grading button next to each problem set in the course page
+
 ## [2.0.0] - 2023-03-14
 Initial version starting the changelog.	
 	

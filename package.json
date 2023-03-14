@@ -7,16 +7,17 @@
     "watch": "nodemon --ext js,mjs,json,ejs,css"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "bcrypt": "^5.0.1",
     "bootstrap-icons": "^1.0.0-alpha2",
     "connect-flash": "^0.1.1",
     "connect-livereload": "^0.6.1",
     "connect-mongo": "^3.2.0",
     "cookie-parser": "~1.4.4",
+    "count": "^0.1.8",
     "debug": "~2.6.9",
-    "dotenv": "^16.0.1",
-    "ejs": "~2.6.1",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.8",
     "ejs-lint": "^1.2.2",
     "express": "~4.16.1",
     "express-session": "^1.16.2",
@@ -24,14 +25,15 @@
     "livereload": "^0.9.3",
     "mongoose": "^6.4.0",
     "morgan": "~1.9.1",
-    "passport": "^0.4.0",
+    "passport": "^0.6.0",
     "passport-google-oauth": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^7.1.2",
-    "socket.io": "^2.4.1"
+    "remove": "^0.1.5",
+    "socket.io": "^4.5.3"
   },
   "devDependencies": {
-    "nodemon": "^2.0.16"
+    "nodemon": "^2.0.20"
   }
 }

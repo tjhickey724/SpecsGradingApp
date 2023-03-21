@@ -6,7 +6,27 @@
       <%= problemSet.name.trim() || "Problem Set" %>
     </h1>
     <div class="p-2">
+      <b>Current state: <%= problemSet.quizState %></b>
+      <form method="post" action="/updateQuiz/<%= psetId %>">
+        <div>Select a state:</div>
+        <div>
+          <input type="radio" id="default" name="state" value="default">
+          <label for="default">Default</label>
+        </div>
 
+        <div>
+          <input type="radio" id="start" name="state" value="start">
+          <label for="start">Start the quiz</label>
+        </div>
+
+        <div>
+          <input type="radio" id="end" name="state" value="end">
+          <label for="end">End the quiz</label>
+        </div>
+
+        <input class="btn btn-primary" type="submit" value="Save">
+      </form>
+      <br>
       <ul>
         <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
                             !(courseInfo.ownerId==user.id) ) { %>

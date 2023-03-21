@@ -494,6 +494,7 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
     let courseId = res.locals.skill.courseId;
     res.locals.courseInfo = await Course.findOne({_id: courseId}, "name ownerId");
     res.locals.isOwner = res.locals.courseInfo.ownerId == req.user.id;
+    res.locals.problemsBySkill = await Problem.find({skills: skillId});
     res.locals.routeName = " showSkill";
     res.render("showSkill");
   } catch (e) {
@@ -574,7 +575,7 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
     console.log("id=" + id);
-    pset.name = req.body.name;
+
     pset.visible = req.body.visible == "visible";
     await pset.save();
 
@@ -583,6 +584,8 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     next(e);
   }
 });
+
+
 
 const getStudentSkills = async (studentId) => {
   try {

@@ -180,21 +180,27 @@
 																																			i=0;i<skills.length;i++){%>
         <%if (skillsMastered.includes(skills[i]._id.toString()))
 																																				{%>
-        <li style="color:blue">
-          <%= skills[i].name
+        <li >
+          <a  href="/showSkill/<%= skills[i]._id %>">
+            <%= skills[i].name
 																																						%>
+          </a>
+          
           --
           mastered!
         </li>
         <%} else
 																																					{%>
-        <li style="color:red">
-          <%= skills[i].name
+        <li>
+          <a href="/showSkill/<%= skills[i]._id %>">
+            <%= skills[i].name
 																																							%>
+          </a>
+          
           --
-          not
-          yet
-          mastered
+          <span style="color: red">not
+            yet
+            mastered</span>
         </li>
         <% }
 																																						%>

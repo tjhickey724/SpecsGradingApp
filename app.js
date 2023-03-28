@@ -556,7 +556,7 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
 
     res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
 
-    res.redirect("/showCourse/" + res.locals.courseInfo._id);
+    res.redirect("/showProblemSet/" + newProblemSet.id);
   } catch (e) {
     next(e);
   }
@@ -580,8 +580,14 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
 
     pset.visible = req.body.visible == "visible";
     await pset.save();
-
-    res.redirect("/showProblemSet/" + id);
+    console.log(req.originalUrl);
+    console.log(req.headers);
+    if (req.headers.referer.includes("editProblemSet")) {
+      res.redirect("/showProblemSet/" + id);
+    }
+    else {
+      res.redirect('back');
+    }
   } catch (e) {
     next(e);
   }

@@ -8,7 +8,7 @@
       You own this course<br>
       <form method="post" action="/updateProblemSet/<%= psetId %>">
         Problem Set Name:
-        <input type="text" name="name" value="<%= problemSet.name %>">
+        <input type="text" name="problemName" value="<%= problemSet.name %>">
         <br>
         visible: <input type="checkbox" name="visible" <% if (problemSet.visible) {%> checked <% }
                                 %> value="visible">

@@ -38,25 +38,29 @@
           <% const skillsToMaster=problems[i].skills.filter( (skill)=>
                                         !skills.includes(skill.toString())).length
                                         %>
-          <% if (skillsToMaster==0){ %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <span style="color:green">
-              <%= problems[i].description || "no name" %>
-              all skills in this problem have been mastered
-            </span>
-          </a>
 
-          <% } else { %>
-          <a href="/showProblem/<%= problems[i]._id %>">
-            <%= problems[i].description || "no name" %>
-          </a>
-
-          <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
-          master<br>
-          <% } %>
-        </li>
-        <% }} %>
-      </ul>
+                <% if (pids.includes(problems[i]._id.toString()) && skillsToMaster == 0){ %>
+                  <a href="/showProblem/<%= problems[i]._id %>">
+                   <span style="color:green"> 
+                      <%= problems[i].description || "no name" %>
+                          </a>
+                      <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+                          master<br>
+                    </span>
+                  <% } else { %>
+                    
+                    <a href="/showProblem/<%= problems[i]._id %>">
+                      <span style="color:red">
+                      <%= problems[i].description || "no name" %>
+                    </a>
+                
+                    <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+                        master<br>
+                  </span>
+                        <% } %>
+                          </li>
+                          <% }} %>
+                            </ul>
 
 
       <hr>

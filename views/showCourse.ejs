@@ -18,11 +18,12 @@
                  %> <li class="inline"> HIDDEN
                   
           <% } else { %>
-        <li>
+        <li> 
           <%}%>
 
 
-            <a href="/showProblemSet/<%= problemSets[i]._id %>"
+            <a href="/showProblemSet/<%= problemSets[i]._id %>" 
+              
           <% if ( answerMap.get(problemSets[i]._id.toString()) >=
                        problemMap.get(problemSets[i]._id.toString())
                 ) {%>
@@ -34,24 +35,23 @@
 
           <%= problemSets[i].name.trim() || "problem set" %>
           </a>
+          
 
           (<%= answerMap.get(problemSets[i]._id.toString()) || 0
                   %>/<%=
                      problemMap.get(problemSets[i]._id.toString()) || 0 %>)
-          <form class="d-inline p-2 " method="post" action="/updateProblemSet/<%= problemSets[i]._id %>" >
-              visible: <input class="mb-3" type="checkbox" name="visible" <% if (problemSets[i].visible) {%> checked <% }
-                                      %> value="visible">
-              <input class="btn btn-primary" type="submit" value="Save">
-          </form>
-          
-
+          <% if (user._id.equals(courseInfo.ownerId)) { %>
+            <a href="/updateProblemSet/<%= problemSets[i]._id %>" >
+                <% if (problemSets[i].visible) {%> visible <% }else{%> hidden <%}%>
+              </a>
+          <% } %>
         </li>
 
         <% } %>
       </ul>
 
       <hr>
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+      <% if (user._id.equals(courseInfo.ownerId)) { %>
       <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Add Problem Set
       </a>
@@ -71,6 +71,8 @@
       <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
         Show Mastery
       </a>
+      <% } else if (isTA) { %>
+       
       <% } else { %>
       <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
         show all problems and responses

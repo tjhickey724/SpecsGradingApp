@@ -69,6 +69,7 @@
                                     jsonRow.grades.push(-1)
                                     %>
               <!-- No answer to review -->
+              <a href="/gradeProblemWithoutAnswer/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">+</a>
 
               <% } else if (!answerId) {
                                     jsonRow.grades.push(0)

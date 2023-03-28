@@ -21,6 +21,7 @@ if (process.env.IS_ON_WEB == "False") {
 // Routes
 const reviews = require('./routes/reviews');
 const auth = require('./routes/authRouter');
+const similarity = require('./routes/similarity');
 
 
 // Models!
@@ -108,6 +109,7 @@ app.use(flash());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(auth);
+app.use(similarity);
 
 //const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 
@@ -570,7 +572,7 @@ app.get("/editProblemSet/:psetId", async (req, res, next) => {
   res.render("editProblemSet");
 });
 
-app.post("/updateProblemSet/:psetId", async (req, res, next) => {
+app.use("/updateProblemSet/:psetId", async (req, res, next) => {
   try {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({ _id: id });
@@ -578,7 +580,7 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     if (req.body.problemName) {
       pset.name = req.body.problemName;
     }
-    pset.visible = req.body.visible == "visible";
+    pset.visible = !pset.visible;
     await pset.save();
     console.log(req.originalUrl);
     console.log(req.headers);
@@ -760,6 +762,47 @@ app.get("/addProblem/:psetId", async (req, res, next) => {
     next(e);
   }
 });
+
+// author: Huijie Liu
+app.post("/updateQuiz/:psetId", async(req, res, next) => {
+  try {
+    console.log("test start")
+    // console.log(req.body.state == "start"); work
+    const psetId = req.params.psetId;
+    // res.locals.psetId = psetId;
+    const problemSet = await ProblemSet.findOne({_id: psetId});
+    res.locals.problems = await Problem.find({psetId: psetId});
+
+    problemSet.quizState = req.body.state;
+    console.log(problemSet.quizState);
+    const settings = new Array(4).fill(true);
+    if (req.body.state == "start"){
+      settings[2] = false;
+      settings[3] = false;
+    } else if (req.body.state == "end"){
+      settings[0] = false;
+      settings[1] = false;
+      settings[3] = false;
+    }
+    console.log(settings);
+
+    for (const problem of res.locals.problems){
+      problem.visible = settings[0];
+      problem.answerable = settings[1];
+      problem.submitable = settings[2];
+      problem.peerReviewable = settings[3];
+      console.log(problem.description);
+      await problem.save();
+    }
+    console.log("test end");
+    // res.redirect('back');
+    // res.redirect(req.get('referer'));
+    await problemSet.save();
+    res.redirect("/showProblemSet/" + psetId);
+  } catch(e){
+    next(e);
+  }
+})
 
 app.post("/saveProblem/:psetId", async (req, res, next) => {
   try {

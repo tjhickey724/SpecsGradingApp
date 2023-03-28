@@ -494,6 +494,7 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
     let courseId = res.locals.skill.courseId;
     res.locals.courseInfo = await Course.findOne({_id: courseId}, "name ownerId");
     res.locals.isOwner = res.locals.courseInfo.ownerId == req.user.id;
+    res.locals.problemsBySkill = await Problem.find({skills: skillId});
     res.locals.routeName = " showSkill";
     res.render("showSkill");
   } catch (e) {
@@ -553,7 +554,7 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
 
     res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
 
-    res.redirect("/showCourse/" + res.locals.courseInfo._id);
+    res.redirect("/showProblemSet/" + newProblemSet.id);
   } catch (e) {
     next(e);
   }
@@ -574,15 +575,23 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
     console.log("id=" + id);
-    pset.name = req.body.name;
+
     pset.visible = req.body.visible == "visible";
     await pset.save();
-
-    res.redirect("/showProblemSet/" + id);
+    console.log(req.originalUrl);
+    console.log(req.headers);
+    if (req.headers.referer.includes("editProblemSet")) {
+      res.redirect("/showProblemSet/" + id);
+    }
+    else {
+      res.redirect('back');
+    }
   } catch (e) {
     next(e);
   }
 });
+
+
 
 const getStudentSkills = async (studentId) => {
   try {

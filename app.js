@@ -572,13 +572,13 @@ app.get("/editProblemSet/:psetId", async (req, res, next) => {
   res.render("editProblemSet");
 });
 
-app.post("/updateProblemSet/:psetId", async (req, res, next) => {
+app.use("/updateProblemSet/:psetId", async (req, res, next) => {
   try {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
     console.log("id=" + id);
 
-    pset.visible = req.body.visible == "visible";
+    pset.visible = !pset.visible;
     await pset.save();
     console.log(req.originalUrl);
     console.log(req.headers);

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add grading button next to each problem set in the course page
 - add problem state: default, start, end
 - add related problems under each specific skill
+- fixed visibility button inside problemset 
+- fixed problem set state visibile to student bug
+- added visible option to problem set level
+- redirecting to problem set after creating the problem set
 
 ## [2.0.0] - 2023-03-14
 Initial version starting the changelog.	

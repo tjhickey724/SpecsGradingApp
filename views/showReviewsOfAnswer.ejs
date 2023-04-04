@@ -131,8 +131,7 @@
     <hr>
 
 
-
-    <% if (!youReviewed) { %>
+    <% if (!youReviewed && userIsTA || !youReviewed && problem.peerReviewable ) { %>
         <h1> You didn't review this one </h1>
         <div class="row">
             <div class="col-md-6">

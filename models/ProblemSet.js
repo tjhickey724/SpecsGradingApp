@@ -8,7 +8,6 @@ var problemSetSchema = Schema( {
   name: String,
   createdAt: Date,
   visible: Boolean,
-  quizState: {type:String, default:"default"},
 } );
 
 module.exports = mongoose.model( 'ProblemSet', problemSetSchema );

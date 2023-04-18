@@ -752,47 +752,6 @@ app.get("/addProblem/:psetId", async (req, res, next) => {
   }
 });
 
-// author: Huijie Liu
-app.post("/updateQuiz/:psetId", async(req, res, next) => {
-  try {
-    console.log("test start")
-    // console.log(req.body.state == "start"); work
-    const psetId = req.params.psetId;
-    // res.locals.psetId = psetId;
-    const problemSet = await ProblemSet.findOne({_id: psetId});
-    res.locals.problems = await Problem.find({psetId: psetId});
-
-    problemSet.quizState = req.body.state;
-    console.log(problemSet.quizState);
-    const settings = new Array(4).fill(true);
-    if (req.body.state == "start"){
-      settings[2] = false;
-      settings[3] = false;
-    } else if (req.body.state == "end"){
-      settings[0] = false;
-      settings[1] = false;
-      settings[3] = false;
-    }
-    console.log(settings);
-
-    for (const problem of res.locals.problems){
-      problem.visible = settings[0];
-      problem.answerable = settings[1];
-      problem.submitable = settings[2];
-      problem.peerReviewable = settings[3];
-      console.log(problem.description);
-      await problem.save();
-    }
-    console.log("test end");
-    // res.redirect('back');
-    // res.redirect(req.get('referer'));
-    await problemSet.save();
-    res.redirect("/showProblemSet/" + psetId);
-  } catch(e){
-    next(e);
-  }
-})
-
 app.post("/saveProblem/:psetId", async (req, res, next) => {
   try {
     const psetId = req.params.psetId;

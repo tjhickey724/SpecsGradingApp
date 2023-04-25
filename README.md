@@ -2,7 +2,7 @@
 
 ## iss67 branch
 Should redirect to course page when a new course is created... not to the list of all courses for the user...
-$ x_1 = \frac{1}/{/log^2(x)} $
+
 
 ## Overview
 This is an app designed to be used to support three innovative pedagogies, especially for large classes (> 100 students).

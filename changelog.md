@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.3] - 2023-04-25
+### added
+- fix problem set edit and the logout features
+
 ## [2.0.2] - 2023-4-4
 ### added
 - made students unable to review others' answer when cliking reviews of my answers for un-reviewable questions

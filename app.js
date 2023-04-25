@@ -577,7 +577,9 @@ app.use("/updateProblemSet/:psetId", async (req, res, next) => {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
     console.log("id=" + id);
-
+    if (req.body.name) {
+      pset.name = req.body.name;
+    }
     pset.visible = !pset.visible;
     await pset.save();
     console.log(req.originalUrl);

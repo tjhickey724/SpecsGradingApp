@@ -1,5 +1,8 @@
 # Mastery (Specs Grading) App
 
+## iss67 branch
+Should redirect to course page when a new course is created... not to the list of all courses for the user...
+
 ## Overview
 This is an app designed to be used to support three innovative pedagogies, especially for large classes (> 100 students).
 The three pedagogies are:

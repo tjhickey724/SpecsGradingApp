@@ -1,6 +1,11 @@
 # Mastery (Specs Grading) App
 A version of this is live at [sgav3.herokuapp.com](https://sgav3.herokuapp.com/).
 
+## Branch changes
+Adding a grading button next problem set
+and adding timed assignments 
+Do we really want this???? Don't merge until we discuss it...
+
 ## Overview
 This is an app designed to be used to support three innovative pedagogies, especially for large classes (> 100 students).
 The three pedagogies are:

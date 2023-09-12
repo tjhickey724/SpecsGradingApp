@@ -701,7 +701,9 @@ app.get("/gradeProblemSet/:psetId", async (req, res, next) => {
   res.locals.taReviews = taReviews;
   //console.log(JSON.stringify(req.user._id))
   //console.log(JSON.stringify(taIds))
-  if (taIds.filter((x) => x.equals(req.user._id)).length > 0) {
+  let userIsOwner = req.user._id.equals(res.locals.courseInfo.ownerId);
+
+  if (userIsOwner || taIds.filter((x) => x.equals(req.user._id)).length > 0) {
     res.locals.routeName = " gradeProblemSet";
     res.render("gradeProblemSet");
   } else {

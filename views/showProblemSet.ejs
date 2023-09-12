@@ -48,7 +48,7 @@
       <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
         of Problem
         Sets</a>
-      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0) { %>
+      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0 || courseInfo.ownerId.equals(user._id)) { %>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
         Problem Set
       </a>

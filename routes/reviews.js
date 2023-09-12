@@ -62,6 +62,7 @@ const app = express.Router();
 // Models!
 
 const Problem = require("../models/Problem");
+const Course = require("../models/Course");
 const Answer = require("../models/Answer");
 const Review = require("../models/Review");
 const User = require("../models/User");
@@ -303,6 +304,8 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
         const problem = await Problem.findOne({_id: req.params.probId});
   
         const answer = await Answer.findOne({_id: req.params.answerId});
+
+        const courseInfo = await Course.findOne({_id: answer.courseId});
   
         let skills = req.body.skill;
         console.log("skills=" + JSON.stringify(skills));
@@ -329,10 +332,12 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
         });
   
         const newReviewDoc = await newReview.save();
+
+        let userIsOwner = req.user._id.equals(courseInfo.ownerId);
   
         // if the user is a TA, then make their review
         // the official review
-        if (req.user.taFor.includes(problem.courseId)) {
+        if (userIsOwner || req.user.taFor.includes(problem.courseId)) {
           // answer.officialReviewId = newReviewDoc._id;
           // answer.review = req.body.review;
           // answer.points = req.body.points;
@@ -494,7 +499,9 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
   app.get("/showReviewsOfAnswer/:answerId", async (req, res, next) => {
     try {
       const id = req.params.answerId;
+      
       res.locals.answer = await Answer.findOne({_id: id});
+      res.locals.courseInfo = await Course.findOne({_id: res.locals.answer.courseId});
       res.locals.problem = await Problem.findOne({_id: res.locals.answer.problemId});
       res.locals.student = await User.findOne({_id: res.locals.answer.studentId});
       res.locals.reviews = await Review.find({answerId: id}).populate('reviewerId').sort({points: "asc", review: "asc"});

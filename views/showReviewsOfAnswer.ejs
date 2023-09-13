@@ -7,7 +7,7 @@
     <hr>
     <h3 class="bg-danger">
     <% let userIsTA = true && user.taFor && (user.taFor).indexOf(problem.courseId)>=0
-       let userIsOwner = user._id.equals(courseInfo.ownerId)
+       let userIsOwner = user._id.equals(courseInfo.ownerId);
        if (userIsTA) {
            %>
           <%= student.googlename %> <%= student.googleemail %>

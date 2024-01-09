@@ -302,9 +302,114 @@ app.get("/showRoster/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/dumpStats/:courseId", async (req, res, next) => {
+async function isOwner(req, res, next) {
   try {
-    const id = req.params.courseId;
+    let courseId = req.params.courseId;
+    if (!courseId) {
+      const psetId = req.params.psetId;
+      if (!psetId) {
+        return res.status(404).send("Course not found");
+      }
+      const pset = await ProblemSet.findById(psetId);
+      if (!pset) {
+        return res.status(404).send("Course not found");
+      }
+      courseId = pset.courseId;
+    }
+
+    const course = await Course.findOne({
+      _id: courseId,
+      ownerId: req.user._id,
+    });
+    const isOwnerOfCoures = course !== null;
+
+    if (!isOwnerOfCoures) {
+      res.status(401).send("Unauthorized");
+    }
+    next();
+  } catch (error) {
+    console.log(
+      `[middleware::isOwner] failed to query course ${courseId} from database for user ${req.user._id}\nerror: ${error}`,
+    );
+    next(error);
+  }
+}
+
+async function isTA(req, res, next) {
+  try {
+    let courseId = req.params.courseId;
+    if (!courseId) {
+      const psetId = req.params.psetId;
+      if (!psetId) {
+        return res.status(404).send("Course not found");
+      }
+      const pset = await ProblemSet.findById(psetId);
+      if (!pset) {
+        return res.status(404).send("Course not found");
+      }
+      courseId = pset.courseId;
+    }
+
+    const user = await User.findById(req.user._id);
+    if (user === null) {
+      return res.status(401).send("Unauthorized");
+    }
+    const isTaForCourse = user.taFor.includes(courseId);
+    if (!isTaForCourse) {
+      return res.status(401).send("Unauthorized");
+    }
+    return next();
+  } catch (error) {
+    console.log(
+      `[middleware::isTA] failed to fetch user ${req.user._id} from database`,
+    );
+    next(error);
+  }
+}
+
+async function isOwnerOrTA(req, res, next) {
+  // valid on routes with either :courseId or :psetId
+  try {
+    let courseId = req.params.courseId;
+    if (!courseId) {
+      const psetId = req.params.psetId;
+      if (!psetId) {
+        return res.status(404).send("Course not found");
+      }
+      const pset = await ProblemSet.findById(psetId);
+      if (!pset) {
+        return res.status(404).send("Course not found");
+      }
+      courseId = pset.courseId;
+    }
+
+    const course = await Course.findOne({
+      _id: courseId,
+      ownerId: req.user._id,
+    });
+    const isOwnerOfCourse = course !== null;
+
+    const user = await User.findById(req.user._id);
+    if (user === null) {
+      return res.status(401).send("Unauthorized");
+    }
+    const isTaForCourse = user.taFor.includes(courseId);
+
+    if (!(isOwnerOfCourse || isTaForCourse)) {
+      res.status(401).send("Unauthorized");
+    }
+    next();
+  } catch (error) {
+    console.log(
+      `[middleware::isOwnerOrTA] failed to query database\nerror: ${error}`,
+    );
+    next(error);
+  }
+}
+
+app.get("/dumpStats/:courseId", isOwnerOrTA, async (req, res, next) => {
+  try {
+    let courseId = req.params.courseId;
     res.locals.courseInfo = await Course.findOne(
       { _id: id },
       "name coursePin ownerId",
@@ -331,7 +436,7 @@ app.get("/dumpStats/:courseId", async (req, res, next) => {
   }
 });
 
-app.post("/addStudents/:courseId", async (req, res, next) => {
+app.post("/addStudents/:courseId", isOwner, async (req, res, next) => {
   try {
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne(
@@ -529,14 +634,14 @@ app.get("/showSkills/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/addSkill/:courseId", (req, res) => {
+app.get("/addSkill/:courseId", isOwnerOrTA, (req, res) => {
   res.locals.courseId = req.params.courseId;
 
   res.locals.routeName = " addSkill";
   res.render("addSkill");
 });
 
-app.post("/addSkill", async (req, res, next) => {
+app.post("/addSkill/:courseId", isOwnerOrTA, async (req, res, next) => {
   try {
     let newSkill = new Skill({
       name: req.body.name,
@@ -571,35 +676,45 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
   }
 });
 
-app.get("/editSkill/:skillId", async (req, res, next) => {
-  try {
-    const id = req.params.skillId;
-    res.locals.skillId = id;
-    res.locals.skill = await Skill.findOne({ _id: id });
-    res.locals.routeName = " editSkill";
-    res.render("editSkill");
-  } catch (e) {
-    next(e);
-  }
-});
+app.get(
+  "/editSkill/:courseId/:skillId",
+  isOwnerOrTA,
+  async (req, res, next) => {
+    try {
+      const id = req.params.skillId;
+      res.locals.skillId = id;
+      res.locals.courseId = req.params.courseId;
+      res.locals.skill = await Skill.findOne({ _id: id });
 
-app.post("/editSkill/:skillId", async (req, res, next) => {
-  try {
-    const skill = await Skill.findOne({ _id: req.params.skillId });
+      res.locals.routeName = " editSkill";
+      res.render("editSkill");
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
-    skill.name = req.body.name;
-    skill.description = req.body.description;
-    skill.createdAt = new Date();
+app.post(
+  "/editSkill/:courseId/:skillId",
+  isOwnerOrTA,
+  async (req, res, next) => {
+    try {
+      const skill = await Skill.findOne({ _id: req.params.skillId });
 
-    await skill.save();
+      skill.name = req.body.name;
+      skill.description = req.body.description;
+      skill.createdAt = new Date();
 
-    res.redirect("/showSkill/" + req.params.skillId);
-  } catch (e) {
-    next(e);
-  }
-});
+      await skill.save();
 
-app.get("/addProblemSet/:courseId", async (req, res, next) => {
+      res.redirect("/showSkill/" + req.params.skillId);
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+app.get("/addProblemSet/:courseId", isOwnerOrTA, async (req, res, next) => {
   const id = req.params.courseId;
 
   const courseInfo = await Course.findOne({ _id: id }, "name ownerId");
@@ -611,7 +726,7 @@ app.get("/addProblemSet/:courseId", async (req, res, next) => {
   });
 });
 
-app.post("/saveProblemSet/:courseId", async (req, res, next) => {
+app.post("/saveProblemSet/:courseId", isOwnerOrTA, async (req, res, next) => {
   try {
     const id = req.params.courseId;
     let newProblemSet = new ProblemSet({
@@ -637,7 +752,7 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/editProblemSet/:psetId", async (req, res, next) => {
+app.get("/editProblemSet/:psetId", isOwnerOrTA, async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({ _id: psetId });
@@ -650,7 +765,7 @@ app.get("/editProblemSet/:psetId", async (req, res, next) => {
   res.render("editProblemSet");
 });
 
-app.post("/updateProblemSet/:psetId", async (req, res, next) => {
+app.post("/updateProblemSet/:psetId", isOwnerOrTA, async (req, res, next) => {
   try {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({ _id: id });
@@ -703,91 +818,95 @@ app.get("/showProblemSet/:psetId", async (req, res, next) => {
   res.render("showProblemSet");
 });
 
-app.get("/gradeProblemSet/:psetId/json", async (req, res, next) => {
-  const psetId = req.params.psetId;
-  const problemSet = await ProblemSet.findOne({ _id: psetId });
-  const problems = await Problem.find({ psetId: psetId });
-  const answers = await Answer.find({ psetId: psetId });
-  const courseInfo = await Course.findOne(
-    { _id: problemSet.courseId },
-    "ownerId",
-  );
-  const memberList = await CourseMember.find({ courseId: courseInfo._id });
-  const students = memberList.map((x) => x.studentId);
+app.get(
+  "/gradeProblemSet/:psetId/json",
+  isOwnerOrTA,
+  async (req, res, next) => {
+    const psetId = req.params.psetId;
+    const problemSet = await ProblemSet.findOne({ _id: psetId });
+    const problems = await Problem.find({ psetId: psetId });
+    const answers = await Answer.find({ psetId: psetId });
+    const courseInfo = await Course.findOne(
+      { _id: problemSet.courseId },
+      "ownerId",
+    );
+    const memberList = await CourseMember.find({ courseId: courseInfo._id });
+    const students = memberList.map((x) => x.studentId);
 
-  const studentsInfo = await User.find(
-    { _id: { $in: students } },
-    {},
-    { sort: { googleemail: 1 } },
-  );
+    const studentsInfo = await User.find(
+      { _id: { $in: students } },
+      {},
+      { sort: { googleemail: 1 } },
+    );
 
-  const taList = await User.find({ taFor: courseInfo._id });
-  const taIds = taList.map((x) => x._id);
+    const taList = await User.find({ taFor: courseInfo._id });
+    const taIds = taList.map((x) => x._id);
 
-  const taReviews = await Review.find({
-    psetId: psetId,
-    reviewerId: { $in: taIds },
-  });
+    const taReviews = await Review.find({
+      psetId: psetId,
+      reviewerId: { $in: taIds },
+    });
 
-  res.locals.taReviews = taReviews;
-  jsonGrades = [];
-  for (i = 0; i < studentsInfo.length; i++) {
-    let psetScore = 0;
-    let psetCount = 0; // number of problems graded by TAs
-    let jsonRow = {
-      email: studentsInfo[i].googleemail,
-      name: studentsInfo[i].googlename,
-      grades: [],
-    };
-    for (j = 0; j <= problems.length - 1; j++) {
-      // find the scores of the reviews of this problem
-      const studentAnswers = answers.filter((a) => {
-        return (
-          a.studentId.equals(studentsInfo[i]._id) &&
-          a.problemId.equals(problems[j]._id)
-        );
-      });
+    res.locals.taReviews = taReviews;
+    jsonGrades = [];
+    for (i = 0; i < studentsInfo.length; i++) {
+      let psetScore = 0;
+      let psetCount = 0; // number of problems graded by TAs
+      let jsonRow = {
+        email: studentsInfo[i].googleemail,
+        name: studentsInfo[i].googlename,
+        grades: [],
+      };
+      for (j = 0; j <= problems.length - 1; j++) {
+        // find the scores of the reviews of this problem
+        const studentAnswers = answers.filter((a) => {
+          return (
+            a.studentId.equals(studentsInfo[i]._id) &&
+            a.problemId.equals(problems[j]._id)
+          );
+        });
 
-      const grades = taReviews.filter((r) => {
-        let zz =
-          r.problemId &&
-          r.problemId.equals(problems[j]._id) &&
-          r.studentId &&
-          r.studentId.equals(studentsInfo[i]._id);
-        //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
+        const grades = taReviews.filter((r) => {
+          let zz =
+            r.problemId &&
+            r.problemId.equals(problems[j]._id) &&
+            r.studentId &&
+            r.studentId.equals(studentsInfo[i]._id);
+          //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
 
-        return zz;
-      });
-      answerId = null;
-      if (grades.length > 0) {
-        answerId = grades[0].answerId;
+          return zz;
+        });
+        answerId = null;
+        if (grades.length > 0) {
+          answerId = grades[0].answerId;
+        }
+
+        if (studentAnswers.length == 0) {
+          jsonRow.grades.push(-1);
+        } else if (!answerId) {
+          jsonRow.grades.push(0);
+        } else {
+          let scores = grades.map((r) => r.points);
+          let avgScore = Math.ceil(
+            scores.reduce((a, b) => a + b, 0) / scores.length,
+          );
+          psetScore += avgScore;
+          psetCount += 1;
+          jsonRow.grades.push(avgScore);
+        }
       }
-
-      if (studentAnswers.length == 0) {
-        jsonRow.grades.push(-1);
-      } else if (!answerId) {
-        jsonRow.grades.push(0);
-      } else {
-        let scores = grades.map((r) => r.points);
-        let avgScore = Math.ceil(
-          scores.reduce((a, b) => a + b, 0) / scores.length,
-        );
-        psetScore += avgScore;
-        psetCount += 1;
-        jsonRow.grades.push(avgScore);
+      jsonRow.grades.push(psetScore);
+      jsonRow.grades.push(psetCount);
+      let average =
+        psetCount > 0 ? Math.round((psetScore / psetCount) * 10) / 10 : -1;
+      jsonRow.grades.push(average);
+      jsonGrades.push(jsonRow);
+      if (psetCount > 0) {
       }
     }
-    jsonRow.grades.push(psetScore);
-    jsonRow.grades.push(psetCount);
-    let average =
-      psetCount > 0 ? Math.round((psetScore / psetCount) * 10) / 10 : -1;
-    jsonRow.grades.push(average);
-    jsonGrades.push(jsonRow);
-    if (psetCount > 0) {
-    }
-  }
-  res.json(jsonGrades);
-});
+    res.json(jsonGrades);
+  },
+);
 
 app.get("/gradeProblemSet/:psetId", async (req, res, next) => {
   const psetId = req.params.psetId;

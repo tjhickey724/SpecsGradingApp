@@ -12,7 +12,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 require("dotenv").config();
 
-if (process.env.IS_ON_WEB == "False") {
+if (process.env.NODE_ENV == "developmen") {
   var livereload = require("livereload");
   var connectLiveReload = require("connect-livereload");
   // require the socket.io module
@@ -35,7 +35,7 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const ejsLint = require("ejs-lint");
 
-if (process.env.IS_ON_WEB == "False") {
+if (process.env.NODE_ENV === "development") {
   const liveReloadServer = livereload.createServer();
   liveReloadServer.server.once("connection", () => {
     setTimeout(() => {
@@ -72,7 +72,7 @@ db.once("open", function () {
 });
 
 var app = express();
-if (process.env.IS_ON_WEB == "False") {
+if (process.env.NODE_ENV == "development") {
   app.use(connectLiveReload());
 }
 

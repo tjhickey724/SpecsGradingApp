@@ -20,7 +20,9 @@ const CourseMember = require("./models/CourseMember");
 //var apikey = require('./config/apikey');
 
 // AUTHENTICATION MODULES
-(session = require("express-session")), (bodyParser = require("body-parser")), (flash = require("connect-flash"));
+(session = require("express-session")),
+  (bodyParser = require("body-parser")),
+  (flash = require("connect-flash"));
 
 const MongoStore = require("connect-mongo")(session);
 
@@ -28,7 +30,7 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost/sga_v_1_0", {useNewUrlParser: true});
+mongoose.connect("mongodb://localhost/sga_v_1_0", { useNewUrlParser: true });
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
@@ -54,7 +56,7 @@ app.set("view engine", "ejs");
 
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -63,11 +65,18 @@ app.use(express.static(path.join(__dirname, "public")));
 **************************************************************************/
 
 //app.use(session({ secret: 'zzbbyanana',resave: false,  saveUninitialized: false }));
-app.use(session({secret: "zzbbyanana", resave: false, saveUninitialized: false, store: new MongoStore({mongooseConnection: mongoose.connection})}));
+app.use(
+  session({
+    secret: "zzbbyanana",
+    resave: false,
+    saveUninitialized: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+  }),
+);
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 
@@ -109,14 +118,17 @@ app.get("/logout", function (req, res) {
 // send to google to do the authentication
 // profile gets us their basic information including their name
 // email gets their emails
-app.get("/auth/google", passport.authenticate("google", {scope: ["profile", "email"]}));
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }),
+);
 
 app.get(
   "/login/authorized",
   passport.authenticate("google", {
     successRedirect: "/",
     failureRedirect: "/loginerror",
-  })
+  }),
 );
 
 // route middleware to make sure a user is logged in
@@ -134,14 +146,20 @@ app.get("/", async (req, res, next) => {
   try {
     if (!req.user) next();
 
-    let coursesOwned = await Course.find({ownerId: req.user._id}, "name");
+    let coursesOwned = await Course.find({ ownerId: req.user._id }, "name");
     res.locals.coursesOwned = coursesOwned;
     res.locals.coursesTAing = [];
 
-    let registrations = await CourseMember.find({studentId: req.user._id}, "courseId");
+    let registrations = await CourseMember.find(
+      { studentId: req.user._id },
+      "courseId",
+    );
     res.locals.registeredCourses = registrations.map((x) => x.courseId);
 
-    let coursesTaken = await Course.find({_id: {$in: res.locals.registeredCourses}}, "name");
+    let coursesTaken = await Course.find(
+      { _id: { $in: res.locals.registeredCourses } },
+      "name",
+    );
     res.locals.coursesTaken = coursesTaken;
 
     res.locals.title = "PRA";
@@ -185,11 +203,11 @@ async function getCoursePin() {
   // this only works if there are many fewer than 10000000 courses
   // but that won't be an issue with this alpha version!
   let coursePin = Math.floor(Math.random() * 10000000);
-  let lookupPin = await Course.find({coursePin: coursePin}, "coursePin");
+  let lookupPin = await Course.find({ coursePin: coursePin }, "coursePin");
 
   while (lookupPin.length > 0) {
     coursePin = Math.floor(Math.random() * 10000000);
-    lookupPin = await Course.find({coursePin: coursePin}, "coursePin");
+    lookupPin = await Course.find({ coursePin: coursePin }, "coursePin");
   }
   return coursePin;
 }
@@ -197,14 +215,23 @@ async function getCoursePin() {
 app.get("/showCourse/:courseId", async (req, res, next) => {
   try {
     const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    res.locals.courseInfo = await Course.findOne(
+      { _id: id },
+      "name coursePin ownerId",
+    );
 
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    const memberList = await CourseMember.find({
+      studentId: req.user._id,
+      courseId: res.locals.courseInfo._id,
+    });
     res.locals.isEnrolled = memberList.length > 0;
 
-    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
+    res.locals.problemSets = await ProblemSet.find({
+      courseId: res.locals.courseInfo._id,
+    });
 
-    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+    res.locals.isTA =
+      req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
 
     res.render("showCourse");
   } catch (e) {
@@ -214,7 +241,7 @@ app.get("/showCourse/:courseId", async (req, res, next) => {
 
 app.get("/showSkills/:courseId", async (req, res, next) => {
   try {
-    res.locals.skills = await Skill.find({courseId: req.params.courseId});
+    res.locals.skills = await Skill.find({ courseId: req.params.courseId });
     res.locals.courseId = req.params.courseId;
     res.render("showSkills");
   } catch (e) {
@@ -226,12 +253,20 @@ app.post("/joinCourse", async (req, res, next) => {
   try {
     let coursePin = req.body.coursePin;
 
-    res.locals.courseInfo = await Course.findOne({coursePin: coursePin}, "name coursePin ownerId");
+    res.locals.courseInfo = await Course.findOne(
+      { coursePin: coursePin },
+      "name coursePin ownerId",
+    );
 
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    const memberList = await CourseMember.find({
+      studentId: req.user._id,
+      courseId: res.locals.courseInfo._id,
+    });
     res.locals.isEnrolled = memberList.length > 0;
 
-    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
+    res.locals.problemSets = await ProblemSet.find({
+      courseId: res.locals.courseInfo._id,
+    });
 
     let registration = {
       studentId: res.locals.user._id,
@@ -251,8 +286,12 @@ app.post("/joinCourse", async (req, res, next) => {
 
 app.get("/addProblemSet/:courseId", async (req, res, next) => {
   const id = req.params.courseId;
-  const courseInfo = await Course.findOne({_id: id}, "name ownerId");
-  res.render("addProblemSet", {name: courseInfo.name, ownerId: courseInfo.ownerId, courseId: courseInfo._id});
+  const courseInfo = await Course.findOne({ _id: id }, "name ownerId");
+  res.render("addProblemSet", {
+    name: courseInfo.name,
+    ownerId: courseInfo.ownerId,
+    courseId: courseInfo._id,
+  });
 });
 
 app.post("/saveProblemSet/:courseId", async (req, res, next) => {
@@ -266,9 +305,14 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
 
     await newProblemSet.save();
 
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    res.locals.courseInfo = await Course.findOne(
+      { _id: id },
+      "name coursePin ownerId",
+    );
 
-    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
+    res.locals.problemSets = await ProblemSet.find({
+      courseId: res.locals.courseInfo._id,
+    });
 
     res.redirect("/showCourse/" + res.locals.courseInfo._id);
   } catch (e) {
@@ -279,7 +323,7 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
 app.post("/updateProblemSet/:psetId", async (req, res, next) => {
   try {
     const id = req.params.psetId;
-    const pset = ProblemSet.findOne({_id: id});
+    const pset = ProblemSet.findOne({ _id: id });
     console.log("id=" + id);
     console.dir(pset.courseId);
     pset.name = req.body.name;
@@ -295,26 +339,32 @@ app.post("/updateProblemSet/:psetId", async (req, res, next) => {
 app.get("/showProblemSet/:psetId", async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
-  res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
-  res.locals.problems = await Problem.find({psetId: psetId});
-  res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
+  res.locals.problemSet = await ProblemSet.findOne({ _id: psetId });
+  res.locals.problems = await Problem.find({ psetId: psetId });
+  res.locals.courseInfo = await Course.findOne(
+    { _id: res.locals.problemSet.courseId },
+    "ownerId",
+  );
   res.render("showProblemSet");
 });
 
 app.get("/editProblemSet/:psetId", async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
-  res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
-  res.locals.problems = await Problem.find({psetId: psetId});
-  res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
+  res.locals.problemSet = await ProblemSet.findOne({ _id: psetId });
+  res.locals.problems = await Problem.find({ psetId: psetId });
+  res.locals.courseInfo = await Course.findOne(
+    { _id: res.locals.problemSet.courseId },
+    "ownerId",
+  );
   res.render("editProblemSet");
 });
 
 app.get("/addProblem/:psetId", async (req, res, next) => {
   try {
-    const pset = await ProblemSet.findOne({_id: req.params.psetId});
+    const pset = await ProblemSet.findOne({ _id: req.params.psetId });
     res.locals.psetId = req.params.psetId;
-    res.locals.skills = await Skill.find({courseId: pset.courseId});
+    res.locals.skills = await Skill.find({ courseId: pset.courseId });
     res.render("addProblem");
   } catch (e) {
     next(e);
@@ -325,7 +375,7 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
   try {
     const psetId = req.params.psetId;
     res.locals.psetId = psetId;
-    res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
+    res.locals.problemSet = await ProblemSet.findOne({ _id: psetId });
     let skills = req.body.skills;
     console.log("skills=" + JSON.stringify(skills));
     console.log("typeof(skills=" + typeof skills);
@@ -351,8 +401,11 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
       res.locals.problem = p;
     });
 
-    res.locals.problems = await Problem.find({psetId: psetId});
-    res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
+    res.locals.problems = await Problem.find({ psetId: psetId });
+    res.locals.courseInfo = await Course.findOne(
+      { _id: res.locals.problemSet.courseId },
+      "ownerId",
+    );
     res.render("showProblemSet");
   } catch (e) {
     next(e);
@@ -361,7 +414,7 @@ app.post("/saveProblem/:psetId", async (req, res, next) => {
 
 app.post("/updateProblem/:probId", async (req, res, next) => {
   try {
-    const problem = await Problem.findOne({_id: req.params.probId});
+    const problem = await Problem.findOne({ _id: req.params.probId });
 
     problem.description = req.body.description;
     problem.problemText = req.body.problemText;
@@ -393,15 +446,24 @@ app.get("/showProblem/:probId", async (req, res, next) => {
   try {
     const probId = req.params.probId;
     res.locals.probId = probId;
-    res.locals.problem = await Problem.findOne({_id: probId});
-    res.locals.course = await Course.findOne({_id: res.locals.problem.courseId}, "ownerId");
-    res.locals.answerCount = await Answer.countDocuments({problemId: probId});
-    const reviews = await Review.find({problemId: probId});
+    res.locals.problem = await Problem.findOne({ _id: probId });
+    res.locals.course = await Course.findOne(
+      { _id: res.locals.problem.courseId },
+      "ownerId",
+    );
+    res.locals.answerCount = await Answer.countDocuments({ problemId: probId });
+    const reviews = await Review.find({ problemId: probId });
     res.locals.reviewCount = reviews.length;
-    res.locals.averageReview = reviews.reduce((t, x) => t + x.points, 0) / reviews.length;
-    res.locals.answers = await Answer.find({problemId: probId, studentId: res.locals.user._id});
+    res.locals.averageReview =
+      reviews.reduce((t, x) => t + x.points, 0) / reviews.length;
+    res.locals.answers = await Answer.find({
+      problemId: probId,
+      studentId: res.locals.user._id,
+    });
 
-    res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
+    res.locals.skills = await Skill.find({
+      _id: { $in: res.locals.problem.skills },
+    });
 
     res.render("showProblem");
   } catch (e) {
@@ -413,17 +475,23 @@ app.get("/showProblem/:probId", async (req, res, next) => {
 app.get("/showAllAnswers/:probId", async (req, res, next) => {
   try {
     const id = req.params.probId;
-    res.locals.problem = await Problem.findOne({_id: id});
-    const course = await Course.findOne({_id: res.locals.problem.courseId});
-    const userReviews = await Review.find({problemId: id, reviewerId: req.user._id});
+    res.locals.problem = await Problem.findOne({ _id: id });
+    const course = await Course.findOne({ _id: res.locals.problem.courseId });
+    const userReviews = await Review.find({
+      problemId: id,
+      reviewerId: req.user._id,
+    });
     res.locals.numReviews = userReviews.length;
-    res.locals.canView = res.locals.numReviews >= 5 || req.user._id.equals(course.ownerId);
+    res.locals.canView =
+      res.locals.numReviews >= 5 || req.user._id.equals(course.ownerId);
     if (!res.locals.canView) {
       res.locals.answers = [];
       res.locals.reviews = [];
     } else {
-      res.locals.answers = await Answer.find({problemId: id}).collation({locale: "en", strength: 2}).sort({answer: 1});
-      res.locals.reviews = await Review.find({problemId: id});
+      res.locals.answers = await Answer.find({ problemId: id })
+        .collation({ locale: "en", strength: 2 })
+        .sort({ answer: 1 });
+      res.locals.reviews = await Review.find({ problemId: id });
     }
     res.render("showAllAnswers");
   } catch (e) {
@@ -434,16 +502,23 @@ app.get("/showAllAnswers/:probId", async (req, res, next) => {
 app.get("/editProblem/:probId", async (req, res, next) => {
   const id = req.params.probId;
   res.locals.probId = id;
-  res.locals.problem = await Problem.findOne({_id: id});
-  res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
-  res.locals.allSkills = await Skill.find({courseId: res.locals.problem.courseId});
-  res.locals.course = await Course.findOne({_id: res.locals.problem.courseId}, "ownerId");
+  res.locals.problem = await Problem.findOne({ _id: id });
+  res.locals.skills = await Skill.find({
+    _id: { $in: res.locals.problem.skills },
+  });
+  res.locals.allSkills = await Skill.find({
+    courseId: res.locals.problem.courseId,
+  });
+  res.locals.course = await Course.findOne(
+    { _id: res.locals.problem.courseId },
+    "ownerId",
+  );
   res.render("editProblem");
 });
 
 app.post("/saveAnswer/:probId", async (req, res, next) => {
   const id = req.params.probId;
-  res.locals.problem = await Problem.findOne({_id: id});
+  res.locals.problem = await Problem.findOne({ _id: id });
   const problem = res.locals.problem;
 
   let newAnswer = new Answer({
@@ -469,7 +544,7 @@ app.post("/saveAnswer/:probId", async (req, res, next) => {
 app.get("/reviewAnswers/:probId", async (req, res, next) => {
   try {
     const probId = req.params.probId;
-    let problem = await Problem.findOne({_id: probId});
+    let problem = await Problem.findOne({ _id: probId });
 
     //first we remove all pendingReviews that have exceeded
     // the time limit of 60 secs = 60,000 ms
@@ -495,7 +570,7 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
       // remove the reviewerId from the list of pendingReviewers
       // and decrement the optimistic numReview field
       // pendingReviews has form x = {answerId,reviewerId,timeSent}
-      let tempAnswer = await Answer.findOne({_id: x.answerId});
+      let tempAnswer = await Answer.findOne({ _id: x.answerId });
       tempAnswer.pendingReviewers = tempAnswer.pendingReviewers.filter((r) => {
         if (r.equals(x.reviewerId)) {
           tempAnswer.numReviews -= 1;
@@ -512,14 +587,19 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
     });
 
     // next, we find all answers to this Problem, sorted by numReviews
-    let answers = await Answer.find({problemId: probId}).sort({numReviews: "asc"});
+    let answers = await Answer.find({ problemId: probId }).sort({
+      numReviews: "asc",
+    });
 
     // find first answer not already reviewed or being reviewed by user
     let i = 0;
     let answer = null;
     while (i < answers.length) {
       answer = answers[i];
-      if (!answer.reviewers.find((x) => x.equals(req.user._id)) && !answer.pendingReviewers.find((x) => x.equals(req.user._id))) {
+      if (
+        !answer.reviewers.find((x) => x.equals(req.user._id)) &&
+        !answer.pendingReviewers.find((x) => x.equals(req.user._id))
+      ) {
         // we found an answer the user hasn't reviewed!
         answer.numReviews += 1; // we optimistically add 1 to numReviews
         answer.pendingReviewers.push(req.user._id);
@@ -527,7 +607,11 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
         await answer.save();
 
         // {answerId,reviewerId,timeSent}
-        problem.pendingReviews.push({answerId: answer._id, reviewerId: req.user._id, timeSent: new Date().getTime()});
+        problem.pendingReviews.push({
+          answerId: answer._id,
+          reviewerId: req.user._id,
+          timeSent: new Date().getTime(),
+        });
 
         problem.markModified("pendingReviews");
 
@@ -542,7 +626,10 @@ app.get("/reviewAnswers/:probId", async (req, res, next) => {
     // and we need to add it to the problem.pendingReviews
     res.locals.answer = answer;
     res.locals.problem = problem;
-    res.locals.numReviewsByMe = await Review.find({problemId: problem._id, reviewerId: req.user._id}).length;
+    res.locals.numReviewsByMe = await Review.find({
+      problemId: problem._id,
+      reviewerId: req.user._id,
+    }).length;
 
     res.render("reviewAnswer");
   } catch (e) {
@@ -561,9 +648,9 @@ app.post(
 
   async (req, res, next) => {
     try {
-      const problem = await Problem.findOne({_id: req.params.probId});
+      const problem = await Problem.findOne({ _id: req.params.probId });
 
-      const answer = await Answer.findOne({_id: req.params.answerId});
+      const answer = await Answer.findOne({ _id: req.params.answerId });
 
       const newReview = new Review({
         reviewerId: req.user._id,
@@ -610,7 +697,10 @@ app.post(
       for (let i = 0; i < problem.pendingReviews.length; i++) {
         reviewInfo = problem.pendingReviews[i];
 
-        if (reviewInfo.answerId.equals(answer._id) && reviewInfo.reviewerId.equals(req.user._id)) {
+        if (
+          reviewInfo.answerId.equals(answer._id) &&
+          reviewInfo.reviewerId.equals(req.user._id)
+        ) {
           // don't push answer just reviewed by this user back into pendingReviews
         } else {
           pendingReviews.push(reviewInfo);
@@ -629,15 +719,20 @@ app.post(
     } catch (e) {
       next(e);
     }
-  }
+  },
 );
 
 app.get("/showReviewsOfAnswer/:answerId", async (req, res, next) => {
   try {
     const id = req.params.answerId;
-    res.locals.answer = await Answer.findOne({_id: id});
-    res.locals.problem = await Problem.findOne({_id: res.locals.answer.problemId});
-    res.locals.reviews = await Review.find({answerId: id}).sort({points: "asc", review: "asc"});
+    res.locals.answer = await Answer.findOne({ _id: id });
+    res.locals.problem = await Problem.findOne({
+      _id: res.locals.answer.problemId,
+    });
+    res.locals.reviews = await Review.find({ answerId: id }).sort({
+      points: "asc",
+      review: "asc",
+    });
 
     res.render("showReviewsOfAnswer");
   } catch (e) {
@@ -650,12 +745,18 @@ app.get("/thumbsU/:mode/:reviewId/:userId", async (req, res, next) => {
   let userId = req.params.userId;
   let mode = req.params.mode;
   if (mode == "select") {
-    await Review.findOneAndUpdate({_id: reviewId}, {$push: {upvoters: userId}});
+    await Review.findOneAndUpdate(
+      { _id: reviewId },
+      { $push: { upvoters: userId } },
+    );
   } else {
-    await Review.findOneAndUpdate({_id: reviewId}, {$pull: {upvoters: userId}});
+    await Review.findOneAndUpdate(
+      { _id: reviewId },
+      { $pull: { upvoters: userId } },
+    );
   }
 
-  res.json({result: "OK"});
+  res.json({ result: "OK" });
 });
 
 app.get("/thumbsD/:mode/:reviewId/:userId", async (req, res, next) => {
@@ -663,21 +764,34 @@ app.get("/thumbsD/:mode/:reviewId/:userId", async (req, res, next) => {
   let userId = req.params.userId;
   let mode = req.params.mode;
   if (mode == "select") {
-    await Review.findOneAndUpdate({_id: reviewId}, {$push: {downvoters: userId}});
+    await Review.findOneAndUpdate(
+      { _id: reviewId },
+      { $push: { downvoters: userId } },
+    );
   } else {
-    await Review.findOneAndUpdate({_id: reviewId}, {$pull: {downvoters: userId}});
+    await Review.findOneAndUpdate(
+      { _id: reviewId },
+      { $pull: { downvoters: userId } },
+    );
   }
 
-  res.json({result: "OK"});
+  res.json({ result: "OK" });
 });
 
 app.get("/showReviewsByUser/:probId", async (req, res, next) => {
   const id = req.params.probId;
-  res.locals.problem = await Problem.findOne({_id: id});
-  res.locals.usersReviews = await Review.find({reviewerId: req.user._id, problemId: res.locals.problem._id});
-  res.locals.allReviews = await Review.find({problemId: res.locals.problem._id});
+  res.locals.problem = await Problem.findOne({ _id: id });
+  res.locals.usersReviews = await Review.find({
+    reviewerId: req.user._id,
+    problemId: res.locals.problem._id,
+  });
+  res.locals.allReviews = await Review.find({
+    problemId: res.locals.problem._id,
+  });
   const answerIds = res.locals.usersReviews.map((r) => r.answerId);
-  res.locals.usersReviewedAnswers = await Answer.find({_id: {$in: answerIds}});
+  res.locals.usersReviewedAnswers = await Answer.find({
+    _id: { $in: answerIds },
+  });
 
   res.render("showReviewsByUser");
 });
@@ -696,9 +810,10 @@ app.get("/showTheStudentInfo/:option/:courseId", async (req, res, next) => {
   try {
     const id = req.params.courseId;
     // get the courseInfo
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name ownerId");
+    res.locals.courseInfo = await Course.findOne({ _id: id }, "name ownerId");
 
-    const isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+    const isTA =
+      req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
     const isOwner = req.user._id.equals(res.locals.courseInfo.ownerId);
 
     if (!(isOwner || isTA)) {
@@ -709,23 +824,36 @@ app.get("/showTheStudentInfo/:option/:courseId", async (req, res, next) => {
     }
 
     // get the list of ids of students in the course
-    const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
+    const memberList = await CourseMember.find({
+      courseId: res.locals.courseInfo._id,
+    });
     res.locals.students = memberList.map((x) => x.studentId);
 
-    res.locals.studentsInfo = await User.find({_id: {$in: res.locals.students}});
+    res.locals.studentsInfo = await User.find({
+      _id: { $in: res.locals.students },
+    });
 
     const courseId = res.locals.courseInfo._id;
-    res.locals.answers = await Answer.find({courseId: courseId});
+    res.locals.answers = await Answer.find({ courseId: courseId });
 
-    res.locals.problems = await Problem.find({courseId: courseId});
+    res.locals.problems = await Problem.find({ courseId: courseId });
 
-    res.locals.reviews = await Review.find({courseId: courseId});
+    res.locals.reviews = await Review.find({ courseId: courseId });
 
-    const gradeSheet = createGradeSheet(res.locals.studentsInfo, res.locals.problems, res.locals.answers, res.locals.reviews);
+    const gradeSheet = createGradeSheet(
+      res.locals.studentsInfo,
+      res.locals.problems,
+      res.locals.answers,
+      res.locals.reviews,
+    );
 
     res.locals.gradeSheet = gradeSheet;
 
-    await Course.findOneAndUpdate({_id: courseId}, {$set: {gradeSheet: gradeSheet, gradesUpdateTime: new Date()}}, {new: true});
+    await Course.findOneAndUpdate(
+      { _id: courseId },
+      { $set: { gradeSheet: gradeSheet, gradesUpdateTime: new Date() } },
+      { new: true },
+    );
 
     if (req.params.option == "all") {
       res.render("showAllStudentInfo");
@@ -739,14 +867,20 @@ app.get("/showTheStudentInfo/:option/:courseId", async (req, res, next) => {
 
 app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
   try {
-    res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId gradeSheet");
-    res.locals.studentInfo = await User.findOne({_id: req.params.studentId});
+    res.locals.courseInfo = await Course.findOne(
+      { _id: req.params.courseId },
+      "name ownerId gradeSheet",
+    );
+    res.locals.studentInfo = await User.findOne({ _id: req.params.studentId });
 
-    const isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+    const isTA =
+      req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
     const isOwner = req.user._id.equals(res.locals.courseInfo.ownerId);
 
     if (!isOwner && !isTA && !req.user._id.equals(req.params.studentId)) {
-      res.send("only the course owner and TAs and the student themselves can see this page");
+      res.send(
+        "only the course owner and TAs and the student themselves can see this page",
+      );
       return;
     }
 
@@ -759,7 +893,7 @@ app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
 app.post("/addTA/:courseId", async (req, res, next) => {
   try {
     console.log("in addTA handler " + req.body.email);
-    let ta = await User.findOne({googleemail: req.body.email});
+    let ta = await User.findOne({ googleemail: req.body.email });
     if (ta) {
       ta.taFor = ta.taFor || [];
       ta.taFor.push(req.params.courseId);
@@ -783,12 +917,12 @@ app.post("/removeTAs/:courseId", async (req, res, next) => {
       console.log("nothing to delete");
     } else if (typeof req.body.ta == "string") {
       console.log("delete " + req.body.ta);
-      await User.update({_id: req.body.ta}, {$set: {taFor: []}});
+      await User.update({ _id: req.body.ta }, { $set: { taFor: [] } });
     } else {
       console.log("delete several:");
       req.body.ta.forEach(async (x) => {
         console.log("x=" + x);
-        await User.update({_id: x}, {$set: {taFor: []}});
+        await User.update({ _id: x }, { $set: { taFor: [] } });
       });
     }
 
@@ -800,8 +934,11 @@ app.post("/removeTAs/:courseId", async (req, res, next) => {
 
 app.get("/showTAs/:courseId", async (req, res, next) => {
   try {
-    res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId coursePin");
-    res.locals.tas = await User.find({taFor: req.params.courseId});
+    res.locals.courseInfo = await Course.findOne(
+      { _id: req.params.courseId },
+      "name ownerId coursePin",
+    );
+    res.locals.tas = await User.find({ taFor: req.params.courseId });
     console.log("in showTAs handler");
 
     res.render("showTAs");
@@ -864,9 +1001,12 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
   try {
     const skillId = req.params.skillId;
     res.locals.skillId = skillId;
-    res.locals.skill = await Skill.findOne({_id: skillId});
+    res.locals.skill = await Skill.findOne({ _id: skillId });
     let courseId = res.locals.skill.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: courseId}, "name ownerId");
+    res.locals.courseInfo = await Course.findOne(
+      { _id: courseId },
+      "name ownerId",
+    );
     res.locals.isOwner = res.locals.courseInfo.ownerId == req.user.id;
     res.render("showSkill");
   } catch (e) {
@@ -875,20 +1015,20 @@ app.get("/showSkill/:skillId", async (req, res, next) => {
   }
 });
 
-app.get("/editSkill/:skillId", async (req, res, next) => {
+app.get("/editSkill/:courseId/:skillId", async (req, res, next) => {
   try {
     const id = req.params.skillId;
     res.locals.skillId = id;
-    res.locals.skill = await Skill.findOne({_id: id});
+    res.locals.skill = await Skill.findOne({ _id: id });
     res.render("editSkill");
   } catch (e) {
     next(e);
   }
 });
 
-app.post("/editSkill/:skillId", async (req, res, next) => {
+app.post("/editSkill/:courseId/:skillId", async (req, res, next) => {
   try {
-    const skill = await Skill.findOne({_id: req.params.skillId});
+    const skill = await Skill.findOne({ _id: req.params.skillId });
 
     skill.name = req.body.name;
     skill.description = req.body.description;
@@ -930,7 +1070,7 @@ function createGradeSheet(students, problems, answers, reviews) {
   let answerList = {};
   for (let s in students) {
     let student = students[s];
-    gradeSheet[student._id] = {student: student, answers: {}};
+    gradeSheet[student._id] = { student: student, answers: {} };
   }
   for (let p in problems) {
     let problem = problems[p];
@@ -942,8 +1082,15 @@ function createGradeSheet(students, problems, answers, reviews) {
       answerList[answer._id] = answer;
       // it is possible that a TA will not be a student
       // so we need to create a
-      gradeSheet[answer.studentId] = gradeSheet[answer.studentId] || {status: "non-student", student: "non-student", answers: {}};
-      gradeSheet[answer.studentId]["answers"][answer._id] = {answer: answer, reviews: []};
+      gradeSheet[answer.studentId] = gradeSheet[answer.studentId] || {
+        status: "non-student",
+        student: "non-student",
+        answers: {},
+      };
+      gradeSheet[answer.studentId]["answers"][answer._id] = {
+        answer: answer,
+        reviews: [],
+      };
     } catch (e) {
       console.log("Error in createGradeSheet: " + error.message + " " + error);
     }
@@ -952,15 +1099,20 @@ function createGradeSheet(students, problems, answers, reviews) {
   for (let r in reviews) {
     let review = reviews[r];
     try {
-      let z = gradeSheet[answerList[review.answerId].studentId]["answers"][review.answerId];
+      let z =
+        gradeSheet[answerList[review.answerId].studentId]["answers"][
+          review.answerId
+        ];
       //z['reviews'] = z['reviews']||[]
       z["reviews"].push(review);
     } catch (e) {
-      console.log("Error in createGradeSheet-2s: " + error.message + " " + error);
+      console.log(
+        "Error in createGradeSheet-2s: " + error.message + " " + error,
+      );
     }
   }
 
-  return {grades: gradeSheet, problems: problemList, answers: answerList};
+  return { grades: gradeSheet, problems: problemList, answers: answerList };
 }
 
 module.exports = app;

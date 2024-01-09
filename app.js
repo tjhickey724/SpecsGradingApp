@@ -60,8 +60,6 @@ const MongoStore = require("connect-mongo")(session);
 
 const mongoose = require("mongoose");
 
-//mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
-//mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -97,10 +95,9 @@ app.use(express.static(path.join(__dirname, "public")));
      HERE ARE THE AUTHENTICATION ROUTES
 **************************************************************************/
 
-//app.use(session({ secret: 'zzbbyanana',resave: false,  saveUninitialized: false }));
 app.use(
   session({
-    secret: "zzbbyanana",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 }, // allow login for one day...
@@ -113,8 +110,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(auth);
 app.use(similarity);
-
-//const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 
 app.get("/lrec", async (req, res, next) => {
   try {

@@ -11,7 +11,9 @@
             
             let grades = gradeSheet.grades[studentInfo._id]
             %>
-    <h1><%= studentInfo.googlename %>/<%= studentInfo.googleemail %> </h1>
+    <h1><%= studentInfo.googlename %>/<%= studentInfo.googleemail %>
+        <%- studentInfo['_id'] %>
+</h1>
 
       <% let answeredProblemIds = []
          for (a in grades.answers) {

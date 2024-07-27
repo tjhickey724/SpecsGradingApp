@@ -1,0 +1,29 @@
+<%- include('../bootheader') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      Course: <%= course.name %></h1>
+    <h2 class="pb-2 border-bottom">
+         Exam: <%= exam.name %></h1>
+    <div class="p-2">
+        Created at <%= course.createdAt %>
+        <ul>
+            <% for (let i = 0; i < grades.length; i++) { %>
+                <li>
+                    <a href="/mathgrades/showStudent/<%= course._id %>/<%= exam._id %>/<%= grades[i]._id %>">
+                      <%= grades[i].name %>
+                    </a>  
+
+                    <%= grades[i].email %> <br>
+                    Skills Mastered: <%= grades[i].skillsMastered %> <br>
+                    Skills Skipped:  <%= grades[i].skillsSkipped %> : <br>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../bootfooter') -%>
+<%- include('../htmlfoot') -%>

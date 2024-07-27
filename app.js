@@ -22,6 +22,7 @@ if (process.env.IS_ON_WEB == "False") {
 const reviews = require('./routes/reviews');
 const auth = require('./routes/authRouter');
 const similarity = require('./routes/similarity');
+const mathgrades = require('./routes/mathgrades');
 
 
 // Models!
@@ -110,6 +111,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(auth);
 app.use(similarity);
+app.use('/mathgrades',mathgrades);
 
 //const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
 
@@ -172,7 +174,7 @@ app.get("/", isLoggedIn, async (req, res, next) => {
 
 app.use(reviews);
 
-
+//app.use("/mathgrades",)
 app.get("/about", (req, res, next) => {
   res.locals.routeName = " about";
   res.render("about");

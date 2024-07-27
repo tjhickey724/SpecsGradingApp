@@ -1,0 +1,45 @@
+<%- include('../bootheader') -%>
+<div class="p-3 mb-4 bg-light">
+    <div class="container-fluid ">
+        <h1 class="pb-2 border-bottom">
+          Course: <%= course.name %></h1>
+        <h2 class="pb-2 border-bottom">
+            Grades for  <%= grade.name %>: <%= grade.email %></h2>
+        <h3>Skills Mastered: <%= skillsMastered.length %>/<%= allSkills.length %></h3>
+        <h3>Grade Estimate:
+             <%= (skillsMastered.length/allSkills.length*100).toFixed(1) %>%
+        </h3>
+    
+            
+        <h2>All Skills</h2>
+        <div class="p-2">
+            <ul>
+            <% for (let i = 0; i < allSkills.length; i++) { %>
+                <li>
+                    <%= allSkills[i] %>
+                    <% if (skillsMastered.includes(allSkills[i])) { %>
+                        <span style="color:green">(Mastered)</span>
+                    <% } %>
+                </li>
+            <% } %>
+          </ul>
+        </div>
+        
+        <div class="p-2">
+            <h2>Mastery by Exam</h2>
+            <ol>
+            <% for (let i = 0; i < grades.length; i++) { %>
+                <li>
+    
+                    Skills Mastered: <%= grades[i].skillsMastered %> ....
+                    <!-- Skills Skipped:  <%= grades[i].skillsSkipped %> : <br>-->
+                </li>
+            <% } %>
+            </ol>
+        </div>
+
+    </div>
+</div>
+
+<%- include('../bootfooter') -%>
+<%- include('../htmlfoot') -%>

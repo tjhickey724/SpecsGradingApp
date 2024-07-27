@@ -1,0 +1,26 @@
+<%- include('../bootheader') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      Create Math Course </h1>
+    <div class="p-2">
+        <a href="mathgrades/createCourse">Create a new Course</a>
+    </div>
+  </div>
+  <div>
+    <h1>Courses</h1>
+    <ul>
+    <% courses.map(course => {%>
+      <li>
+        <a href="/mathgrades/showCourse/<%= course._id %>">
+          <%= course.name %>
+        </a>
+      </li>
+    <% }) %>
+    </ul>
+<pre><%= JSON.stringify(courses, null, 5) %></pre>
+  </div>
+</div>
+
+<%- include('../bootfooter') -%>
+<%- include('../htmlfoot') -%>

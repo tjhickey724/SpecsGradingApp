@@ -8,6 +8,10 @@
     <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
     <span class="lead fs-2">Promoting Effective and Engaged Learning</span>
     <% if (loggedIn){ %>
+      <a href="/mathgrades">View Math Grades</a>
+      <% } %>
+    
+    <% if (loggedIn){ %>
     <form method="post" action="/joinCourse">
       <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
         <div class="col-auto">
@@ -28,6 +32,8 @@
             or
             <a href="/stats" class="text-decoration-none">view usage
               statistics</a>)</span>
+            or
+            <a href="/mathgrades" class="text-decoration-none">Visit Math Grading App</a>
         </div>
       </div>
     </form>

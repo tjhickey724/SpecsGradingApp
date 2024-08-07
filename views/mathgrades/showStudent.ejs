@@ -4,22 +4,51 @@
         <h1 class="pb-2 border-bottom">
           Course: <%= course.name %></h1>
         <h2 class="pb-2 border-bottom">
-            Grades for  <%= grade.name %>: <%= grade.email %></h2>
-        <h3>Skills Mastered: <%= skillsMastered.length %>/<%= allSkills.length %></h3>
-        <h3>Grade Estimate:
+            Skill Mastery for  <%= grade.name %>: <%= grade.email %></h2>
+        <h3>Skills Mastered so far: <%= skillsMastered.length %>/<%= allSkills.length %> = 
              <%= (skillsMastered.length/allSkills.length*100).toFixed(1) %>%
-        </h3>
+        </h3>>
     
             
-        <h2>All Skills</h2>
+        <h2>Details on Skill Mastery</h2>
+        The percentage of the class who have mastered each skill
+        is in parentheses. 
+        <br>
+        The color of the percentage is based on the percentage.
+        <br>
+        <span style="color:red">Red means most of the class have already mastered it. </span>
+
+        <br>
+        <span style="color:blue">Blue means few of the class have mastered it yet.</span>
+        <br>
+        <span style="color:green">Green means you have mastered the skill.</span>
+        <br>
+
+
+        
         <div class="p-2">
             <ul>
             <% for (let i = 0; i < allSkills.length; i++) { %>
                 <li>
-                    <%= allSkills[i] %>
+                    
+                    <% let cm = 100*skillCounts[allSkills[i]] /
+                    studentCount;
+                        let b = 255 - cm*2.55;
+                        let r = cm*2.55;
+                    %>
+                    
                     <% if (skillsMastered.includes(allSkills[i])) { %>
-                        <span style="color:green">(Mastered)</span>
+                        <span style="color:green">
+                            <%= allSkills[i] %> 
+                            <%= (cm).toFixed(0) %>% 
+                        (Mastered)</span>
+                    <% } else { %>
+                        <span style="font-weight:bold;color:rgb(<%= r %>,0,<%= b %>)"> 
+                            <%= allSkills[i] %>
+                            <%= (cm).toFixed(0) %>% 
+                        </span> 
                     <% } %>
+                    
                 </li>
             <% } %>
           </ul>

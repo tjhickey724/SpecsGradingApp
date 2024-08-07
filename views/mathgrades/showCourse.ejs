@@ -8,38 +8,40 @@
         <br>
         Created at <%= course.createdAt %>
     </div>
-   <h1>Exams</h1>
-   <ul>
-    <% for (let i = 0; i < exams.length; i++) { %>
-      <li>
-        <a href="/mathgrades/showExam/<%= course._id %>/<%= exams[i]._id %>">
-          <%= exams[i].name %>
-        </a>
-        <a href="/mathgrades/deleteExam/<%= course._id %>/<%= exams[i]._id %>">
-          <span style="color:red">(Delete)</span>
-        </a>
-      </li>
-    <% } %>
-   </ul>
-  </div>
-  <hr>
-  <div>
-    <h2>Upload New Exam</h2>
-    <form method="post" 
-          action="/mathgrades/uploadGrades/<%= course._id %>" 
-          enctype="multipart/form-data">
-      <div class="mb-3">
-        Exam Name: <input type="text" name="examname" class="form-control" placeholder="Name">
+      <div class="p-2">
+        <a href="/mathgrades/deleteCourse/<%= course._id %>">Delete Course</a>
       </div>
-      <div class="mb-3">
-        <label for="grades" class="form-label">Grades</label>
-        <input required class="form-control" type="file" name="grades" >
+      <h1>Exams</h1>
+      <ul>
+        <% for (let i = 0; i < exams.length; i++) { %>
+          <li>
+            <a href="/mathgrades/showExam/<%= course._id %>/<%= exams[i]._id %>">
+              <%= exams[i].name %>
+            </a>
+            <a href="/mathgrades/deleteExam/<%= course._id %>/<%= exams[i]._id %>">
+              <span style="color:red">(Delete)</span>
+            </a>
+          </li>
+        <% } %>
+      </ul>
       </div>
-      <input class="btn btn-lg btn-primary" type="submit">
+      <hr>
+      <div>
+        <h2>Upload New Exam</h2>
+        <form method="post" 
+              action="/mathgrades/uploadGrades/<%= course._id %>" 
+              enctype="multipart/form-data">
+          <div class="mb-3">
+            Exam Name: <input type="text" name="examname" class="form-control" placeholder="Name">
+          </div>
+          <div class="mb-3">
+            <label for="grades" class="form-label">Grades</label>
+            <input required class="form-control" type="file" name="grades" >
+          </div>
+          <input class="btn btn-lg btn-primary" type="submit">
+        </form>
+      </div>
   </div>
-  <pre>
-    <%= JSON.stringify(results, null, 5) %>
-  </pre>
 </div>
 
 <%- include('../bootfooter') -%>

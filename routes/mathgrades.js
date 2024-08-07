@@ -12,12 +12,162 @@ const MathCourse = require("../models/MathCourse");
 const MathExam = require("../models/MathExam");
 const MathGrades = require("../models/MathGrades");
 
+const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
+
+router.use((req, res, next) => {
+  req.isAdmin = admins.includes(req.user.googleemail);
+  if (!req.user){
+    res.json({message:"you are not logged in"});
+  } else {
+    next();
+  }
+
+})
+
 /* GET home page. */
 router.get("/", async function (req, res, next) {
   const courses = await MathCourse.find({});
   res.locals.courses = courses;
+  res.locals.isAdmin = req.isAdmin;
   res.render("mathgrades/mathindex");
 });
+
+router.get("/showCourse/:courseId",async (req,res,next) => {
+  const courseId = req.params.courseId;
+  if (!req.isAdmin) {
+    res.redirect("/mathgrades/showStudentCourse/"+ courseId );
+  }else {
+    const course = await MathCourse.findOne({_id:courseId})
+    res.locals.course = course;
+    res.locals.results = [];
+    //console.log(`courseId:${courseId} course:${course}`)
+    const exams = await MathExam.find({courseId:courseId});
+    res.locals.exams = exams;
+    res.locals.isAdmin = req.isAdmin;
+    //console.log(exams);
+    //res.json(course);
+    res.render('mathgrades/showCourse');
+  }
+
+});
+
+router.get("/showStudentCourse/:courseId",async (req,res,next) => {
+  /* shows link to the student's page for this course
+  */
+  const courseId = req.params.courseId;
+  const course = await MathCourse.findOne({_id:courseId})
+  res.locals.course = course;
+  res.locals.results = [];
+  //console.log(`courseId:${courseId} course:${course}`)
+  const exams = await MathExam.find({courseId:courseId});
+  res.locals.exams = exams;
+  res.locals.isAdmin = req.isAdmin;
+  //console.log(exams);
+  if (exams.length == 0) {
+    res.json({message:"no exams for this course yet"});
+  } else {
+    const examId = exams[0]._id;
+    const courseId = exams[0].courseId;
+    const grades = await MathGrades.find({email:req.user.googleemail,
+                                         courseId:courseId});
+    if (grades.length != 0) {
+      const gradeId = grades[0]._id;
+      res.redirect(`/mathgrades/showStudent/${courseId}/${examId}/${gradeId}`);
+    }
+    else {
+      res.json({message:"no grades for this course yet"});
+    }
+  }
+  //res.json(course);
+  //res.render('mathgrades/showCourse');
+});
+
+const getClassGrades = async (req,res,next) => {
+  //console.log('in getClassGrades');
+  const courseId = req.params.courseId;
+  // const examId = req.params.examId;
+  const grades = await MathGrades.find({courseId:courseId});
+  /*
+    create a dictionary which gives the number of students
+    who have mastered each skill, indexed by skill name
+  */
+  const skillCounts = {};
+  const skillMastery = {};  // list of students who have mastered each skill
+  let studentCount = 0;
+  let studentEmails = [];
+  for (let grade of grades) {
+    
+    for (let skill of grade.skillsMastered) {
+      if (!studentEmails.includes(grade.email)) {
+        studentEmails.push(grade.email);
+        studentCount += 1;
+      }
+      if (skillCounts[skill]) {
+        if (!skillMastery[skill].includes(grade.email)) {
+          skillMastery[skill].push(grade.email);
+          skillCounts[skill] += 1;
+        }
+        
+      } else {
+        skillMastery[skill] = [grade.email];
+        skillCounts[skill] = 1;
+      }
+    }
+  }
+  res.locals.skillCounts = skillCounts;
+  res.locals.studentCount = studentCount;
+  //console.dir(`skillCounts.keys:${Object.keys(skillCounts)}`);
+  //console.dir(`skillCounts.values:${Object.values(skillCounts)}`);
+  //console.log(`studentCount:${studentCount}`);
+
+
+  next()
+}
+
+router.get("/showStudent/:courseId/:examId/:gradesId",
+            getClassGrades,
+            async (req,res,next) => {
+  const courseId = req.params.courseId;
+  const course = await MathCourse.findOne({_id:courseId});
+  const examId = req.params.examId;
+  const exam = await MathExam.findOne({_id:examId});
+  const gradesId = req.params.gradesId;
+  const grade = await MathGrades.findOne({_id:gradesId});
+  const grades = 
+    await MathGrades.find({email:grade.email,
+                           courseId:courseId});
+
+  if ((req.user.googleemail == grade.email) || (admins.includes(req.user.googleemail))) {
+      res.locals.course = course;
+      res.locals.exam = exam;
+      res.locals.grade = grade;
+      res.locals.grades = grades;
+      let skillsMastered = [];
+      let allSkills = [];
+      for (let grade of grades) {
+        //console.log(grade.skillsMastered);
+        skillsMastered = skillsMastered.concat(grade.skillsMastered);
+        allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped); 
+      }
+      allSkills = [...new Set(allSkills)].sort(compareExams);
+      res.locals.allSkills = allSkills;
+      //console.log(`grades:${grades}`);
+      //console.log(`skillsMastered:${skillsMastered}`);
+      res.locals.skillsMastered = 
+        [...new Set(skillsMastered)].sort(compareExams);
+      //console.log(res.locals.skillsMastered);
+      res.render('mathgrades/showStudent');
+} else {
+  res.json({message:"you are not authorized to view this page"});
+}})
+
+router.use((req, res, next) => {
+  if (!admins.includes(req.user.googleemail)) {
+    res.json({message:"you are not an admin"});
+  }else {
+    next();
+  }
+})
 
 router.get("/createCourse", async function (req, res, next) {
     res.render("mathgrades/createCourse");
@@ -41,10 +191,10 @@ router.get("/showCourse/:courseId",async (req,res,next) => {
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
     res.locals.results = [];
-    console.log(`courseId:${courseId} course:${course}`)
+    //console.log(`courseId:${courseId} course:${course}`)
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
-    console.log(exams);
+    //console.log(exams);
     //res.json(course);
     res.render('mathgrades/showCourse');
 });
@@ -89,38 +239,6 @@ function compareExams(a, b) {
   return 0;
 }
 
-router.get("/showStudent/:courseId/:examId/:gradesId",async (req,res,next) => {
-    const courseId = req.params.courseId;
-    const course = await MathCourse.findOne({_id:courseId});
-    const examId = req.params.examId;
-    const exam = await MathExam.findOne({_id:examId});
-    const gradesId = req.params.gradesId;
-    const grade = await MathGrades.findOne({_id:gradesId});
-    const grades = 
-      await MathGrades.find({email:grade.email,
-                             courseId:courseId});
-    res.locals.course = course;
-    res.locals.exam = exam;
-    res.locals.grade = grade;
-    res.locals.grades = grades;
-    let skillsMastered = [];
-    let allSkills = [];
-    for (let grade of grades) {
-      console.log(grade.skillsMastered);
-      skillsMastered = skillsMastered.concat(grade.skillsMastered);
-      allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped); 
-    }
-    allSkills = [...new Set(allSkills)].sort(compareExams);
-    res.locals.allSkills = allSkills;
-    console.log(`grades:${grades}`);
-    console.log(`skillsMastered:${skillsMastered}`);
-    res.locals.skillsMastered = 
-       [...new Set(skillsMastered)].sort(compareExams);
-    console.log(res.locals.skillsMastered);
-    res.render('mathgrades/showStudent');
-})
-
-
 const trimSkillString = (skill) => {
   /* The name of the	skill is of the	form:
  "2: F1 (1.0 pts)": "0.0",
@@ -153,8 +271,8 @@ router.post("/uploadGrades/:courseId", upload.single('grades'),
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
-    console.log(`courseId:${courseId} course:${course}`)
-    console.log(req.file);
+    //console.log(`courseId:${courseId} course:${course}`)
+    //console.log(req.file);
 
     const examname = req.body.examname;
     /*
@@ -183,15 +301,15 @@ router.post("/uploadGrades/:courseId", upload.single('grades'),
         const exam = new MathExam(examJSON);
         await exam.save();
         const examId = exam._id;
-        console.log(`examId:${examId}`);
+        //console.log(`examId:${examId}`);
 
         let documents = []
         dataFromRows.forEach(async (row) => {
             const email = row.Email;
             const name = row.Name;
-            console.log(`email:${email} name:${name}`)
+            //console.log(`email:${email} name:${name}`)
             const {skillsMastered,skillsSkipped} = processSkills(row);
-            console.log(`skillsMastered:${skillsMastered} skillsSkipped:${skillsSkipped}`);
+            //console.log(`skillsMastered:${skillsMastered} skillsSkipped:${skillsSkipped}`);
 
             // create new MathGrades object
             const gradeJSON = {              

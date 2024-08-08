@@ -7,8 +7,9 @@
             Skill Mastery for  <%= grade.name %>: <%= grade.email %></h2>
         <h3>Skills Mastered so far: <%= skillsMastered.length %>/<%= allSkills.length %> = 
              <%= (skillsMastered.length/allSkills.length*100).toFixed(1) %>%
-        </h3>>
-    
+        </h3>
+        <h3> <%= numFskills %> Fundamental skills mastered</h3>
+        <h3> <%= numGskills %> General skills mastered</h3>
             
         <h2>Details on Skill Mastery</h2>
         The percentage of the class who have mastered each skill
@@ -36,15 +37,15 @@
                         let b = 255 - cm*2.55;
                         let r = cm*2.55;
                     %>
-                    
+                    <%= allSkills[i] %> 
                     <% if (skillsMastered.includes(allSkills[i])) { %>
                         <span style="color:green">
-                            <%= allSkills[i] %> 
+                            
                             <%= (cm).toFixed(0) %>% 
                         (Mastered)</span>
                     <% } else { %>
                         <span style="font-weight:bold;color:rgb(<%= r %>,0,<%= b %>)"> 
-                            <%= allSkills[i] %>
+                            
                             <%= (cm).toFixed(0) %>% 
                         </span> 
                     <% } %>

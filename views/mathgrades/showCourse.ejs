@@ -11,6 +11,11 @@
       <div class="p-2">
         <a href="/mathgrades/deleteCourse/<%= course._id %>">Delete Course</a>
       </div>
+      <div class="p-2">
+        Summary of Mastery
+        <a href="/mathgrades/showMastery/<%= course._id %>">as html</a> or
+        <a href="/mathgrades/showMastery/<%= course._id %>?csv=1">as CSV</a>
+      </div>
       <h1>Exams</h1>
       <ul>
         <% for (let i = 0; i < exams.length; i++) { %>

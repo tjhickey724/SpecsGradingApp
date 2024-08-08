@@ -6,6 +6,7 @@ const upload = multer({ storage: storage })
 const csv = require('csv-parser')
 const fs = require('fs')
 const streamifier = require("streamifier");
+const ejs = require('ejs');
 
 
 const MathCourse = require("../models/MathCourse");
@@ -144,6 +145,8 @@ router.get("/showStudent/:courseId/:examId/:gradesId",
       res.locals.grades = grades;
       let skillsMastered = [];
       let allSkills = [];
+      let numFskills = 0;
+      let numGskills = 0;
       for (let grade of grades) {
         //console.log(grade.skillsMastered);
         skillsMastered = skillsMastered.concat(grade.skillsMastered);
@@ -155,7 +158,9 @@ router.get("/showStudent/:courseId/:examId/:gradesId",
       //console.log(`skillsMastered:${skillsMastered}`);
       res.locals.skillsMastered = 
         [...new Set(skillsMastered)].sort(compareExams);
-      //console.log(res.locals.skillsMastered);
+      res.locals.numFskills = res.locals.skillsMastered.filter(skill => skill[0] == "F").length;
+      res.locals.numGskills = res.locals.skillsMastered.filter(skill => skill[0] == "G").length;
+      
       res.render('mathgrades/showStudent');
 } else {
   res.json({message:"you are not authorized to view this page"});
@@ -198,6 +203,107 @@ router.get("/showCourse/:courseId",async (req,res,next) => {
     //res.json(course);
     res.render('mathgrades/showCourse');
 });
+
+const compareSkills = (a,b) => {
+  if (a[0] < b[0]) {
+    return -1;
+  } else if (a[0] > b[0]) {
+    return 1;
+  } else {
+    let n1 = parseInt(a.slice(1));
+    let n2 = parseInt(b.slice(1));
+    if (n1 < n2) {
+      return -1;
+    } else if (n1 > n2) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+}
+
+const calculateMastery = (grades) => {
+  /* 
+  for each student, calculate the set of skills mastered.
+  return a dictionary indexed by student emails, 
+  whose values are dictionaries of skills mastered by that student,
+  indexed by skill name whose values are 1.0 if it was mastered and 0.0
+  if it was not mastered
+  */
+  const mastery = {};
+  let skillSet = new Set();
+  for (let grade of grades) {
+      const email = grade.email;
+
+      
+
+      if (!mastery[email]){
+        mastery[email] = {};
+      }
+      //console.log(`grades.skillsMastered:${grade.skillsMastered}`);
+      (grade.skillsMastered).forEach(skill => {
+        skillSet.add(skill);
+        mastery[email][skill] = 1.0;
+      }
+      );
+      for (let skill of grade.skillsSkipped) {
+        if (!mastery[email][skill]) {
+          mastery[email][skill] = 0.0;
+        }
+      }
+  }
+  for (let email in mastery) {
+    /* calculate number of F skills and G skills and
+       add these as keys to the mastery dictionary */
+    mastery[email]["Fskills"] = 0;
+    mastery[email]["Gskills"] = 0;
+    for (let skill in mastery[email]) {
+      if ((skill[0] == "F") && (mastery[email][skill] == 1.0)) {
+        mastery[email]["Fskills"] += 1;
+      }
+      if ((skill[0] == "G")&& (mastery[email][skill] == 1.0)) {
+        mastery[email]["Gskills"] += 1;
+      }
+    }
+  }
+  skillSet = [...skillSet];
+  skillSet = skillSet.sort(compareSkills);
+  return [skillSet,mastery];
+}
+
+const masteryCSVtemplate =
+`email,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
+    skillSet[skill] %>,<% } %>
+<% for (let email in mastery) { %><%= 
+    email %>,<%= 
+    mastery[email]['Fskills'] %>,<%= 
+    mastery[email]['Gskills'] %>,<% 
+    for (let skill of skillSet) { 
+                        let m =mastery[email][skill];
+                        if (m === undefined) {
+                            m = 0;
+                        }
+                        %><%= 
+        m %>, <% } %>
+<% } %>
+`;
+
+
+router.get("/showMastery/:courseId",async (req,res,next) => {
+  const courseId = req.params.courseId;
+  const course = await MathCourse.findOne({_id:courseId});
+  const csv = req.query.csv;
+  res.locals.course = course;
+  const grades = await MathGrades.find({courseId:courseId});
+  [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
+  console.log(res.locals.skillSet);
+  if (csv){
+    res.set('Content-Type', 'text/csv');
+    res.send(ejs.render(masteryCSVtemplate,res.locals));
+  } else {
+    res.render('mathgrades/showMastery');
+  }
+})
 
 router.get("/showExam/:courseId/:examId",async (req,res,next) => {
     const courseId = req.params.courseId;

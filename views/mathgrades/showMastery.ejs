@@ -1,0 +1,46 @@
+<%- include('../bootheader') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      Show Math Course <%= course.name %></h1>
+    <div class="p-2">
+        <%= course.description %>
+        <br>
+        Created at <%= course.createdAt %>
+    </div>
+      <h1>Mastery Summary</h1>
+      <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Fskills</th>
+                <th>Gskills</th>
+                <% for (let skill of skillSet) { %>
+                    <th><%= skill %></th>
+                <% } %>
+            </tr>
+        </thead>
+        <tbody>
+            <% for (let email in mastery) {
+              %>
+                <tr>
+                    <td><%= email %></td>
+                    <td><%= mastery[email]['Fskills'] %></td>
+                    <td><%= mastery[email]['Gskills'] %></td>
+                    <% for (let skill of skillSet) { 
+                        let m =mastery[email][skill];
+                        if (m === undefined) {
+                            m = 0;
+                        }
+                        %>
+                        <td><%= m %></td>
+                    <% } %>
+                </tr>
+            <% } %>
+        </tbody>
+      </table>
+  </div>
+</div>
+
+<%- include('../bootfooter') -%>
+<%- include('../htmlfoot') -%>

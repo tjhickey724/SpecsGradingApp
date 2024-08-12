@@ -79,6 +79,89 @@ if (process.env.IS_ON_WEB == "False") {
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
 
+
+/*
+  Authentication Middleware 
+  There are five levels of authentication 
+  1. not logged in
+  2. user: logged in
+  3. student: logged in and enrolled in a course
+  4. ta: logged in and TA for a course
+  5. owner: logged in and owner of a course
+We set the authorization checking so that 
+the user must be logged in to access any of route except "/login"
+*/
+// route middleware to make sure a user is logged in
+const isLoggedIn = (req, res, next) => {
+  res.locals.loggedIn = false;
+  if (req.isAuthenticated()) {
+    res.locals.loggedIn = true;
+    return next();
+  } else {
+    res.redirect("/login");
+  }
+}
+
+const hasCourseAccess = async (req, res, next) => {
+  // students, TAs, and owners have access to the course
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+
+    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    res.locals.isEnrolled = memberList.length > 0;
+    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+    if (res.locals.courseInfo.ownerId == req.user._id || res.locals.isEnrolled || res.locals.isTA) {
+      next();
+    } else {
+      res.send("You do not have access to this course.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+const hasStaffAccess = async (req, res, next) => {
+  // Teaching Staff and Owners have access to the course route
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = 
+        await Course.findOne({_id: id}, "name coursePin ownerId");
+    res.locals.isTA = 
+            req.user.taFor 
+         && req.user.taFor.includes(res.locals.courseInfo._id);
+
+    if (res.locals.courseInfo.ownerId == req.user._id 
+        || res.locals.isTA) {
+      next();
+    } else {
+      res.send("Only TAs and the owner have access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+const isOwner = async (req, res, next) => {
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    // the ownerId is a string and the user._id is an object
+    // so we need to add "" to the user._id to make them the same type
+    // before testing for equality
+    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+    if (res.locals.isOwner) {
+      next();
+    } else {
+      res.send("Only the owner has access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -111,6 +194,22 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(auth);
 app.use(similarity);
+
+
+/*
+  the user must be logged in to access any of the routes below
+*/
+app.use(isLoggedIn);
+
+// this can be used to require onlyh brandeis people have access 
+app.use((req, res, next) => {
+  if (true || req.user.googleemail.endsWith("@brandeis.edu")) {
+    next();
+  } else {
+    res.send("You must have a Brandeis email to use this Peer Review App server\n " + "You can set up your own server. The code is at http://github.com/tjhickey724/PeerReviewApp branch v2.1 ");
+  }
+});
+
 app.use('/mathgrades',mathgrades);
 
 //const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
@@ -123,7 +222,7 @@ app.use('/mathgrades',mathgrades);
 app.get("/lrec", 
  async (req, res, next) => {
   try {
-    //console.log("in addTA handler "+req.body.email)
+
     let loginer = await User.findOne({_id: req.user._id});
     if (loginer) {
       loginer.logintime = loginer.logintime || [];
@@ -139,18 +238,14 @@ app.get("/lrec",
   }
 });
 
-// route middleware to make sure a user is logged in
-function isLoggedIn(req, res, next) {
-  res.locals.loggedIn = false;
-  if (req.isAuthenticated()) {
-    res.locals.loggedIn = true;
-    return next();
-  } else {
-    res.redirect("/login");
-  }
-}
 
-app.get("/", isLoggedIn, async (req, res, next) => {
+app.get("/", async (req, res, next) => {
+  /*
+    this is the main page with links to all of the courses
+    the user is enrolled in or teaching. It only requires that
+    they be logged in and they can create a new course or join an
+    existing course if they have the course pin.
+  */
   if (!req.user) next();
 
   let coursesOwned = await Course.find({ownerId: req.user._id}, "name");
@@ -172,9 +267,12 @@ app.get("/", isLoggedIn, async (req, res, next) => {
   res.render("index");
 });
 
+/* 
+  this handles all routes dealing with reviews
+  the user must have proper authentication to access these routes
+*/
 app.use(reviews);
 
-//app.use("/mathgrades",)
 app.get("/about", (req, res, next) => {
   res.locals.routeName = " about";
   res.render("about");
@@ -211,15 +309,8 @@ app.get("/stats", async (req, res, next) => {
   res.render("stats.ejs", {courseCount, userCount, problemCount, answerCount, reviewCount, courses, googleemail});
 });
 
-app.use(isLoggedIn);
 
-app.use((req, res, next) => {
-  if (true || req.user.googleemail.endsWith("@brandeis.edu")) {
-    next();
-  } else {
-    res.send("You must have a Brandeis email to use this Peer Review App server\n " + "You can set up your own server. The code is at http://github.com/tjhickey724/PeerReviewApp branch v2.1 ");
-  }
-});
+
 
 app.get("/createCourse", (req, res) => {
   res.locals.routeName = " createCourse";
@@ -272,7 +363,7 @@ async function getCoursePin() {
   return coursePin;
 }
 
-app.get("/showRoster/:courseId", async (req, res, next) => {
+app.get("/showRoster/:courseId", isOwner, async (req, res, next) => {
   try {
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
@@ -312,7 +403,7 @@ app.get("/dumpStats/:courseId", async (req, res, next) => {
   }
 });
 
-app.post("/addStudents/:courseId", async (req, res, next) => {
+app.post("/addStudents/:courseId", isOwner, async (req, res, next) => {
   try {
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
@@ -341,7 +432,11 @@ app.post("/addStudents/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/showCourse/:courseId", async (req, res, next) => {
+
+
+app.get("/showCourse/:courseId", 
+        hasCourseAccess,
+  async (req, res, next) => {
   try {
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
@@ -467,27 +562,29 @@ app.get("/showSkills/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/addSkill/:courseId", (req, res) => {
-  res.locals.courseId = req.params.courseId;
+app.get("/addSkill/:courseId", 
+  isOwner, (req, res) => {
+    res.locals.courseId = req.params.courseId;
 
-  res.locals.routeName = " addSkill";
-  res.render("addSkill");
+    res.locals.routeName = " addSkill";
+    res.render("addSkill");
 });
 
-app.post("/addSkill", async (req, res, next) => {
-  try {
-    let newSkill = new Skill({
-      name: req.body.name,
-      description: req.body.description,
-      createdAt: new Date(),
-      courseId: req.body.courseId,
-    });
+app.post("/addSkill", 
+  isOwner, async (req, res, next) => {
+    try {
+      let newSkill = new Skill({
+        name: req.body.name,
+        description: req.body.description,
+        createdAt: new Date(),
+        courseId: req.body.courseId,
+      });
 
-    await newSkill.save();
-    res.redirect("/showCourse/" + req.body.courseId);
-  } catch (e) {
-    next(e);
-  }
+      await newSkill.save();
+      res.redirect("/showCourse/" + req.body.courseId);
+    } catch (e) {
+      next(e);
+    }
 });
 
 app.get("/showSkill/:skillId", async (req, res, next) => {
@@ -532,9 +629,9 @@ app.post("/editSkill/:skillId", async (req, res, next) => {
   } catch (e) {
     next(e);
   }
-});
+}); 
 
-app.get("/addProblemSet/:courseId", async (req, res, next) => {
+app.get("/addProblemSet/:courseId", isOwner, async (req, res, next) => {
   const id = req.params.courseId;
 
   const courseInfo = await Course.findOne({_id: id}, "name ownerId");
@@ -889,6 +986,7 @@ app.get("/showAllAnswers/:probId", async (req, res, next) => {
     const id = req.params.probId;
     res.locals.problem = await Problem.findOne({_id: id});
     const course = await Course.findOne({_id: res.locals.problem.courseId});
+    res.locals.course = course;
     const userReviews = await Review.find({problemId: id, reviewerId: req.user._id});
     res.locals.allSkills = await Skill.find({courseId: res.locals.problem.courseId});
     res.locals.getSkill = (id, vals) => getElementBy_id(id, vals);
@@ -1205,7 +1303,7 @@ app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
   }
 });
 
-app.post("/addTA/:courseId", async (req, res, next) => {
+app.post("/addTA/:courseId", isOwner, async (req, res, next) => {
   try {
     //console.log("in addTA handler "+req.body.email)
     let ta = await User.findOne({googleemail: req.body.email});
@@ -1217,13 +1315,14 @@ app.post("/addTA/:courseId", async (req, res, next) => {
       //console.dir(ta)
       await ta.save();
     }
+    console.log(`res.locals=${JSON.stringify(res.locals,null,5)}`);
     res.redirect("/showTAs/" + req.params.courseId);
   } catch (e) {
     next(e);
   }
 });
 
-app.post("/removeTAs/:courseId", async (req, res, next) => {
+app.post("/removeTAs/:courseId", isOwner, async (req, res, next) => {
   try {
     //console.log("in removeTAs handler ")
     //console.dir(req.body)
@@ -1475,7 +1574,9 @@ const skillCount = (skills, skillLists) => {
     mastery of that skill. We will put the skills in an array and label the
     skill columns with numbers (perhaps with tooltips to see the full name).
   */
-app.get("/mastery2/:courseId", async (req, res, next) => {
+app.get("/mastery2/:courseId", 
+  isOwner,
+  async (req, res, next) => {
   const courseId = req.params.courseId;
   const agg = masteryAgg2(courseId);
   console.dir(agg);

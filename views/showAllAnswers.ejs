@@ -21,22 +21,10 @@
               <% if (isTA) {%>
                  <div>
               <% if (!(answers[i].reviewers.includes(user._id))){  %>
-                  <button  class="grader_<%=i%>"
-                                  id="cga_<%= i %>"
-                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points%>)"><%= problem.points%></button>
-                  <button  class="grader_<%=i%>"
-                                  id="cga_<%= i %>"
-                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',<%= problem.points-1%>)"><%= problem.points-1%></button>
-                  <a  href="/showReviewsOfAnswer/<%= answers[i]._id %>"
+                 <a  href="/showReviewsOfAnswer/<%= problem.courseId%>/<%= answers[i]._id %>"
                      target="_blank">grade it</a>
-                   <button  class="grader_<%=i%>"
-                                   id="cga_<%= i %>"
-                                   onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',1)">1</button>
-                  <button  class="grader_<%=i%>"
-                                  id="cga_<%= i %>"
-                                  onclick="clickGoodAnswer(<%= i %>,'<%= answers[i]._id %>','<%= answers[i].problemId %>',0)">0</button>
-                <% } else { %>
-                  <a href="/showReviewsOfAnswer/<%= answers[i]._id %>"
+              <% } else { %>
+                  <a href="/showReviewsOfAnswer/<%= problem.courseId%>/<%= answers[i]._id %>"
                      target="_blank">regrade it</a>
                 <% } %>
               </div>
@@ -123,7 +111,7 @@
                                         <hr>
                                         <a href="/reviewAnswers/<%= course._id%>/<%= problem._id %>"
                                           class="btn btn-small btn-warning">Review others answers</a>
-                                        <a href="/showReviewsByUser/<%= problem._id %>"
+                                        <a href="/showReviewsByUser/<%=problem.courseId%>/<%= problem._id %>"
                                           class="btn btn-small btn-info">Your Reviews of other's answers</a>
                                         <a href="/showProblem/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-danger">Back
                                           to the Problem</a>

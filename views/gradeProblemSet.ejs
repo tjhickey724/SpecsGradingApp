@@ -74,7 +74,7 @@
               <% } else if (!answerId) {
                                     jsonRow.grades.push(0)
                                    %>
-              <a style="color:red" href="/gradeProblem/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
+              <a style="color:red" href="/gradeProblem/<%= problemSet.courseId%>/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
                 No TA reviews yet
               </a>
               <% } else { %>

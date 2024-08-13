@@ -162,6 +162,19 @@ const isOwner = async (req, res, next) => {
 }
 
 
+const isAdmin = async (req, res, next) => {
+  try {
+    if (req.user.googleemail == "tjhickey@brandeis.edu"){
+      next()
+    } else {
+      res.send("Only the administrator has access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -582,7 +595,8 @@ app.get("/addSkill/:courseId", isOwner,
     res.render("addSkill");
 });
 
-app.post("/addSkill/:courseId",  isOwner, async (req, res, next) => {
+app.post("/addSkill/:courseId",  isOwner, 
+  async (req, res, next) => {
     try {
       let newSkill = new Skill({
         name: req.body.name,
@@ -647,7 +661,8 @@ app.post("/editSkill/:courseId/:skillId", isOwner,
   }
 }); 
 
-app.get("/addProblemSet/:courseId", isOwner, async (req, res, next) => {
+app.get("/addProblemSet/:courseId", isOwner, 
+  async (req, res, next) => {
   const id = req.params.courseId;
 
   const courseInfo = await Course.findOne({_id: id}, "name ownerId");
@@ -655,7 +670,8 @@ app.get("/addProblemSet/:courseId", isOwner, async (req, res, next) => {
   res.render("addProblemSet", {name: courseInfo.name, ownerId: courseInfo.ownerId, courseId: courseInfo._id});
 });
 
-app.post("/saveProblemSet/:courseId", async (req, res, next) => {
+app.post("/saveProblemSet/:courseId", isOwner,
+  async (req, res, next) => {
   try {
     const id = req.params.courseId;
     let newProblemSet = new ProblemSet({
@@ -676,7 +692,8 @@ app.post("/saveProblemSet/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/editProblemSet/:courseId/:psetId", async (req, res, next) => {
+app.get("/editProblemSet/:courseId/:psetId", isOwner,
+  async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
@@ -686,7 +703,8 @@ app.get("/editProblemSet/:courseId/:psetId", async (req, res, next) => {
   res.render("editProblemSet");
 });
 
-app.post("/updateProblemSet/:courseId/:psetId", async (req, res, next) => {
+app.post("/updateProblemSet/:courseId/:psetId", isOwner,
+  async (req, res, next) => {
   try {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
@@ -713,7 +731,8 @@ const getStudentSkills = async (studentId) => {
   }
 };
 
-app.get("/showProblemSet/:courseId/:psetId", async (req, res, next) => {
+app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
+  async (req, res, next) => {
   console.log("in showProblemSet");
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
@@ -731,7 +750,8 @@ app.get("/showProblemSet/:courseId/:psetId", async (req, res, next) => {
   res.render("showProblemSet");
 });
 
-app.get("/gradeProblemSet/:courseId/:psetId/json", async (req, res, next) => {
+app.get("/gradeProblemSet/:courseId/:psetId/json", hasStaffAccess,
+  async (req, res, next) => {
   const psetId = req.params.psetId;
   const problemSet = await ProblemSet.findOne({_id: psetId});
   const problems = await Problem.find({psetId: psetId});
@@ -794,7 +814,8 @@ app.get("/gradeProblemSet/:courseId/:psetId/json", async (req, res, next) => {
   res.json(jsonGrades);
 });
 
-app.get("/gradeProblemSet/:courseId/:psetId", async (req, res, next) => {
+app.get("/gradeProblemSet/:courseId/:psetId", hasStaffAccess,
+  async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
@@ -918,7 +939,8 @@ app.post("/saveProblem/:courseId/:psetId", isOwner,
   }
 });
 
-app.post("/updateProblem/:courseId/:probId", async (req, res, next) => {
+app.post("/updateProblem/:courseId/:probId", isOwner,
+  async (req, res, next) => {
   try {
     console.log('in updateProblem')
     const problem = await Problem.findOne({_id: req.params.probId});
@@ -954,7 +976,8 @@ app.post("/updateProblem/:courseId/:probId", async (req, res, next) => {
   }
 });
 
-app.get("/showProblem/:courseId/:probId", async (req, res, next) => {
+app.get("/showProblem/:courseId/:probId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     const probId = req.params.probId;
     const courseId = req.params.courseId;
@@ -977,19 +1000,22 @@ app.get("/showProblem/:courseId/:probId", async (req, res, next) => {
   }
 });
 
-app.get("/startProblem/:courseId/:probId", async (req, res, next) => {
+app.get("/startProblem/:courseId/:probId", isOwner,
+  async (req, res, next) => {
   const result = await Problem.updateOne({_id: req.params.probId}, {allowAnswers: true});
   const problem = await Problem.findOne({_id: req.params.probId});
   res.redirect("/showProblem/" + problem.courseId+"/"+ req.params.probId);
 });
 
-app.get("/stopProblem/:courseId/:probId", async (req, res, next) => {
+app.get("/stopProblem/:courseId/:probId", isOwner,
+  async (req, res, next) => {
   const result = await Problem.updateOne({_id: req.params.probId}, {allowAnswers: false});
   const problem = await Problem.findOne({_id: req.params.probId});
   res.redirect("/showProblem/" + problem.courseId+"/"+req.params.probId);
 });
 
-app.get("/updateSchema", async (req, res, next) => {
+app.get("/updateSchema", isAdmin,
+  async (req, res, next) => {
   const result = await Problem.updateMany({}, {allowAnswers: true});
   //console.dir(result)
   res.redirect("/");
@@ -1004,7 +1030,8 @@ function getElementBy_id(id, vals) {
   return null;
 }
 
-app.get("/showAllAnswers/:courseId/:probId", async (req, res, next) => {
+app.get("/showAllAnswers/:courseId/:probId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     const id = req.params.probId;
     const courseId = req.params.courseId;
@@ -1033,7 +1060,8 @@ app.get("/showAllAnswers/:courseId/:probId", async (req, res, next) => {
   }
 });
 
-app.get("/editProblem/:courseId/:probId", async (req, res, next) => {
+app.get("/editProblem/:courseId/:probId", isOwner,
+  async (req, res, next) => {
   const id = req.params.probId;
   res.locals.probId = id;
   res.locals.problem = await Problem.findOne({_id: id});
@@ -1051,7 +1079,8 @@ app.get("/editProblem/:courseId/:probId", async (req, res, next) => {
   we should send them to a page that says their answer has
   been reviewed and they can't update it. 
 */
-app.post("/saveAnswer/:courseId/:probId", async (req, res, next) => {
+app.post("/saveAnswer/:courseId/:probId", hasCourseAccess,
+  async (req, res, next) => {
   const id = req.params.probId;
   const courseId = req.params.courseId;
   res.locals.problem = await Problem.findOne({_id: id});
@@ -1089,7 +1118,8 @@ app.post("/saveAnswer/:courseId/:probId", async (req, res, next) => {
 });
 
 
-app.post("/requestRegrade/:courseId/:reviewId", async (req, res, next) => {
+app.post("/requestRegrade/:courseId/:reviewId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     const reviewId = req.params.reviewId;
     const review = await Review.findOne({_id: reviewId});
@@ -1115,7 +1145,8 @@ app.post("/requestRegrade/:courseId/:reviewId", async (req, res, next) => {
   }
 });
 
-app.get("/showRegradeRequests/:courseId", async (req, res, next) => {
+app.get("/showRegradeRequests/:courseId", hasStaffAccess,
+  async (req, res, next) => {
   try {
     const regradeRequests = await RegradeRequest.find({courseId: req.params.courseId});
     res.locals.regradeRequests = regradeRequests;
@@ -1128,7 +1159,8 @@ app.get("/showRegradeRequests/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/showRegradeRequest/:courseId/:requestId", async (req, res, next) => {
+app.get("/showRegradeRequest/:courseId/:requestId", hasStaffAccess,
+  async (req, res, next) => {
   try {
     const regradeRequest = await RegradeRequest.findOne({_id: req.params.requestId});
     res.locals.regradeRequest = regradeRequest;
@@ -1139,7 +1171,8 @@ app.get("/showRegradeRequest/:courseId/:requestId", async (req, res, next) => {
   }
 });
 
-app.post("/updateRegradeRequest/:courseId/:regradeRequestId", async (req, res, next) => {
+app.post("/updateRegradeRequest/:courseId/:regradeRequestId", hasStaffAccess, 
+  async (req, res, next) => {
   try {
     let regradeRequest = await RegradeRequest.findOne({_id: req.params.regradeRequestId});
     regradeRequest.reply = req.body.reply;
@@ -1190,7 +1223,8 @@ app.post("/updateRegradeRequest/:courseId/:regradeRequestId", async (req, res, n
 //   res.send("testing giveGoodGrade");
 // });
 
-app.get("/thumbsU/:courseId/:mode/:reviewId/:userId", async (req, res, next) => {
+app.get("/thumbsU/:courseId/:mode/:reviewId/:userId", hasCourseAccess,
+  async (req, res, next) => {
   let reviewId = req.params.reviewId;
   let userId = req.params.userId;
   let mode = req.params.mode;
@@ -1203,7 +1237,8 @@ app.get("/thumbsU/:courseId/:mode/:reviewId/:userId", async (req, res, next) => 
   res.json({result: "OK"});
 });
 
-app.get("/thumbsD/:courseId/:mode/:reviewId/:userId", async (req, res, next) => {
+app.get("/thumbsD/:courseId/:mode/:reviewId/:userId", hasCourseAccess,
+  async (req, res, next) => {
   let reviewId = req.params.reviewId;
   let userId = req.params.userId;
   let mode = req.params.mode;
@@ -1217,15 +1252,18 @@ app.get("/thumbsD/:courseId/:mode/:reviewId/:userId", async (req, res, next) => 
 });
 
 
-app.get("/showAllStudentInfo/:courseId", (req, res) => {
+app.get("/showAllStudentInfo/:courseId", hasStaffAccess,
+  (req, res) => {
   res.redirect("/showTheStudentInfo/all/" + req.params.courseId);
 });
 
-app.get("/showStudentInfo/:courseId", (req, res) => {
+app.get("/showStudentInfo/:courseId", hasStaffAccess,
+  (req, res) => {
   res.redirect("/showTheStudentInfo/summary/" + req.params.courseId);
 });
 
-app.get("/showTheStudentInfo/:option/:courseId", async (req, res, next) => {
+app.get("/showTheStudentInfo/:option/:courseId", hasStaffAccess,
+  async (req, res, next) => {
   try {
     const id = req.params.courseId;
     // get the courseInfo
@@ -1287,7 +1325,8 @@ app.get("/showTheStudentInfo/:option/:courseId", async (req, res, next) => {
   }
 });
 
-app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
+app.get("/showOneStudentInfo/:courseId/:studentId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId");
     res.locals.studentInfo = await User.findOne({_id: req.params.studentId});
@@ -1328,7 +1367,8 @@ app.get("/showOneStudentInfo/:courseId/:studentId", async (req, res, next) => {
   }
 });
 
-app.post("/addTA/:courseId", isOwner, async (req, res, next) => {
+app.post("/addTA/:courseId", isOwner, 
+  async (req, res, next) => {
   try {
     //console.log("in addTA handler "+req.body.email)
     let ta = await User.findOne({googleemail: req.body.email});
@@ -1347,7 +1387,8 @@ app.post("/addTA/:courseId", isOwner, async (req, res, next) => {
   }
 });
 
-app.post("/removeTAs/:courseId", isOwner, async (req, res, next) => {
+app.post("/removeTAs/:courseId", isOwner, 
+  async (req, res, next) => {
   try {
     //console.log("in removeTAs handler ")
     //console.dir(req.body)
@@ -1371,7 +1412,8 @@ app.post("/removeTAs/:courseId", isOwner, async (req, res, next) => {
   }
 });
 
-app.get("/showTAs/:courseId", async (req, res, next) => {
+app.get("/showTAs/:courseId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId coursePin");
     res.locals.tas = await User.find({taFor: req.params.courseId});
@@ -1385,7 +1427,8 @@ app.get("/showTAs/:courseId", async (req, res, next) => {
 });
 
 // add the studentId to each Review ...
-app.get("/updateReviews", async (req, res, next) => {
+app.get("/updateReviews", isAdmin,
+  async (req, res, next) => {
   if (req.user.googleemail != "tjhickey@brandeis.edu") {
     res.send("you are not allowed to do this!");
     //console.log("did we get here???  Yes we did!!")
@@ -1415,7 +1458,8 @@ app.get("/updateReviews", async (req, res, next) => {
 });
 
 // add the studentId to each Review ...
-app.get("/updateReviews2", async (req, res, next) => {
+app.get("/updateReviews2", isAdmin,
+  async (req, res, next) => {
   if (req.user.googleemail != "tjhickey@brandeis.edu") {
     res.send("you are not allowed to do this!");
   } else {
@@ -1445,7 +1489,8 @@ app.get("/updateReviews2", async (req, res, next) => {
   }
 });
 
-app.get("/removeGradeSheets", async (req, res, next) => {
+app.get("/removeGradeSheets", isAdmin,
+  async (req, res, next) => {
   if (req.user.googleemail != "tjhickey@brandeis.edu") {
     res.send("you are not allowed to do this!");
   } else {
@@ -1467,7 +1512,8 @@ app.get("/removeGradeSheets", async (req, res, next) => {
   }
 });
 
-app.get("/removeOrphanAnswers", async (req, res, next) => {
+app.get("/removeOrphanAnswers", isAdmin,
+  async (req, res, next) => {
   try {
     if (req.user.googleemail != "tjhickey@brandeis.edu") {
       res.send("you are not allowed to do this!");
@@ -1498,7 +1544,8 @@ app.get("/removeOrphanAnswers", async (req, res, next) => {
   }
 });
 
-app.get("/updateOfficialReviews", async (req, res, next) => {
+app.get("/updateOfficialReviews", isAdmin,
+  async (req, res, next) => {
   if (req.user.googleemail != "tjhickey@brandeis.edu") {
     res.send("you are not allowed to do this!");
   } else {
@@ -1553,7 +1600,8 @@ const masteryAgg = (courseId) => [
   },
 ];
 
-app.get("/mastery/:courseId", async (req, res, next) => {
+app.get("/mastery/:courseId", hasStaffAccess,
+  async (req, res, next) => {
   const agg = masteryAgg(req.params.courseId);
   console.dir(agg);
   const zz = await Answer.aggregate(agg);
@@ -1599,8 +1647,7 @@ const skillCount = (skills, skillLists) => {
     mastery of that skill. We will put the skills in an array and label the
     skill columns with numbers (perhaps with tooltips to see the full name).
   */
-app.get("/mastery2/:courseId", 
-  isOwner,
+app.get("/mastery2/:courseId", isOwner,
   async (req, res, next) => {
   const courseId = req.params.courseId;
   const agg = masteryAgg2(courseId);

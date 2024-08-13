@@ -58,7 +58,7 @@
         <% } %>
 
             <% if (userIsTA){%>
-                <form method="post" action="/removeReviews">
+                <form method="post" action="/removeReviews/<%=answer.courseId%>">
                      <input type="checkbox" name='deletes'
                      value="<%= reviews[i]._id%>"/>
                      <input type="submit" class="btn btn-sm btn-danger" value="delete"/>
@@ -138,7 +138,7 @@
         <div class="row">
             <div class="col-md-6">
 
-                <form method="post" action="/saveReview2/<%= problem._id %>/<%= answer._id %>">
+                <form method="post" action="/saveReview2/<%=problem.courseId%>/<%= problem._id %>/<%= answer._id %>">
                     Points:
                     <select name="points">
                         <% for(let j = 0;j<=problem.points; j++) { %>

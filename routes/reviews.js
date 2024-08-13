@@ -63,11 +63,110 @@ const app = express.Router();
 
 const Problem = require("../models/Problem");
 const Course = require("../models/Course");
+const CourseMember = require("../models/CourseMember");
 const Answer = require("../models/Answer");
 const Review = require("../models/Review");
 const User = require("../models/User");
 const Skill = require("../models/Skill");
 const RegradeRequest = require("../models/RegradeRequest");
+
+
+
+/*
+  Authentication Middleware 
+  There are five levels of authentication 
+  1. not logged in
+  2. user: logged in
+  3. student: logged in and enrolled in a course
+  4. ta: logged in and TA for a course
+  5. owner: logged in and owner of a course
+We set the authorization checking so that 
+the user must be logged in to access any of route except "/login"
+*/
+// route middleware to make sure a user is logged in
+const isLoggedIn = (req, res, next) => {
+  res.locals.loggedIn = false;
+  if (req.isAuthenticated()) {
+    res.locals.loggedIn = true;
+    return next();
+  } else {
+    res.redirect("/login");
+  }
+}
+
+const hasCourseAccess = async (req, res, next) => {
+  // students, TAs, and owners have access to the course
+  try {
+    const id = req.params.courseId;
+    console.log(`id=${id}`)
+    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    console.log(`courseInfo=${JSON.stringify(res.locals.courseInfo)}`)
+
+    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    res.locals.isEnrolled = memberList.length > 0;
+    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+    if (res.locals.isOwner|| res.locals.isEnrolled || res.locals.isTA) {
+      next();
+    } else {
+      res.send("You do not have access to this course.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+const hasStaffAccess = async (req, res, next) => {
+  // Teaching Staff and Owners have access to the course route
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = 
+        await Course.findOne({_id: id}, "name coursePin ownerId");
+    res.locals.isTA = 
+            req.user.taFor 
+         && req.user.taFor.includes(res.locals.courseInfo._id);
+
+    if (res.locals.courseInfo.ownerId == req.user._id 
+        || res.locals.isTA) {
+      next();
+    } else {
+      res.send("Only TAs and the owner have access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+const isOwner = async (req, res, next) => {
+  try {
+    const id = req.params.courseId;
+    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    // the ownerId is a string and the user._id is an object
+    // so we need to add "" to the user._id to make them the same type
+    // before testing for equality
+    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+    if (res.locals.isOwner) {
+      next();
+    } else {
+      res.send("Only the owner has access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+
+const isAdmin = async (req, res, next) => {
+  try {
+    if (req.user.googleemail == "tjhickey@brandeis.edu"){
+      next()
+    } else {
+      res.send("Only the administrator has access to this page.");
+    }
+  } catch (e) {
+    next(e);
+  }
+}
 
 /*
   This is the most complex of the routes for reviewing...
@@ -82,13 +181,15 @@ const RegradeRequest = require("../models/RegradeRequest");
   with the $incr and $pull   operators.
 */
 
-  app.get("/reviewAnswers/:courseId/:probId", async (req, res, next) => {
+  app.get("/reviewAnswers/:courseId/:probId", hasCourseAccess,
+    async (req, res, next) => {
   //   res.redirect("/reviewAnswers/" + req.params.probId);
   // })
 
 
   // app.get("/reviewAnswers/:probId", async (req, res, next) => {
     try {
+      const courseId = req.params.courseId; 
       const probId = req.params.probId;  
       let problem = await Problem.findOne({_id: probId});
   
@@ -185,7 +286,7 @@ const RegradeRequest = require("../models/RegradeRequest");
     
         if (answer) {
           // if we find an answer to review, then we redirect the user to that answer
-          res.redirect("/showReviewsOfAnswer/" + answer._id);
+          res.redirect("/showReviewsOfAnswer/"+courseId+"/"+ answer._id);
         } else {
           // this is the case where there is nothing left for the user to review
           res.locals.routeName = " nothingToReview";
@@ -203,7 +304,8 @@ const RegradeRequest = require("../models/RegradeRequest");
  this is the route for writing a review of a particular student's answer to a problem
  this is what TAs do when grading a problem set
 */
-app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, res, next) => {
+app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAccess,
+  async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
     const probId = req.params.probId;
@@ -231,7 +333,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
 
       await newAnswer.save();
       
-      res.redirect('/gradeProblem/'+probId+"/"+studentId)
+      res.redirect('/gradeProblem/'+courseId+"/"+probId+"/"+studentId)
     }
   } catch (e) {
       next(e);
@@ -245,7 +347,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
  this is the route for writing a review of a particular student's answer to a problem
  this is what TAs do when grading a problem set
 */
- app.get("/gradeProblem/:probId/:studentId", async (req, res, next) => {
+ app.get("/gradeProblem/:courseId/:probId/:studentId", hasCourseAccess,
+  async (req, res, next) => {
   try {
     const probId = req.params.probId;
     const studentId = req.params.studentId;
@@ -273,7 +376,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
     // *** Handle the case where the user hasn't answered this one yet.
     // need a new view "noAnswerToReview"  ***
     if (answer) {
-      res.redirect("/showReviewsOfAnswer/" + answer._id);
+      res.redirect("/showReviewsOfAnswer/" + answer.courseId+"/"+answer._id);
     } else {
       // this is ugly and I'll need to fix it soon
       res.send("the user has not yet submitted an answer to this problem")
@@ -297,7 +400,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
 
 
   */
-  app.post("/saveReview2/:probId/:answerId",
+  app.post("/saveReview2/:courseId/:probId/:answerId",hasCourseAccess,
   
     async (req, res, next) => {
       try {
@@ -432,7 +535,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
   
         //res.redirect('/showReviewsOfAnswer/'+answer._id)
         if (req.body.destination == "submit and view this again") {
-          res.redirect("/showReviewsOfAnswer/" + req.params.answerId);
+          res.redirect("/showReviewsOfAnswer/" + problem.courseId+"/"+req.params.answerId);
         } else {
           res.redirect("/reviewAnswers/" +problem.courseId+"/" + problem._id);
         }
@@ -445,7 +548,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
     }
   );
   
-  app.post("/removeReviews", async (req, res, next) => {
+  app.post("/removeReviews/:courseId", hasCourseAccess,
+    async (req, res, next) => {
     try {
       /*
         We need to remove/delete the Review, but also
@@ -501,7 +605,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
     return slist;
   }
   
-  app.get("/showReviewsOfAnswer/:answerId", async (req, res, next) => {
+  app.get("/showReviewsOfAnswer/:courseId/:answerId", hasCourseAccess,
+    async (req, res, next) => {
     try {
       const id = req.params.answerId;
       
@@ -531,7 +636,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
     }
   });
 
-  app.get("/showReviewsByUser/:probId", async (req, res, next) => {
+  app.get("/showReviewsByUser/:courseId/:probId", hasCourseAccess,
+    async (req, res, next) => {
     const id = req.params.probId;
     res.locals.problem = await Problem.findOne({_id: id});
     res.locals.course = await Course.findOne({_id: res.locals.problem.courseId});
@@ -543,7 +649,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, r
     res.render("showReviewsByUser");
   });
   
-  app.get("/showReview/:reviewId", (req, res) => res.send("Under Construction"));
+  
   
   
 module.exports = app;

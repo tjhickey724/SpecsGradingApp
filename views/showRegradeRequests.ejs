@@ -12,7 +12,7 @@
                             if (r.completed) continue; %>
         <li>
 
-          <a href="/showRegradeRequest/<%= r._id %>">
+          <a href="/showRegradeRequest/<%= r.courseId%>/<%= r._id %>">
             view</a><br>
           Completed? <%= r.completed %><br>
           Created <%= r.createdAt %>

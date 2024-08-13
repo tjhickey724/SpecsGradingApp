@@ -4,7 +4,7 @@
       <div class="container-fluid ">
         <div class="p-2">
           <% if (isOwner) { %>
-            <a href="/editSkill/<%= skill._id %>" class="btn btn-sm btn-info">
+            <a href="/editSkill/<%= skill.courseId %>/<%= skill._id %>" class="btn btn-sm btn-info">
               Edit
             </a>
             <% } %>

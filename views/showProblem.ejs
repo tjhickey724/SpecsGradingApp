@@ -33,7 +33,7 @@
           <% } %>
         </div>
         <div class="col-md text-right">
-          <a href="/editProblem/<%= problem._id %>" class="btn btn-sm btn-info">
+          <a href="/editProblem/<%= problem.courseId%>/<%= problem._id %>" class="btn btn-sm btn-info">
             Edit
           </a>
         </div>
@@ -62,7 +62,7 @@
       <% } %>
       <% if (problem.peerReviewable ||
 																	course.ownerId.equals(user._id)) { %>
-      <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others
+      <a href="/reviewAnswers/<%= course._id%>/<%= problem._id %>" class="btn btn-small btn-warning">Review others
         answers</a>
       <% } %>
 
@@ -74,13 +74,13 @@
       <a href="/showReviewsByUser/<%= problem._id %>" class="btn btn-small btn-info">Your
         Reviews of
         other's answers</a>
-      <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back
+      <a href="/showProblemSet/<%= problem.courseId%>/<%= problem.psetId %>" class="btn btn-small btn-primary">Back
         to the
         Problem Set</a>
       <% if ( true||
 																					course.ownerId.equals(user._id)) {
 																					%>
-      <a href="/showAllAnswers/<%= problem._id %>" class="btn btn-small btn-danger">Show
+      <a href="/showAllAnswers/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-danger">Show
         all
         answers</a>
       <%} %>
@@ -88,10 +88,10 @@
 																							(course.ownerId.equals(user._id))
 																							{ if (problem.allowAnswers)
 																							{ %>
-      <a href="/stopProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Stop
+      <a href="/stopProblem/<%= problem.courseId %>/<%= problem._id %>" class="btn btn-small btn-secondary">Stop
         Problem</a>
       <% } else { %>
-      <a href="/startProblem/<%= problem._id %>" class="btn btn-small btn-secondary">Start
+      <a href="/startProblem/<%= problem.courseId%>/<%= problem._id %>" class="btn btn-small btn-secondary">Start
         Problem</a>
       <% } %>
       <%} %>
@@ -126,7 +126,7 @@
       <% } else
 																														{
 																														%>
-      <form method="post" action="/saveAnswer/<%= problem._id %>">
+      <form method="post" action="/saveAnswer/<%= problem.courseId%>/<%= problem._id %>">
         <div class="form-group">
           <label for="answer">Enter
             your
@@ -155,7 +155,7 @@
         at
         <%= theAnswer.createdAt
 																																				%>
-        <a class="btn btn-primary" href="/showProblemSet/<%= problem.psetId %>">Return
+        <a class="btn btn-primary" href="/showProblemSet/<%= problem.courseId %>/<%= problem.psetId %>">Return
           to
           Problem
           Set

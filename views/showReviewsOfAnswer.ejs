@@ -67,11 +67,11 @@
             <% } %>
             <i  class="<%= fa_prefixU %> fa-thumbs-up"
                    id='<%= "reviewU"+i %>'
-                   onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','U')"></i>
+                   onclick="clickThumb('<%= problem.courseId%>',<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','U')"></i>
 
             <i  class="<%= fa_prefixD %> fa-thumbs-down"
                   id='<%= "reviewD"+i %>'
-                  onclick="clickThumb(<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','D')"></i>
+                  onclick="clickThumb('<%= problem.courseId%>',<%= i %>,'<%= reviews[i]._id %>','<%= user._id %>','D')"></i>
 
             <i>
 
@@ -115,7 +115,7 @@
                 <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } %><%= reviews[i].review %></div>
             <!-- allow user to request regrades of their answers -->
             <% if (answer.studentId==user.id) {%>
-                <form method="post" action="/requestRegrade/<%= reviews[i].id %>">
+                <form method="post" action="/requestRegrade/<%= answer.courseId%>/<%= reviews[i].id %>">
                     Regrade request:
                     Reason:<br>
                     <textarea name="reason" style="width:100%"></textarea>
@@ -188,7 +188,7 @@
               <%= rr.reason %><br>
               createAt:<%= rr.createdAt %><br>
        <% if (userIsTA){%>
-           <form method="post" action="/updateRegradeRequest/<%= rr._id%>">
+           <form method="post" action="/updateRegradeRequest/<%= rr.courseId%>/<%= rr._id%>">
 
                reply: <br>
                <textarea name="reply"></textarea>
@@ -217,12 +217,12 @@
     <% }%>
     </ul>
     <hr>
-    <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-    <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
-    <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+    <a href="/reviewAnswers/<%= courseInfo._id %>/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
+    <a href="/showProblem/<%= problem.courseId %>/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
+    <a href="/showProblemSet/<%= problem.courseId %>/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
 <% if (userIsTA){%>
 <a href="/showRegradeRequests/<%= problem.courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
-<a href="/gradeProblemSet/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
+<a href="/gradeProblemSet/<%= problem.courseId%>/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
 
     <% } %>
 

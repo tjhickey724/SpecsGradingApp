@@ -19,6 +19,7 @@
          for (a in grades.answers) {
           answeredProblemIds.push(""+grades.answers[a].answer.problemId)
           let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
+          let courseId = problem.courseId;
           let answer = grades.answers[a].answer
           let reviews = grades.answers[a].reviews
           let reviewScores = reviews.map((x)=>(x.points))
@@ -79,10 +80,10 @@
               && p.visible
              ){
             %>
-            <li><a href="/showProblem/<%= p['_id']%>">
+            <li><a href="/showProblem/<%= p.courseId %>/<%= p['_id']%>">
               <%= p.description %></a>
               <%= JSON.stringify(p.createdAt,null,5) %>
-              <a href="/showProblemSet/<%= p.psetId %>">view problem set</a>
+              <a href="/showProblemSet/<%= p.courseId%>/<%= p.psetId %>">view problem set</a>
             
           </li>
 

@@ -2,14 +2,14 @@
 <%- include('menubar') -%>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
-    <h6 class="pb-2 border-bottom fw-bold"> Skills
+    <h6 class="pb-2 border-bottom fw-bold"> Skills!
     </h6>
     <div class="p-2">
       <ul>
         <% for(i=0; i<=skills.length-1; i++){ %>
         <li>
 
-          <a href="/showSkill/<%= skills[i]._id %>">
+          <a href="/showSkill/<%= courseId %>/<%= skills[i]._id %>">
             <%= skills[i].name %>
           </a>
           <i><small>

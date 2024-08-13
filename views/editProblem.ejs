@@ -10,7 +10,7 @@
 
     <h1 class="pb-2 border-bottom">Edit Problem</h1>
     <div class="p-2">
-      <form method="post" action="/updateProblem/<%= problem._id %>">
+      <form method="post" action="/updateProblem/<%=problem.courseId%>/<%= problem._id %>">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" <% if (problem.visible) {%> checked <% }%> value='visible' name='visible' id="visible">
           <label class="form-check-label" for="visible">

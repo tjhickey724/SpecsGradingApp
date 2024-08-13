@@ -37,9 +37,9 @@
                       }
                     %>
             <li>
-              <i class="<%= fa_prefixU %> fa-thumbs-up" id='<%= "reviewU"+j %>' onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','U')"></i>
+              <i class="<%= fa_prefixU %> fa-thumbs-up" id='<%= "reviewU"+j %>' onclick="clickThumb('<%= answer.courseId %>',<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','U')"></i>
 
-              <i class="<%= fa_prefixD %> fa-thumbs-down" id='<%= "reviewD"+j %>' onclick="clickThumb(<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','D')"></i>
+              <i class="<%= fa_prefixD %> fa-thumbs-down" id='<%= "reviewD"+j %>' onclick="clickThumb('<%= answer.courseId %>',<%= j %>,'<%= allReviews[j]._id %>','<%= user._id %>','D')"></i>
 
               <i>
 
@@ -69,9 +69,9 @@
         <% } %>
       </ul>
       <hr>
-      <a href="/reviewAnswers/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-      <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
-      <a href="/showProblemSet/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+      <a href="/reviewAnswers/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
+      <a href="/showProblem/<%= problem.courseId %>/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
+      <a href="/showProblemSet/<%= problem.courseId%>/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
 
     </div>
   </div>

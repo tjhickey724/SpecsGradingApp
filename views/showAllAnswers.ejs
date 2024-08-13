@@ -79,10 +79,10 @@
  <div class="col">
                   <i  class="<%= fa_prefixU %> fa-thumbs-up"
                                id='<%= "reviewU"+j %>'
-                               onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
+                               onclick="clickThumb('<%= problem.courseId%>',<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','U')"></i>
                   <i  class="<%= fa_prefixD %> fa-thumbs-down"
                               id='<%= "reviewD"+j %>'
-                              onclick="clickThumb(<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
+                              onclick="clickThumb('<%= problem.courseId%>',<%= j %>,'<%= reviews[j]._id %>','<%= user._id %>','D')"></i>
                   <i>
                     likes: <span id='<%="likes"+ j %>'>
                              <%= numLikesU-numLikesD %>
@@ -121,13 +121,13 @@
 
 
                                         <hr>
-                                        <a href="/reviewAnswers/<%= problem._id %>"
+                                        <a href="/reviewAnswers/<%= course._id%>/<%= problem._id %>"
                                           class="btn btn-small btn-warning">Review others answers</a>
                                         <a href="/showReviewsByUser/<%= problem._id %>"
                                           class="btn btn-small btn-info">Your Reviews of other's answers</a>
-                                        <a href="/showProblem/<%= problem._id %>" class="btn btn-small btn-danger">Back
+                                        <a href="/showProblem/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-danger">Back
                                           to the Problem</a>
-                                        <a href="/showProblemSet/<%= problem.psetId %>"
+                                        <a href="/showProblemSet/<%= problem.courseId%>/<%= problem.psetId %>"
                                           class="btn btn-small btn-primary">Back to the Problem Set</a>
 
 

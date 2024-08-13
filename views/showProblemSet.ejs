@@ -19,7 +19,7 @@
                                         !skills.includes(skill.toString())).length
                                         %>
           <% if (skillsToMaster==0){ %>
-          <a href="/showProblem/<%= problems[i]._id %>">
+          <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
             <span style="color:green">
               <%= problems[i].description || "no name" %>
               all skills in this problem have been mastered
@@ -27,7 +27,7 @@
           </a>
 
           <% } else { %>
-          <a href="/showProblem/<%= problems[i]._id %>">
+          <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
             <%= problems[i].description || "no name" %>
           </a>
 
@@ -41,18 +41,18 @@
 
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+      <a class="btn btn-sm btn-success" href="/addProblem/<%= courseInfo._id%>/<%= psetId %>">Add Problem</a>
 
-      <a href="/editProblemSet/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
+      <a href="/editProblemSet/<%=courseInfo._id%>/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
       <% } %>
       <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
         of Problem
         Sets</a>
       <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0 || courseInfo.ownerId.equals(user._id)) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseInfo._id%>/<%= problemSet._id %>">Grade
         Problem Set
       </a>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>/json">JSON grades
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseInfo._id%>/<%= problemSet._id %>/json">JSON grades
       </a>
       <% } %>
     </div>

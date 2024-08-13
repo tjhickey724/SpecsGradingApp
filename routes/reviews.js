@@ -82,7 +82,12 @@ const RegradeRequest = require("../models/RegradeRequest");
   with the $incr and $pull   operators.
 */
 
-  app.get("/reviewAnswers/:probId", async (req, res, next) => {
+  app.get("/reviewAnswers/:courseId/:probId", async (req, res, next) => {
+  //   res.redirect("/reviewAnswers/" + req.params.probId);
+  // })
+
+
+  // app.get("/reviewAnswers/:probId", async (req, res, next) => {
     try {
       const probId = req.params.probId;  
       let problem = await Problem.findOne({_id: probId});
@@ -198,8 +203,9 @@ const RegradeRequest = require("../models/RegradeRequest");
  this is the route for writing a review of a particular student's answer to a problem
  this is what TAs do when grading a problem set
 */
-app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) => {
+app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", async (req, res, next) => {
   try {
+    const courseId = req.params.courseId;
     const probId = req.params.probId;
     const studentId = req.params.studentId;
 
@@ -291,8 +297,7 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
 
 
   */
-  app.post(
-    "/saveReview2/:probId/:answerId",
+  app.post("/saveReview2/:probId/:answerId",
   
     async (req, res, next) => {
       try {
@@ -429,7 +434,7 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
         if (req.body.destination == "submit and view this again") {
           res.redirect("/showReviewsOfAnswer/" + req.params.answerId);
         } else {
-          res.redirect("/reviewAnswers/" + problem._id);
+          res.redirect("/reviewAnswers/" +problem.courseId+"/" + problem._id);
         }
   
         // we can now redirect them to review more answers
@@ -529,6 +534,7 @@ app.get("/gradeProblemWithoutAnswer/:probId/:studentId", async (req, res, next) 
   app.get("/showReviewsByUser/:probId", async (req, res, next) => {
     const id = req.params.probId;
     res.locals.problem = await Problem.findOne({_id: id});
+    res.locals.course = await Course.findOne({_id: res.locals.problem.courseId});
     res.locals.usersReviews = await Review.find({reviewerId: req.user._id, problemId: res.locals.problem._id});
     res.locals.allReviews = await Review.find({problemId: res.locals.problem._id});
     const answerIds = res.locals.usersReviews.map((r) => r.answerId);

@@ -6,9 +6,8 @@
       Add Skill</h1>
     <div class="p-2">
 
-      <form method="POST" action="/addSkill">
+      <form method="POST" action="/addSkill/<%= courseId %>">
 
-        <input type="hidden" name="courseId" value="<%= courseId %>">
         <div class="mb-3">
 
           <label for="name" class="form-label">Skill Name</label>

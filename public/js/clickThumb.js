@@ -1,8 +1,8 @@
 console.log("Loading function clickThumb")
     // code to handle clicking on the ThumbsUp/Down for a review
-function clickThumb(i,reviewId,userId,direction){
-
-  const urlPath=reviewId+"/"+userId
+function clickThumb(courseId,i,reviewId,userId,direction){
+  //console.log(`in clickThumb `);//with i=${i}, courseId=${courseId}, reviewId=${reviewId}, userId=${userId}, direction=${direction}`);
+  const urlPath=courseId+"/"+reviewId+"/"+userId
   const reviewU = document.getElementById("reviewU"+i)
   const reviewD = document.getElementById("reviewD"+i)
   const review = document.getElementById("review"+direction+i)

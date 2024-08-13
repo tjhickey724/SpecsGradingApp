@@ -12,7 +12,7 @@
             <th>N </th>
             <th>Student</th>
             <% for(i = 0; i<= problems.length-1; i++){  %>
-            <th> <a href="/showProblem/<%= problems[i]._id %>">
+            <th> <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
                 P<%= i %><br> <%= problems[i].points %>
 
               </a></th>
@@ -69,7 +69,7 @@
                                     jsonRow.grades.push(-1)
                                     %>
               <!-- No answer to review -->
-              <a href="/gradeProblemWithoutAnswer/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">+</a>
+              <a href="/gradeProblemWithoutAnswer/<%= problemSet.courseId%>/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">+</a>
 
               <% } else if (!answerId) {
                                     jsonRow.grades.push(0)
@@ -130,11 +130,11 @@
 
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= psetId %>">Add Problem</a>
+      <a class="btn btn-sm btn-success" href="/addProblem/<%= problemSet.courseId %>/<%= psetId %>">Add Problem</a>
       <% } %>
       <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
       <% if ((user.taFor).indexOf(problemSet.courseId)>=0) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet._id %>">Grade Problem Set </a>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet.courseId%>/<%= problemSet._id %>">Grade Problem Set </a>
       <% } %>
 
 

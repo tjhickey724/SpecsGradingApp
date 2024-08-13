@@ -6,7 +6,7 @@
 
       <% if (user._id.equals(courseInfo.ownerId)) { %>
       You own this course<br>
-      <form method="post" action="/updateProblemSet/<%= psetId %>">
+      <form method="post" action="/updateProblemSet/<%= courseInfo._id%>/<%= psetId %>">
         Problem Set Name:
         <input type="text" name="name" value="<%= problemSet.name %>">
         <br>

@@ -42,7 +42,7 @@
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
       <a class="btn btn-sm btn-success" href="/addProblem/<%= courseInfo._id%>/<%= psetId %>">Add Problem</a>
-
+      <a class="btn btn-sm btn-success" href="/showProblemCatalog/<%= courseInfo._id%>/<%= psetId %>">View Problem Library</a>
       <a href="/editProblemSet/<%=courseInfo._id%>/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
       <% } %>
       <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List

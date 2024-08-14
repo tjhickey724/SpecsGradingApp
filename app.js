@@ -59,6 +59,7 @@ const MongoStore = require("connect-mongo")(session);
 // END OF AUTHENTICATION MODULES
 
 const mongoose = require("mongoose"); 
+const ProblemCatalogCard = require("./models/ProblemCatalogCard");
 
 //mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 //mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
@@ -887,6 +888,7 @@ app.get("/addProblem/:courseId/:psetId", isOwner,
     res.locals.courseId = req.params.courseId;
     res.locals.skills = await Skill.find({courseId: pset.courseId});
     res.locals.routeName = " addProblem";
+    res.locals.problem={description:"",problemText:"",points:0,rubric:"",skills:[],visible:true,submitable:true,answerable:true,peerReviewable:true};
     res.render("addProblem");
   } catch (e) {
     next(e);
@@ -1020,6 +1022,75 @@ app.get("/updateSchema", isAdmin,
   //console.dir(result)
   res.redirect("/");
 });
+
+const problem2card = (p) => {
+  let tags = p.skills.map((x) => x.name).join(",");
+  let createdAt = new Date();
+  let card = {
+    problemId: p._id,
+    organization:"Brandeis University",
+    tags:tags,
+    notes: "",
+    ancestors: [],
+    createdAt: createdAt,
+    lastModified: createdAt,
+  }
+  return new ProblemCatalogCard(card);
+}
+
+app.get('/updateProblemCatalog', isAdmin, 
+  async (req, res, next) => {
+  try {
+    const problems = await Problem.find({}).populate('skills');;
+    console.dir(problems[0]);
+    let cards = problems.map(problem2card);
+    console.log(`num cards = ${cards.length}`);
+    await ProblemCatalogCard.deleteMany({});
+    await ProblemCatalogCard.insertMany(cards);
+    res.send(`updated ${cards.length} cards`);
+  } catch (e) {
+    next(e);
+  }
+}
+)
+
+app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
+  async (req,res,next) => {
+    res.locals.routeName=" showProblemCatalog";
+    res.locals.courseId = req.params.courseId;
+    res.locals.psetId = req.params.psetId;
+    res.locals.problems = [];
+    res.render('showProblemCatalog');
+  }
+)
+
+app.get('/showCatalogProblem/:courseId/:psetId/:probId', hasCourseAccess,
+  async (req,res,next) => {
+    console.log(`req.params=${JSON.stringify(req.params)}`);
+    res.locals.routeName=" showProblem";
+    res.locals.courseId = req.params.courseId;
+    res.locals.psetId = req.params.psetId;
+    res.locals.probId = req.params.probId;
+    res.locals.problem = await Problem.findOne({_id:req.params.probId});
+    res.locals.skills = await Skill.find({courseId: req.params.courseId});
+    console.dir(res.locals.problem);
+    res.render('addProblem');
+  }
+)
+
+app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
+  async (req,res,next) => {
+    res.locals.courseId = req.params.courseId;
+    res.locals.psetId = req.params.psetId;
+    res.locals.routeName=" showProblemCatalog";
+    console.log("searching for "+req.body.search);
+    res.locals.problems = 
+      await ProblemCatalogCard.find(
+          {tags:{$regex:req.body.search, $options: 'i'}}).populate('problemId');
+    console.log("found "+res.locals.problems.length+" problems");
+    res.render('showProblemCatalog');
+  }
+)
 
 function getElementBy_id(id, vals) {
   for (let i = 0; i < vals.length; i++) {
@@ -1773,4 +1844,7 @@ function createGradeSheet(students, problems, answers, reviews) {
   return {grades: gradeSheet, problems: problemList, answers: answerList};
 }
 
+
+
+      
 module.exports = app;

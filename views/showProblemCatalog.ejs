@@ -1,0 +1,33 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-lg-5 p-4 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1>Problem Search Page
+    </h1>
+    <hr>
+    <form action="/searchProblems/<%= courseId%>/<%=psetId%>" method="post">
+      <div class="form-group">
+        <label for="search">Search for Problems</label>
+        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term">
+      </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <ul>
+    <% if (problems.length > 0) { 
+        problems.forEach(problem => { %>
+        <li>
+            <h1><%= problem.problemId.description %></h1>
+            <a href="/showCatalogProblem/<%= courseId %>/<%= psetId %>/<%= problem.problemId._id %>"><%= problem.tags %></a>
+            <pre
+><%= problem.problemId.problemText %></pre>
+            <hr>
+        </li>
+      <% }); %>  
+    <% }  %>
+    </ul>
+    <pre><%= JSON.stringify(problems,null,5)%> </pre>
+  </div>
+</div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

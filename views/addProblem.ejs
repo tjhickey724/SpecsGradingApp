@@ -35,20 +35,26 @@
         <hr>
         <div class="mb-3 col-lg-4">
           <label for="description" class="form-label">Problem Title</label>
-          <input type="text" class="form-control" name="description" id="description">
+          <input type="text" class="form-control" 
+                 name="description" id="description"
+                 value="<%= problem.description%>">
         </div>
         <div class="mb-3">
           <label for="problemText" class="form-label">Problem Description</label>
-          <textarea name="problemText" class="form-control" cols="100" rows="10"></textarea>
+          <textarea name="problemText" class="form-control" 
+                  cols="100" rows="10"><%= problem.problemText %></textarea>
         </div>
         <b>Rubric:</b><br>
         <div class="row mb-1">
           <label for="points" class="col-sm-1 col-form-label">Points</label>
           <div class="col-sm-2">
-            <input type="text" class="form-control" name="points" id="points">
+            <input type="text" class="form-control" 
+            name="points" id="points"
+            value="<%= problem.points%>">
           </div>
         </div>
-        <textarea class="form-control" name="rubric" cols="100" rows="10"></textarea>
+        <textarea class="form-control" name="rubric" 
+              cols="100" rows="10"><%= problem.rubric %></textarea>
         <hr>
         <h2>Skills required to fully solve this problem</h2>
         Check all that apply.
@@ -67,6 +73,7 @@
 
       <%= psetId %>
     </div>
+    <pre><%= JSON.stringify(problem,null,5) %></pre>
   </div>
 </div>
 

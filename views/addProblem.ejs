@@ -39,6 +39,14 @@
                  name="description" id="description"
                  value="<%= problem.description%>">
         </div>
+        <div class="mb-3 col-lg-4">
+          <label for="mimeType" class="form-label">mimeType</label>
+          <select name="mimeType" id="mimeType">
+            <option>plain</option>
+            <option>markdown</option>
+            <option>tex</option>
+          </select>
+        </div>
         <div class="mb-3">
           <label for="problemText" class="form-label">Problem Description</label>
           <textarea name="problemText" class="form-control" 

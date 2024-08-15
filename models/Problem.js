@@ -8,6 +8,7 @@ var problemSchema = Schema( {
   psetId: {type:ObjectId,index:true},
   description: String,
   problemText: String,
+  mimeType: String, // type of the problem text (plain, markdown, tex, etc.)
   points: Number,
   rubric: String,
   pendingReviews: mongoose.Schema.Types.Mixed,

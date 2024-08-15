@@ -83,6 +83,11 @@
       <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show Skills
       </a>
+      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+      <a href="/importSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Import Skills from another course
+      </a>
+      <% } %>
       <br>
       <hr>
       <h2>Skills Mastery Evidence</h2>

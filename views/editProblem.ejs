@@ -6,7 +6,9 @@
     <% if (!course.ownerId.equals(user._id)) { %>
     <div class="p-2">
       You must own the course to edit the problems.</div>
-    <% } else { %>
+    <% } else { 
+      const isSelected = (x) => (x==problem.mimeType) ? 'selected' : '';
+      %>
 
     <h1 class="pb-2 border-bottom">Edit Problem</h1>
     <div class="p-2">
@@ -46,6 +48,14 @@
         <div class="mb-3">
           <label for="problemText" class="form-label">Problem Description</label>
           <textarea name="problemText" class="form-control" cols="100" rows="10"><%= problem.problemText %></textarea>
+        </div>
+        <div class="mb-3 col-lg-4">
+          <label for="mimeType" class="form-label">mimeType</label>
+          <select name="mimeType" id="mimeType">
+            <option <%= isSelected('plain')%> > plain</option>
+            <option <%= isSelected('markdown')%> >markdown</option>
+            <option <%= isSelected('tex')%> >tex</option>
+          </select>
         </div>
         <b>Rubric:</b><br>
         <div class="row mb-1">

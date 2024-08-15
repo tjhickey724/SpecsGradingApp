@@ -1,0 +1,30 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-5 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">Import Skills</h1>
+    <ul class="p-3 px-5 list-group list-group-flush">
+
+      
+      <li class="list-group-item list-group-item-light">
+        <%= courses.length %> courses created
+        <br>
+        Select a course to possibly import skills from:
+        <ol>
+          <% for(let i=0; i<courses.length; i++){ %>
+          <li>
+            <a href="/showSkillsToImport/<%= courseId%>/<%= courses[i]._id %>">
+              <%= courses[i].name %>
+            </a>
+          </li>
+          <% } %>
+
+        </ol>
+      </li>
+    </ul>
+  </div>
+<pre><%= JSON.stringify(courses,null,5)%></pre>
+</div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

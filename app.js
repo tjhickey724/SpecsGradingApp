@@ -133,7 +133,7 @@ const hasStaffAccess = async (req, res, next) => {
             req.user.taFor 
          && req.user.taFor.includes(res.locals.courseInfo._id);
 
-    if (res.locals.courseInfo.ownerId == req.user._id 
+    if (res.locals.courseInfo.ownerId == req.user._id+""
         || res.locals.isTA) {
       next();
     } else {
@@ -575,6 +575,12 @@ app.post("/joinCourse", isLoggedIn,
   }
 });
 
+/* 
+*********************************************************************
+Skill routes
+********************************************************************* 
+*/
+
 app.get("/showSkills/:courseId", hasCourseAccess,
   async (req, res, next) => {
   try {
@@ -645,6 +651,7 @@ app.get("/editSkill/:courseId/:skillId", isOwner,
   }
 });
 
+
 app.post("/editSkill/:courseId/:skillId", isOwner,
   async (req, res, next) => {
   try {
@@ -661,6 +668,55 @@ app.post("/editSkill/:courseId/:skillId", isOwner,
     next(e);
   }
 }); 
+
+app.get("/importSkills/:courseId", isOwner,
+  async (req, res, next) => {
+    res.locals.courseId = req.params.courseId;
+    res.locals.courses = await Course.find({ownerId: req.user._id}).sort({name: 1});
+
+    res.locals.routeName = " importSkills";
+    res.render("importSkills");
+});
+
+app.get("/showSkillsToImport/:courseId/:otherCourseId", isOwner,
+  async (req, res, next) => {
+    res.locals.courseId = req.params.courseId;
+    res.locals.otherCourseId = req.params.otherCourseId;
+    res.locals.otherCourse = await Course.findOne({_id: req.params.otherCourseId});
+
+    res.locals.skills = await Skill.find({courseId: req.params.otherCourseId});
+    res.locals.routeName = " showSkillsToImport";
+    res.render('showSkillsToImport');
+});
+
+app.get('/importAllSkills/:courseId/:otherCourseId', isOwner,
+  async (req, res, next) => {
+    try {
+      const otherCourseId = req.params.otherCourseId;
+      const skills = await Skill.find({courseId: otherCourseId});
+      for (let skill of skills) {
+        let newSkill = new Skill({
+          name: skill.name,
+          description: skill.description,
+          createdAt: new Date(),
+          courseId: req.params.courseId,
+        });
+        await newSkill.save();
+      }
+      res.redirect("/showSkills/" + req.params.courseId);
+    } catch (e) {
+      next(e);
+    }
+});
+
+
+
+/* 
+*********************************************************************
+ProblemSet routes
+********************************************************************* 
+*/
+
 
 app.get("/addProblemSet/:courseId", isOwner, 
   async (req, res, next) => {
@@ -879,6 +935,62 @@ app.get("/gradeProblemSet/:courseId/:psetId", hasStaffAccess,
 //     res.send("You are not allowed to grade problem sets.");
 //   }
 // });
+const preamble =
+`
+\\input{preamble.tex}
+                               
+\\begin{document}
+
+\\thispagestyle{empty}
+ \\setcounter{page}{1}\\noindent Name: All Problems \\hfill Section: 0 \\hfill  Math 10a: Friday Assessment \\#1 -- Sep 3
+
+\\input{title.tex}
+
+`;
+const generateTex = (problems) => {
+  let tex = preamble+"\\begin{enumerate}\n";
+  for (let p of problems) {
+    tex += "\\item\n"
+    if (p.mimeType=='plain'){
+      tex += '\\begin{verbatim}\n'
+    } else if (p.mimeType=='markdown'){
+      tex += '\\begin{markdown}\n'
+    }
+    
+    tex += p.description+"\n";
+    
+
+    tex += p.problemText + "\n";
+    if (p.mimeType=='plain'){
+      tex += '\\end{verbatim}\n'
+    } else if (p.mimeType=='markdown'){
+      tex += '\\end{markdown}\n'
+    }
+
+    tex += `
+ \\vfill
+{\\small Outcome F1:}
+
+ 
+\\hfill Show all your work!
+
+\\pagebreak
+`;
+     }
+  tex += "\\end{enumerate}\n\\end{document}\n";
+  return tex;
+};
+
+app.get('/downloadAsTexFile/:courseId/:psetId', hasStaffAccess,
+  async (req, res, next) => {
+    const psetId = req.params.psetId;
+    const problemSet = await ProblemSet.findOne({_id: psetId});
+    const problems = await Problem.find({psetId: psetId});
+    //res.setHeader('Content-disposition', 'attachment; filename=problems.tex');
+    res.setHeader('Content-type', 'text/plain');
+    res.send(generateTex(problems));
+    //res.send('downloadAsTexFile not implemented yet');
+  });
 
 app.get("/addProblem/:courseId/:psetId", isOwner,
   async (req, res, next) => {
@@ -916,6 +1028,7 @@ app.post("/saveProblem/:courseId/:psetId", isOwner,
       psetId: res.locals.problemSet._id,
       description: req.body.description,
       problemText: req.body.problemText,
+      mimeType: req.body.mimeType,
       points: req.body.points,
       rubric: req.body.rubric,
       skills: skills,
@@ -949,6 +1062,7 @@ app.post("/updateProblem/:courseId/:probId", isOwner,
     const courseId = problem.courseId;
     problem.description = req.body.description;
     problem.problemText = req.body.problemText;
+    problem.mimeType = req.body.mimeType;
     problem.points = req.body.points;
     problem.rubric = req.body.rubric;
     problem.createdAt = new Date();
@@ -1016,12 +1130,17 @@ app.get("/stopProblem/:courseId/:probId", isOwner,
   res.redirect("/showProblem/" + problem.courseId+"/"+req.params.probId);
 });
 
-app.get("/updateSchema", isAdmin,
-  async (req, res, next) => {
-  const result = await Problem.updateMany({}, {allowAnswers: true});
-  //console.dir(result)
-  res.redirect("/");
-});
+/*
+*********************************************************************
+Administrative Upgrades
+These upgrades are needed to update the database schema
+when we make changes to the app 
+that require changes to the database schema
+*********************************************************************
+*/
+
+
+
 
 const problem2card = (p) => {
   let tags = p.skills.map((x) => x.name).join(",");
@@ -1038,7 +1157,7 @@ const problem2card = (p) => {
   return new ProblemCatalogCard(card);
 }
 
-app.get('/updateProblemCatalog', isAdmin, 
+const updateProblemCatalog = 
   async (req, res, next) => {
   try {
     const problems = await Problem.find({}).populate('skills');;
@@ -1052,7 +1171,37 @@ app.get('/updateProblemCatalog', isAdmin,
     next(e);
   }
 }
-)
+
+const updateProblemMimeType =
+  async (req, res, next) => {
+    try {
+      const problems = await Problem.find({});
+      for (let p of problems) {
+        p.mimeType = "text/plain";
+        await p.save();
+      }
+      res.send("updated mime type");
+    } catch (e) {
+      next(e);
+    }
+  };
+
+app.get('/upgrade_v3_0_0', 
+        isAdmin,
+        updateProblemCatalog,
+        updateProblemMimeType
+      )
+
+
+
+app.get("/updateSchema", isAdmin,
+  async (req, res, next) => {
+  const result = await Problem.updateMany({}, {allowAnswers: true});
+  //console.dir(result)
+  res.redirect("/");
+});
+
+
 
 app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
   async (req,res,next) => {
@@ -1060,6 +1209,8 @@ app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
     res.locals.courseId = req.params.courseId;
     res.locals.psetId = req.params.psetId;
     res.locals.problems = [];
+    res.locals.skills = await Skill.find({courseId: req.params.courseId});
+
     res.render('showProblemCatalog');
   }
 )
@@ -1084,6 +1235,7 @@ app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
     res.locals.psetId = req.params.psetId;
     res.locals.routeName=" showProblemCatalog";
     console.log("searching for "+req.body.search);
+    res.locals.skills = await Skill.find({courseId: req.params.courseId});
     res.locals.problems = 
       await ProblemCatalogCard.find(
           {tags:{$regex:req.body.search, $options: 'i'}}).populate('problemId');

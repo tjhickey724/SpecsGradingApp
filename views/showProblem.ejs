@@ -19,6 +19,9 @@
       <% if (course.ownerId.equals(user._id)) { %>
       <div class="row">
         <div class="col-md">
+          MimeType |<%= problem.mimeType %>|
+        </div>
+        <div class="col-md">
           Answers: <%= answerCount %>
         </div>
         <div class="col-md">

@@ -1166,7 +1166,7 @@ const updateProblemCatalog =
     console.log(`num cards = ${cards.length}`);
     await ProblemCatalogCard.deleteMany({});
     await ProblemCatalogCard.insertMany(cards);
-    res.send(`updated ${cards.length} cards`);
+    next();
   } catch (e) {
     next(e);
   }
@@ -1177,10 +1177,12 @@ const updateProblemMimeType =
     try {
       const problems = await Problem.find({});
       for (let p of problems) {
-        p.mimeType = "text/plain";
+        if (!p.mimeType || p.mimeType == "text/plain") {
+          p.mimeType = "plain";
+        }
         await p.save();
       }
-      res.send("updated mime type");
+      next();
     } catch (e) {
       next(e);
     }
@@ -1189,7 +1191,10 @@ const updateProblemMimeType =
 app.get('/upgrade_v3_0_0', 
         isAdmin,
         updateProblemCatalog,
-        updateProblemMimeType
+        updateProblemMimeType,
+        (req,res,next) => {
+          res.send("upgraded to v3.0.0");
+        }
       )
 
 

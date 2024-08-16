@@ -27,8 +27,10 @@ const mathgrades = require('./routes/mathgrades');
 
 // Models!
 const Course = require("./models/Course");
+const CourseSkill = require("./models/CourseSkill");
 const ProblemSet = require("./models/ProblemSet");
 const Problem = require("./models/Problem");
+const ProblemCatalogCard = require("./models/ProblemCatalogCard");
 const Answer = require("./models/Answer");
 const Review = require("./models/Review");
 const User = require("./models/User");
@@ -59,7 +61,7 @@ const MongoStore = require("connect-mongo")(session);
 // END OF AUTHENTICATION MODULES
 
 const mongoose = require("mongoose"); 
-const ProblemCatalogCard = require("./models/ProblemCatalogCard");
+
 
 //mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 //mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
@@ -385,7 +387,7 @@ async function getCoursePin() {
   return coursePin;
 }
 
-app.get("/showRoster/:courseId", isOwner, 
+app.get("/showRoster/:courseId", hasStaffAccess, 
   async (req, res, next) => {
   try {
     const id = req.params.courseId;
@@ -458,7 +460,13 @@ app.post("/addStudents/:courseId", isOwner,
 });
 
 
-
+/*
+  showCourse is the main page for a course
+  which can only be viewed by course members
+  (students, TAs, and the owner)
+  it shows the course information, the problem sets, 
+  and the course skills that the user has mastered
+*/
 app.get("/showCourse/:courseId", hasCourseAccess,
   async (req, res, next) => {
   try {
@@ -475,8 +483,8 @@ app.get("/showCourse/:courseId", hasCourseAccess,
     let problems = await Problem.find({courseId: res.locals.courseInfo._id});
     let myAnswers = await Answer.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
 
-    let problemMap = new Map();
-    let answerMap = new Map();
+    let problemMap = new Map(); // counts the number or problems in each problemset
+    let answerMap = new Map(); // counts the number of the user's answers to problems in each problemset 
     for (let problem of problems) {
       let count = problemMap.get(problem.psetId.toString());
       if (count) {
@@ -496,6 +504,8 @@ app.get("/showCourse/:courseId", hasCourseAccess,
     res.locals.problemMap = problemMap;
     res.locals.answerMap = answerMap;
 
+    // Count the number of thumbs up and thumbs down for the user's reviews
+    // and send the user's reviews to the page
     let myReviews = await Review.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
     res.locals.myReviews = myReviews;
     let thumbsUp = 0;
@@ -507,15 +517,28 @@ app.get("/showCourse/:courseId", hasCourseAccess,
     res.locals.thumbsUp = thumbsUp;
     res.locals.thumbsDown = thumbsDown;
 
+    // check to see if the user is a TA for this course
+    // and send it to the page
     res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
 
-    let fullAnswers = await Answer.find({studentId: req.user._id, courseId: id});
-    answers = fullAnswers.map((x) => x._id);
-    let taIds = (await User.find({taFor: id})).map((x) => x._id);
 
-    let reviews = await Review.find({answerId: {$in: answers}, reviewerId: {$in: taIds}});
-    let skillListsOLD = reviews.map((x) => x.skills);
-    let skillLists = fullAnswers.map((x) => x.skills);
+    /* 
+       Find the number of times, skillCount[s] 
+       that the user has mastered each skill s
+       in the course...
+    */
+
+    // get the list of the student's answers for this course
+    let usersAnswers = await Answer.find({studentId: req.user._id, courseId: id});
+    // get the ides of all of the students answers for this course
+    // let answerIds = usersAnswers.map((x) => x._id);
+    // get the ids of the TAs for this course
+    //let taIds = (await User.find({taFor: id})).map((x) => x._id);
+    // get the reviews of the students answers that have been reviewed by TAs
+    //let reviews = await Review.find({answerId: {$in: answers}, reviewerId: {$in: taIds}});
+
+    // get the lists of skill ids for all problems the student mastered
+    let skillLists = usersAnswers.map((x) => x.skills);
     let skillCount = {};
     for (slist of skillLists) {
       if (!slist) continue;
@@ -525,10 +548,12 @@ app.get("/showCourse/:courseId", hasCourseAccess,
     }
     console.dir(skillCount);
     res.locals.skillCount = skillCount;
+
     let skillIds = Array.from(new Set(flatten(skillLists)));
     res.locals.skills = await Skill.find({_id: {$in: skillIds}});
     res.locals.allSkills = await Skill.find({courseId: id});
-    res.locals.skillIds = skillIds;
+    res.locals.skillIds = skillIds; 
+    // skillIds is a list of the ids of the skills the student has mastered
 
     res.locals.regradeRequests = await RegradeRequest.find({courseId: id, completed: false});
 
@@ -1188,12 +1213,59 @@ const updateProblemMimeType =
     }
   };
 
+const createCourseSkills =
+  async (req, res, next) => {
+    try {
+      console.log('deleting all CourseSkills');
+      await CourseSkill.deleteMany({});
+      const courses = await Course.find({});
+      for (let c of courses) {
+        console.log(c.name);
+        let skills = await Skill.find({courseId: c._id});
+        for (let s of skills) {
+          const courseSkillData = {
+            courseId: c._id,
+            skillId: s._id,
+            createdAt: new Date(),
+          }
+          let courseSkill = new CourseSkill(courseSkillData);
+          await courseSkill.save();
+        }
+      }
+      next();
+    } catch (e) {
+      console.log(`error in createCourseSkills: ${e}`);
+      next(e);
+    }
+  };
+
+
+/*
+this creates the ProblemCatalogCard collection
+and it sets all of the problems to have mimeType="plain"
+unless they already have a mimeType
+*/
 app.get('/upgrade_v3_0_0', 
         isAdmin,
         updateProblemCatalog,
         updateProblemMimeType,
         (req,res,next) => {
           res.send("upgraded to v3.0.0");
+        }
+      );
+
+/*
+this creates the CourseSkill collection by adding every
+skill defined in the course to the CourseSkill collection
+It should only be used to upgrade to v3.1.0 because it will
+delete all of the existing CourseSkill entries including
+skills imported from other courses...
+*/
+app.get('/upgrade_v3_1_0', 
+        isAdmin,
+        createCourseSkills,
+        (req,res,next) => {
+          res.send("upgraded to v3.1.0");
         }
       )
 

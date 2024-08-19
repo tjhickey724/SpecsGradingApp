@@ -2,9 +2,33 @@
 <%- include('menubar') -%>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
-    <h6 class="pb-2 border-bottom fw-bold"> Skills!
-    </h6>
+   
+
+
     <div class="p-2">
+      <h6 class="pb-2 border-bottom fw-bold"> Skills required this class!
+      </h6>
+      <ul>
+        <% for(i=0; i<=courseSkills.length-1; i++){ %>
+        <li>
+          <a href="/removeSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>" class="btn btn-sm btn-info">
+            X
+          </a>
+          <a href="/showSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>">
+            <%= courseSkills[i].skillId.name %>
+          </a>
+          
+
+        </li>
+        <% } %>
+      </ul>
+      <hr>
+    </div>
+
+
+    <div class="p-2">
+      <h6 class="pb-2 border-bottom fw-bold"> Skills created in this class!
+      </h6>
       <ul>
         <% for(i=0; i<=skills.length-1; i++){ %>
         <li>
@@ -17,6 +41,9 @@
         <% } %>
       </ul>
       <hr>
+    </div>
+
+    <div>
 
       <a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-danger">
         Return Home

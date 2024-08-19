@@ -612,6 +612,8 @@ app.get("/showSkills/:courseId", hasCourseAccess,
     res.locals.skills = await Skill.find({courseId: req.params.courseId});
     res.locals.courseId = req.params.courseId;
 
+    res.locals.courseSkills = await CourseSkill.find({courseId: req.params.courseId}).populate('skillId');
+    
     res.locals.routeName = " showSkills";
     res.render("showSkills");
   } catch (e) {
@@ -636,12 +638,27 @@ app.post("/addSkill/:courseId",  isOwner,
         createdAt: new Date(),
         courseId: req.params.courseId,
       });
-
       await newSkill.save();
+
+      let courseId = req.params.courseId;
+      let courseSkill = new CourseSkill({
+        courseId: courseId,
+        skillId: newSkill._id,
+        createdAt: new Date(),
+      });
+      await courseSkill.save();
+
+      
       res.redirect("/showCourse/" + req.params.courseId);
     } catch (e) {
       next(e);
     }
+});
+
+app.get("/removeSkill/:courseId/:skillId", isOwner, 
+  async (req, res, next) => {
+    await CourseSkill.findOneAndDelete({courseId: req.params.courseId, skillId: req.params.skillId});
+    res.redirect("/showSkills/"+req.params.courseId);
 });
 
 app.get("/showSkill/:courseId/:skillId", hasCourseAccess,
@@ -720,13 +737,16 @@ app.get('/importAllSkills/:courseId/:otherCourseId', isOwner,
       const otherCourseId = req.params.otherCourseId;
       const skills = await Skill.find({courseId: otherCourseId});
       for (let skill of skills) {
-        let newSkill = new Skill({
-          name: skill.name,
-          description: skill.description,
-          createdAt: new Date(),
-          courseId: req.params.courseId,
-        });
-        await newSkill.save();
+        let courseSkills = await CourseSkill.find({courseId: req.params.courseId, skillId: skill._id});
+        if (courseSkills.length == 0) {
+          let courseSkill = new CourseSkill({
+            courseId: req.params.courseId,
+            skillId: skill._id,
+            createdAt: new Date(),
+          });
+          await courseSkill.save();
+        }
+
       }
       res.redirect("/showSkills/" + req.params.courseId);
     } catch (e) {
@@ -801,9 +821,9 @@ app.post("/updateProblemSet/:courseId/:psetId", isOwner,
   }
 });
 
-const getStudentSkills = async (studentId) => {
+const getStudentSkills = async (courseId,studentId) => {
   try {
-    const skills = await Answer.find({studentId: studentId}).distinct("skills");
+    const skills = await Answer.find({courseId:courseId,studentId: studentId}).distinct("skills");
     console.log(skills);
     return skills.map((c) => c.toString());
   } catch (e) {
@@ -825,7 +845,7 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
   res.locals.pids = res.locals.myAnswers.map((x) => {
     return x.problemId.toString();
   });
-  res.locals.skills = await getStudentSkills(req.user._id);
+  res.locals.skills = await getStudentSkills(req.params.courseId,req.user._id);
   console.log("pids = ");
   console.dir(res.locals.pids);
   res.locals.routeName = " showProblemSet";
@@ -1132,7 +1152,7 @@ app.get("/showProblem/:courseId/:probId", hasCourseAccess,
     res.locals.answers = await Answer.find({problemId: probId, studentId: res.locals.user._id});
 
     res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
-    res.locals.skillsMastered = await getStudentSkills(res.locals.user._id);
+    res.locals.skillsMastered = await getStudentSkills(courseId,res.locals.user._id);
     res.locals.routeName = " showProblem";
     res.render("showProblem");
   } catch (e) {
@@ -1185,7 +1205,7 @@ const problem2card = (p) => {
 const updateProblemCatalog = 
   async (req, res, next) => {
   try {
-    const problems = await Problem.find({}).populate('skills');;
+    const problems = await Problem.find({}).populate('skills');
     console.dir(problems[0]);
     let cards = problems.map(problem2card);
     console.log(`num cards = ${cards.length}`);

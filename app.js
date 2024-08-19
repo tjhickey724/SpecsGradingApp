@@ -1333,6 +1333,7 @@ app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
     res.locals.problems = [];
     let skills = await CourseSkill.find({courseId: req.params.courseId}).populate('skillId');
     res.locals.skills = skills.map((x) => x.skillId);
+    res.locals.skill = null;
     //res.locals.skills = await Skill.find({courseId: req.params.courseId});
     res.locals.newProblems=[];
     res.locals.psetProblems=[];
@@ -1350,7 +1351,7 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', hasCourseAccess,
     res.locals.psetId = req.params.psetId;
     res.locals.skillId = req.params.skillId;
     res.locals.problems = await Problem.find({skills:req.params.skillId});
-
+    res.locals.skill = await Skill.findOne({_id: req.params.skillId});
     let probIds = res.locals.problems.map((x) => x._id);
     let skills = 
       await CourseSkill

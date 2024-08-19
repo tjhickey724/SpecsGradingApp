@@ -5,6 +5,9 @@
     <h1>Problem Search Page
     </h1>
     <hr>
+    <% if (skill) { %>
+      <h2>Selected Skill: <%= skill.name %></h2>
+      <i><%= skill.description%> </i>
     <h2>Problems for selected skill</h2>
     <table class="table table-bordered table-striped">
       <thead>
@@ -18,7 +21,7 @@
                 <td><a href="/showProblem/<%= courseId %>/<%= problem._id %>"><%= problem.description %></a> </td>
                 <td>
                 <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>">Add to Problem Set</a></td>
-                <td><%= problem.createdAt.toISOString().slice(0, 10) %></td>
+                <td><%= problem.createdAt.toISOString() %></td>
                 <td><%= psetMap[problem._id][0].toISOString() %></td>
             </tr>
           <% }); %>  
@@ -26,7 +29,7 @@
       </tbody>
     </table>
 
-
+    <% } %>
     
     <h2>Select a Skill to see all problems for that skill</h2>
     <ul>

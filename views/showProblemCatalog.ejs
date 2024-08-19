@@ -5,36 +5,42 @@
     <h1>Problem Search Page
     </h1>
     <hr>
-    <form action="/searchProblems/<%= courseId%>/<%=psetId%>" method="post">
-      <div class="form-group">
-        <label for="search">Search for Problems</label>
-        <input type="text" class="form-control" id="search" name="search" placeholder="Enter search term">
-      </div>
-      <button type="submit" class="btn btn-primary">Search</button>
-    </form>
+    <h2>Problems for selected skill</h2>
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr><th>problem</th><th>add to pset</th><th>createdAt</th><th>last use</th></tr>
+      </thead>
+      <tbody>
+        <% if (problems.length == 0) { %>
+          <tr><td>No problems found for this skill</td></tr>
+        <% } else {  problems.forEach(problem => { %>
+            <tr>
+                <td><a href="/showProblem/<%= courseId %>/<%= problem._id %>"><%= problem.description %></a> </td>
+                <td>
+                <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>">Add to Problem Set</a></td>
+                <td><%= problem.createdAt.toISOString().slice(0, 10) %></td>
+                <td><%= psetMap[problem._id][0].toISOString() %></td>
+            </tr>
+          <% }); %>  
+        <% } %>
+      </tbody>
+    </table>
+
+
     
-    <% if (problems.length > 0) { 
-        problems.forEach(problem => { %>
-        <li>
-            <h1><%= problem.problemId.description %></h1>
-            <a href="/showCatalogProblem/<%= courseId %>/<%= psetId %>/<%= problem.problemId._id %>"><%= problem.tags %></a>
-            <pre
-><%= problem.problemId.problemText %></pre>
-            <hr>
-        </li>
-      <% }); %>  
-    <% }  %>
-    </ul>
-    <h2>Skills in the course</h2>
+    <h2>Select a Skill to see all problems for that skill</h2>
     <ul>
       <% if (skills.length > 0) { 
         skills.forEach(skill => { %>
         <li>
-            <a href="/showSkill/<%= skill.courseId %>/<%= skill._id %>"><%= skill.name %></a>
+            <a href="/showProblemsBySkill/<%= skill.courseId %>/<%= psetId %>/<%= skill._id %>">
+              <%= skill.name %> | <%= skill._id%> </a>
         </li>
       <% })}; %>
     <ul>
-    <pre><%= JSON.stringify(problems,null,5)%> </pre>
+    <hr>
+   
+
   </div>
 </div>
 

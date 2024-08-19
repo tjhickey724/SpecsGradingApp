@@ -31,6 +31,7 @@ const CourseSkill = require("./models/CourseSkill");
 const ProblemSet = require("./models/ProblemSet");
 const Problem = require("./models/Problem");
 const ProblemCatalogCard = require("./models/ProblemCatalogCard");
+const PsetProblem = require("./models/PsetProblem");
 const Answer = require("./models/Answer");
 const Review = require("./models/Review");
 const User = require("./models/User");
@@ -551,7 +552,9 @@ app.get("/showCourse/:courseId", hasCourseAccess,
 
     let skillIds = Array.from(new Set(flatten(skillLists)));
     res.locals.skills = await Skill.find({_id: {$in: skillIds}});
-    res.locals.allSkills = await Skill.find({courseId: id});
+    let courseSkills = await CourseSkill.find({courseId: id}).populate('skillId');
+    res.locals.allSkills = courseSkills.map((x) => x.skillId);
+    //res.locals.allSkills = await Skill.find({courseId: id});
     res.locals.skillIds = skillIds; 
     // skillIds is a list of the ids of the skills the student has mastered
 
@@ -827,7 +830,7 @@ const getStudentSkills = async (courseId,studentId) => {
     console.log(skills);
     return skills.map((c) => c.toString());
   } catch (e) {
-    console.log("error in getStudentSkills");
+    console.log("error in skills");
     console.dir(e);
     throw e;
   }
@@ -840,6 +843,10 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
   res.locals.problems = await Problem.find({psetId: psetId});
+  res.locals.psetProblems = 
+    await PsetProblem
+          .find({psetId: psetId})
+          .populate('problemId');
   res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
   res.locals.myAnswers = await Answer.find({psetId: psetId, studentId: req.user._id});
   res.locals.pids = res.locals.myAnswers.map((x) => {
@@ -849,6 +856,8 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
   console.log("pids = ");
   console.dir(res.locals.pids);
   res.locals.routeName = " showProblemSet";
+  
+  //res.json(res.locals.psetProblems);
   res.render("showProblemSet");
 });
 
@@ -1030,7 +1039,9 @@ app.get('/downloadAsTexFile/:courseId/:psetId', hasStaffAccess,
   async (req, res, next) => {
     const psetId = req.params.psetId;
     const problemSet = await ProblemSet.findOne({_id: psetId});
-    const problems = await Problem.find({psetId: psetId});
+    //const problems = await Problem.find({psetId: psetId});
+    let psetProblems = await PsetProblem.find({psetId: psetId}).populate('problemId');  
+    let problems = psetProblems.map((x) => x.problemId);
     //res.setHeader('Content-disposition', 'attachment; filename=problems.tex');
     res.setHeader('Content-type', 'text/plain');
     res.send(generateTex(problems));
@@ -1090,9 +1101,17 @@ app.post("/saveProblem/:courseId/:psetId", isOwner,
       res.locals.problem = p;
     });
 
+    let psetProblem = new PsetProblem({
+      psetId: psetId,
+      problemId: res.locals.problem._id,
+      createdAt: new Date(),
+    });
+    await psetProblem.save();
+
     res.locals.problems = await Problem.find({psetId: psetId});
     res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
-    //res.render("showProblemSet")
+      //res.render("showProblemSet")
+
     res.redirect("/showProblemSet/" +courseId+"/"+ psetId);
   } catch (e) {
     next(e);
@@ -1187,30 +1206,36 @@ that require changes to the database schema
 
 
 
-const problem2card = (p) => {
-  let tags = p.skills.map((x) => x.name).join(",");
-  let createdAt = new Date();
-  let card = {
+const problem2psetProblem = (p) => {
+  let psetProblem = {
+    courseId: p.courseId,
+    psetId: p.psetId,
     problemId: p._id,
-    organization:"Brandeis University",
-    tags:tags,
-    notes: "",
-    ancestors: [],
-    createdAt: createdAt,
-    lastModified: createdAt,
+    createdAt: new Date(),
   }
-  return new ProblemCatalogCard(card);
+  return new PsetProblem(psetProblem);
 }
-
-const updateProblemCatalog = 
+ 
+const updatePsetProblems = 
+/*
+   This function creates a PsetProblem entry 
+   for each problem in the Problem collection.
+   WARNING: This function will delete all of the
+    existing PsetProblem entries and replace them
+    with new entries created from the Problem collection.
+*/
   async (req, res, next) => {
   try {
-    const problems = await Problem.find({}).populate('skills');
+    const problems = await Problem.find({});
+    console.log('in updatePsetProblems');
     console.dir(problems[0]);
-    let cards = problems.map(problem2card);
-    console.log(`num cards = ${cards.length}`);
-    await ProblemCatalogCard.deleteMany({});
-    await ProblemCatalogCard.insertMany(cards);
+    let psetProblems = problems.map(problem2psetProblem);
+    console.dir(psetProblems[0]);
+    console.log(`num psetProblems = ${psetProblems.length}`);
+    await PsetProblem.deleteMany({});
+    let count = PsetProblem.find({}).count();
+    console.log(`psetProblem count = ${count}`);
+    await PsetProblem.insertMany(psetProblems);
     next();
   } catch (e) {
     next(e);
@@ -1267,7 +1292,7 @@ unless they already have a mimeType
 */
 app.get('/upgrade_v3_0_0', 
         isAdmin,
-        updateProblemCatalog,
+        updatePsetProblems,
         updateProblemMimeType,
         (req,res,next) => {
           res.send("upgraded to v3.0.0");
@@ -1306,25 +1331,91 @@ app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
     res.locals.courseId = req.params.courseId;
     res.locals.psetId = req.params.psetId;
     res.locals.problems = [];
-    res.locals.skills = await Skill.find({courseId: req.params.courseId});
-
+    let skills = await CourseSkill.find({courseId: req.params.courseId}).populate('skillId');
+    res.locals.skills = skills.map((x) => x.skillId);
+    //res.locals.skills = await Skill.find({courseId: req.params.courseId});
+    res.locals.newProblems=[];
+    res.locals.psetProblems=[];
+    //res.json(res.locals.skills);
     res.render('showProblemCatalog');
   }
 )
 
-app.get('/showCatalogProblem/:courseId/:psetId/:probId', hasCourseAccess,
+
+app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', hasCourseAccess,
   async (req,res,next) => {
     console.log(`req.params=${JSON.stringify(req.params)}`);
     res.locals.routeName=" showProblem";
     res.locals.courseId = req.params.courseId;
     res.locals.psetId = req.params.psetId;
-    res.locals.probId = req.params.probId;
-    res.locals.problem = await Problem.findOne({_id:req.params.probId});
-    res.locals.skills = await Skill.find({courseId: req.params.courseId});
-    console.dir(res.locals.problem);
-    res.render('addProblem');
+    res.locals.skillId = req.params.skillId;
+    res.locals.problems = await Problem.find({skills:req.params.skillId});
+
+    let probIds = res.locals.problems.map((x) => x._id);
+    let skills = 
+      await CourseSkill
+            .find({courseId: req.params.courseId})
+            .populate('skillId');
+    res.locals.skills = skills.map((x) => x.skillId);
+    res.locals.psetProblems = 
+      await PsetProblem
+            .find({problemId: {$in: probIds}})
+            .populate('courseId')
+            .populate('problemId')
+            .sort({createdAt: -1});
+    let psetMap = {};
+    for (let p of res.locals.psetProblems) {
+      psetMap[p.problemId._id] = psetMap[p.problemId._id] || [];
+      psetMap[p.problemId._id].push(p.createdAt);
+    }
+    const compDates = (a,b) => {if (a<b){return 1;} else {return -1}};
+    for (let p of res.locals.problems) {
+      psetMap[p._id].sort((a,b) => (a<b?1:-1));
+    }
+
+    const compProbs = (a,b) => {
+      let d1 = psetMap[a._id][0];
+      let d2 = psetMap[b._id][0];
+      console.log(['***',d1,d2,d1<d2]);
+      if (d1>d2){
+        return 1;
+      }else{
+        return -1;
+      };
+    }
+    console.dir(res.locals.problems.map((x) => psetMap[x._id][0]));
+    console.log('sorting');
+    res.locals.problems.sort(compProbs);
+    console.dir(res.locals.problems.map((x) => psetMap[x._id][0]));
+
+    console.log('psetMap=');
+    console.dir(psetMap);
+    res.locals.psetMap = psetMap;
+
+    let psetProbIds = 
+      res.locals.psetProblems.map((x) => x.problemId._id);
+    let newProbIds = probIds.filter((x) => !psetProbIds.includes(x));
+    res.locals.newProblems = 
+      await Problem .find({_id: {$in:newProbIds}});
+    //res.json(res.locals.problems);
+    res.render('showProblemCatalog');
   }
 )
+
+
+
+app.get("/addProblemToPset/:courseId/:psetId/:probId", isOwner,
+  async (req, res, next) => {
+    const probId = req.params.probId;
+    const psetId = req.params.psetId;
+    let psetProblem = new PsetProblem({
+      psetId: psetId,
+      problemId: probId,
+      createdAt: new Date(),
+    });
+    await psetProblem.save();
+    res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId); 
+  });
 
 app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
   async (req,res,next) => {

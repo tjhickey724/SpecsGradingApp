@@ -8,30 +8,31 @@
     <div class="p-2">
 
       <ul>
-        <% for(i=0; i<=problems.length-1; i++){ if (!problems[i].visible &&
+        <% for(i=0; i<psetProblems.length; i++){ 
+          if (!psetProblems[i].problemId.visible &&
                             !(courseInfo.ownerId==user.id) ) { %>
-        <li>Problem Hidden </li>
-        <% } else {%>
-        <li>
+          <li>Problem Hidden </li>
+          <% } else {%>
+          <li>
 
 
-          <% const skillsToMaster=problems[i].skills.filter( (skill)=>
+          <% const skillsToMaster=psetProblems[i].problemId.skills.filter( (skill)=>
                                         !skills.includes(skill.toString())).length
                                         %>
           <% if (skillsToMaster==0){ %>
-          <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
+          <a href="/showProblem/<%= courseInfo._id%>/<%= psetProblems[i].problemId._id %>">
             <span style="color:green">
-              <%= problems[i].description || "no name" %>
+              <%= psetProblems[i].problemId.description || "no name" %>
               all skills in this problem have been mastered
             </span>
           </a>
 
           <% } else { %>
-          <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
-            <%= problems[i].description || "no name" %>
+          <a href="/showProblem/<%= courseInfo._id%>/<%= psetProblems[i].problemId._id %>">
+            <%= psetProblems[i].problemId.description || "no name" %>
           </a>
 
-          <%= skillsToMaster %>/<%= problems[i].skills.length %> skills left to
+          <%= skillsToMaster %>/<%= psetProblems[i].problemId.skills.length %> skills left to
           master<br>
           <% } %>
         </li>
@@ -55,10 +56,13 @@
       </a>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseInfo._id%>/<%= problemSet._id %>/json">JSON grades
       </a>
+      <pre>Original Problems:
+<%= JSON.stringify(problems, null, 2) %></pre>
       <% } %>
     </div>
   </div>
 </div>
+
 
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

@@ -1418,6 +1418,14 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", isOwner,
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId); 
   });
 
+app.get("/removeProblem/:courseId/:psetId/:probId", isOwner,
+  async (req, res, next) => {
+    const probId = req.params.probId;
+    const psetId = req.params.psetId;
+    await PsetProblem.deleteOne({psetId: psetId, problemId: probId});
+    res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
+  });
+
 app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
   async (req,res,next) => {
     res.locals.courseId = req.params.courseId;

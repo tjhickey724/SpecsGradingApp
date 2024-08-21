@@ -7,6 +7,12 @@ which meets the following criteria
 * the exams are printed out on paper with one problem/skill per page. Students write their answers on the exam and upload a picture of each page to the app
 * the students' answers are graded on a pass/fail basis where pass means they have demonstrated mastery of the skill
 
+## Current Version
+We are currently redesigning the MLA so that it fully supports the Mastery Assessment Protocol  described in Ella Tuson's dissertation
+and the MAP-style pre-calculus and Calculus courses that are being taught at Brandeis University by Rebecca Torry and Keith Merrill.
+This version (3.*.*) is still in the process of being written and we expect it to be completdd by January 2025.
+
+## Features
 The MLA supports this pedadogy by offering the following features.
 
 ## Course Creation
@@ -36,3 +42,8 @@ The MLA supports this pedadogy by offering the following features.
 * students can see which skills they have mastered and which they still need to master
 * instructors can see mastery data for all students in the class
 
+## Peer Review
+* the instructor can specify that a particular problem can be peer reviewed by students in the class
+* the Teaching Asssistants use the same peer review features to grade the porblems, but their responses are inserted into the students answer document as the official grade
+
+  

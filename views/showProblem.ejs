@@ -48,7 +48,7 @@
       <hr>
       <h1>Plagiarism detection</h1>
       <% if (course.ownerId.equals(user._id)) { %>
-        <a href="/downloadAnswers/<%= problem.courseId%>/<%= problem.id %>">
+        <a href="/downloadAnswers/<%= courseId%>/<%= problem.id %>">
           download answers
         </a>
       <% } %>
@@ -65,25 +65,25 @@
       <% } %>
       <% if (problem.peerReviewable ||
 																	course.ownerId.equals(user._id)) { %>
-      <a href="/reviewAnswers/<%= course._id%>/<%= problem._id %>" class="btn btn-small btn-warning">Review others
+      <a href="/reviewAnswers/<%= courseId%>/<%= psetId%>/<%= probId %>" class="btn btn-small btn-warning">Review others
         answers</a>
       <% } %>
 
       <% if (!course.ownerId.equals(user._id)) {%>
-      <a href="/showReviewsOfAnswer/<%= answers[0]._id %>" class="btn btn-small btn-info">Reviews
+      <a href="/showReviewsOfAnswer/<%= courseId%>/<%= psetId%>/<%= answers[0]._id %>" class="btn btn-small btn-info">Reviews
         of your
         answer</a>
       <% } %>
-      <a href="/showReviewsByUser/<%= problem.courseId%>/<%= problem._id %>" class="btn btn-small btn-info">Your
+      <a href="/showReviewsByUser/<%= courseId%>/<%= psetId%>/<%= problem._id %>" class="btn btn-small btn-info">Your
         Reviews of
         other's answers</a>
-      <a href="/showProblemSet/<%= problem.courseId%>/<%= problem.psetId %>" class="btn btn-small btn-primary">Back
+      <a href="/showProblemSet/<%= courseId%>/<%= psetId %>" class="btn btn-small btn-primary">Back
         to the
         Problem Set</a>
       <% if ( true||
 																					course.ownerId.equals(user._id)) {
 																					%>
-      <a href="/showAllAnswers/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-danger">Show
+      <a href="/showAllAnswers/<%= courseId %>/<%= problem._id %>" class="btn btn-small btn-danger">Show
         all
         answers</a>
       <%} %>
@@ -129,7 +129,7 @@
       <% } else
 																														{
 																														%>
-      <form method="post" action="/saveAnswer/<%= problem.courseId%>/<%= problem._id %>">
+      <form method="post" action="/saveAnswer/<%= courseId%>/<%= psetId%>/<%= problem._id %>">
         <div class="form-group">
           <label for="answer">Enter
             your

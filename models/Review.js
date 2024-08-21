@@ -7,6 +7,7 @@ var reviewSchema = Schema( {
   reviewerId: {type:ObjectId,ref:'User',index:true}, // also track problemId!
   courseId: {type:ObjectId,index:true},
   psetId: ObjectId,
+  //psetProbId:{type:ObjectId,index:true}, // need to update this when going to v3
   problemId: {type:ObjectId,index:true}, // should also track reviwerId!
   answerId: {type:ObjectId,index:true},
   studentId: {type:ObjectId,index:true},

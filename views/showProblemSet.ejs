@@ -21,13 +21,13 @@
                                         %>
           <% if (skillsToMaster==0){ %>
             <% if (courseInfo.ownerId.equals(user._id)){ %>
-          <a href="/removeProblem/<%= courseInfo._id%>/<%= psetId %>/<%= psetProblems[i].problemId._id %>">
+          <a href="/removeProblem/<%= courseId%>/<%= psetProblems[i]._id %>">
             <span style="color:red">
               X
             </span>
             <% } %>
           </a>
-          <a href="/showProblem/<%= courseInfo._id%>/<%= psetProblems[i].problemId._id %>">
+          <a href="/showProblem/<%= courseId%>/<%= psetProblems[i].psetId %>/<%= psetProblems[i].problemId._id %>">
             <span style="color:green">
               <%= psetProblems[i].problemId.description || "no name" %>
               all skills in this problem have been mastered
@@ -36,13 +36,13 @@
 
           <% } else { %>
             <% if (courseInfo.ownerId.equals(user._id)){ %>
-          <a href="/removeProblem/<%= courseInfo._id%>/<%= psetId %>/<%= psetProblems[i].problemId._id %>">
+          <a href="/removeProblem/<%= courseId%>/<%= psetProblems[i]._id %>">
               <span style="color:red">
                 X
               </span>
           </a>
           <% } %>
-          <a href="/showProblem/<%= courseInfo._id%>/<%= psetProblems[i].problemId._id %>">
+          <a href="/showProblem/<%= courseId%>/<%= psetProblems[i].psetId %>/<%= psetProblems[i].problemId._id %>">
             <%= psetProblems[i].problemId.description || "no name" %>
           </a>
 
@@ -56,19 +56,23 @@
 
       <hr>
       <% if (courseInfo.ownerId.equals(user._id)){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= courseInfo._id%>/<%= psetId %>">Add Problem</a>
-      <a class="btn btn-sm btn-success" href="/showProblemCatalog/<%= courseInfo._id%>/<%= psetId %>">View Problem Library</a>
-      <a href="/editProblemSet/<%=courseInfo._id%>/<%= psetId %>" class="btn btn-sm btn-info">Edit Problem Set</a>
-      <a href="/downloadAsTexFile/<%=courseInfo._id%>/<%= psetId %>" class="btn btn-sm btn-info">Download as .tex file</a>
+      <a class="btn btn-sm btn-success" 
+         href="/addProblem/<%= courseId%>/<%= psetId %>">Add Problem</a>
+      <a class="btn btn-sm btn-success" 
+         href="/showProblemCatalog/<%= courseId%>/<%= psetId %>">View Problem Library</a>
+      <a class="btn btn-sm btn-info"
+         href="/editProblemSet/<%=courseId%>/<%= psetId %>" >Edit Problem Set</a>
+      <a href="/downloadAsTexFile/<%=courseId%>/<%= psetId %>" class="btn btn-sm btn-info">Download as .tex file</a>
+      <a href="/downloadPersonalizedExamsAsTexFile/<%=courseId%>/<%= psetId %>" class="btn btn-sm btn-info">Download personalized exams</a>
       <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List
+      <a href="/showCourse/<%= courseId %>" class="btn btn-sm btn-primary">Back to List
         of Problem
         Sets</a>
-      <% if (user.taFor && (user.taFor).indexOf(problemSet.courseId)>=0 || courseInfo.ownerId.equals(user._id)) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseInfo._id%>/<%= problemSet._id %>">Grade
+      <% if (user.taFor && (user.taFor).indexOf(courseId)>=0 || courseInfo.ownerId.equals(user._id)) { %>
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>">Grade
         Problem Set
       </a>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseInfo._id%>/<%= problemSet._id %>/json">JSON grades
+      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>/json">JSON grades
       </a>
       <% } %>
     </div>

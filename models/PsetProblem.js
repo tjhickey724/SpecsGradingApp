@@ -12,7 +12,16 @@ var psetProblemSchema = Schema( {
   courseId: {type:ObjectId,index:true,ref:'Course'},
   psetId: {type:ObjectId,index:true,ref:'ProblemSet'},
   problemId: {type:ObjectId,ref:'Problem',index:true},
+  pendingReviews: mongoose.Schema.Types.Mixed, // used to fairly distribute reviewing
   createdAt: Date,
 } );
 
 module.exports = mongoose.model( 'PsetProblem', psetProblemSchema );
+
+/*
+  pendingReviews is a list of JSON objects of the form:
+   {answerId,reviewerId,timeSent}
+  before saving changes we need to run the command:
+    problem.markModified(pendingReviews)
+  or Mongoose won't update the change...
+*/

@@ -14,34 +14,76 @@ const MathExam = require("../models/MathExam");
 const MathGrades = require("../models/MathGrades");
 
 const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
+const instructors = admins.concat(["timhickey@me.com"])
 
-router.use((req, res, next) => {
-  req.isAdmin = admins.includes(req.user.googleemail);
-  if (!req.user){
-    res.json({message:"you are not logged in"});
+/*
+  Authentication middleware:
+*/
+
+
+// route middleware to make sure a user is logged in
+const isLoggedIn = (req, res, next) => {
+  res.locals.loggedIn = false;
+  if (req.isAuthenticated()) {
+    res.locals.loggedIn = true;
+    req.isAdmin = admins.includes(req.user.googleemail);
+    req.isInstructor = instructors.includes(req.user.googleemail);
+    console.log(`isAdmin:${req.isAdmin} isInstructor:${req.isInstructor}`);
+    return next();
   } else {
-    next();
+    res.redirect("/login");
   }
+}
 
-})
+
+const hasStaffAccess = (req, res, next) => {
+  if (instructors.includes(req.user.googleemail)) {
+    next();
+  } else {
+    res.json({message:"you are not an instructor"});
+  }
+}
+
+const hasAdminAccess = (req, res, next) => {
+  if (admins.includes(req.user.googleemail)) {
+    next();
+  } else {
+    res.json({message:"you are not an admin"});
+  }
+}
+
+/* Only logged in users can access the Math Grades App*/
+
+router.use(isLoggedIn);
+
 
 /* GET home page. */
-router.get("/", async function (req, res, next) {
-  const courses = await MathCourse.find({});
+router.get("/", isLoggedIn,
+ async function (req, res, next) {
+  studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
+  console.log(`studentCourses:${studentCourses}`);
+  const courses = await MathCourse.find({_id:{$in:studentCourses}});
   res.locals.courses = courses;
   res.locals.isAdmin = req.isAdmin;
   res.render("mathgrades/mathindex");
 });
 
-router.get("/showCourse/:courseId",async (req,res,next) => {
+/*
+  /showCourse goes to two different view, 
+  depending on whether the user is an instructor/admin or a student
+*/
+
+router.get("/showCourse/:courseId",isLoggedIn,
+ async (req,res,next) => {
   const courseId = req.params.courseId;
-  if (!req.isAdmin) {
+  if (!req.isInstructor) {
     res.redirect("/mathgrades/showStudentCourse/"+ courseId );
   }else {
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
     res.locals.results = [];
-    //console.log(`courseId:${courseId} course:${course}`)
+    console.log(`courseId:${courseId} course:${course}`)
+    console.log(`isAdmin:${req.isAdmin} isInstructor:${req.isInstructor}`);
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
     res.locals.isAdmin = req.isAdmin;
@@ -52,9 +94,11 @@ router.get("/showCourse/:courseId",async (req,res,next) => {
 
 });
 
-router.get("/showStudentCourse/:courseId",async (req,res,next) => {
-  /* shows link to the student's page for this course
-  */
+/* any logged in user can access the student view of a course */
+
+router.get("/showStudentCourse/:courseId",isLoggedIn,
+ async (req,res,next) => {
+  /* shows link to the student's page for this course */
   const courseId = req.params.courseId;
   const course = await MathCourse.findOne({_id:courseId})
   res.locals.course = course;
@@ -125,7 +169,7 @@ const getClassGrades = async (req,res,next) => {
   next()
 }
 
-router.get("/showStudent/:courseId/:examId/:gradesId",
+router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
             getClassGrades,
             async (req,res,next) => {
   const courseId = req.params.courseId;
@@ -137,8 +181,12 @@ router.get("/showStudent/:courseId/:examId/:gradesId",
   const grades = 
     await MathGrades.find({email:grade.email,
                            courseId:courseId});
-
-  if ((req.user.googleemail == grade.email) || (admins.includes(req.user.googleemail))) {
+  /*
+    Here is where we make sure only 
+    the student or an instructor/admin 
+    can see the page with the students grades
+  */
+  if ((req.user.googleemail == grade.email) || (instructors.includes(req.user.googleemail))) {
       res.locals.course = course;
       res.locals.exam = exam;
       res.locals.grade = grade;
@@ -174,11 +222,13 @@ router.use((req, res, next) => {
   }
 })
 
-router.get("/createCourse", async function (req, res, next) {
+router.get("/createCourse", hasAdminAccess, 
+ async function (req, res, next) {
     res.render("mathgrades/createCourse");
   });
 
-router.post("/createCourse", async (req, res, next)=> {
+router.post("/createCourse", hasAdminAccess,
+ async (req, res, next)=> {
     const courseJSON = {
         name:req.body.name,
         description:req.body.description,
@@ -191,7 +241,8 @@ router.post("/createCourse", async (req, res, next)=> {
 //    res.json(courseJSON);
   });
 
-router.get("/showCourse/:courseId",async (req,res,next) => {
+router.get("/showCourse/:courseId", hasAdminAccess,
+ async (req,res,next) => {
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
@@ -238,7 +289,7 @@ const calculateMastery = (grades) => {
       
 
       if (!mastery[email]){
-        mastery[email] = {};
+        mastery[email] = {name:grade.name};
       }
       //console.log(`grades.skillsMastered:${grade.skillsMastered}`);
       (grade.skillsMastered).forEach(skill => {
@@ -272,9 +323,10 @@ const calculateMastery = (grades) => {
 }
 
 const masteryCSVtemplate =
-`email,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
+`name,email,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
     skillSet[skill] %>,<% } %>
 <% for (let email in mastery) { %><%= 
+    mastery[email]['name'] %>,<%= 
     email %>,<%= 
     mastery[email]['Fskills'] %>,<%= 
     mastery[email]['Gskills'] %>,<% 
@@ -289,7 +341,8 @@ const masteryCSVtemplate =
 `;
 
 
-router.get("/showMastery/:courseId",async (req,res,next) => {
+router.get("/showMastery/:courseId", hasStaffAccess,
+ async (req,res,next) => {
   const courseId = req.params.courseId;
   const course = await MathCourse.findOne({_id:courseId});
   const csv = req.query.csv;
@@ -305,7 +358,8 @@ router.get("/showMastery/:courseId",async (req,res,next) => {
   }
 })
 
-router.get("/showExam/:courseId/:examId",async (req,res,next) => {
+router.get("/showExam/:courseId/:examId", hasStaffAccess,
+ async (req,res,next) => {
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId});
     const examId = req.params.examId;
@@ -317,7 +371,8 @@ router.get("/showExam/:courseId/:examId",async (req,res,next) => {
     res.render('mathgrades/showExam');
 })
 
-router.get("/deleteExam/:courseId/:examId",async (req,res,next) => {
+router.get("/deleteExam/:courseId/:examId", hasAdminAccess,
+ async (req,res,next) => {
     const courseId = req.params.courseId;
     const examId = req.params.examId;
     const exam = await MathExam.findOne({_id:examId});
@@ -354,6 +409,9 @@ const trimSkillString = (skill) => {
   const firstColon = skill.indexOf(":");
   const firstParen = skill.indexOf("(");
   const skillName = skill.substring(firstColon+1,firstParen).trim();
+  if (skillName == ''){
+    console.log(`empty skill name for skill:${skill}`);
+  }
   return skillName;
 }
 
@@ -363,7 +421,9 @@ const processSkills = (grades) => {
     for (let key in grades) {
         if ((grades[key] === "1.0") && (key.includes(": "))) {
             skillsMastered.push(trimSkillString(key));
-        } else if ((grades[key] === "0.0") && (!key.includes("Honor Pledge"))) {
+        } else if ((grades[key] === "0.0") 
+                  && (!key.includes("Honor Pledge")) 
+                  && (!key.includes("Total Score"))) {
             skillsSkipped.push(trimSkillString(key));
         }
     }
@@ -371,8 +431,9 @@ const processSkills = (grades) => {
 }
 
             
-router.post("/uploadGrades/:courseId", upload.single('grades'),
-  async (req, res, next) => {
+router.post("/uploadGrades/:courseId", hasStaffAccess,
+  upload.single('grades'),
+ async (req, res, next) => {
 
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})

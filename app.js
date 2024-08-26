@@ -909,9 +909,6 @@ app.get("/gradeProblemSet/:courseId/:psetId", hasStaffAccess,
 // });
 const preamble =
 `
-\\input{preamble.tex}
-                               
-\\begin{document}
 
 \\thispagestyle{empty}
  \\setcounter{page}{1}\\noindent Name: All Problems \\hfill Section: 0 \\hfill  Math 10a: Friday Assessment \\#1 -- Sep 3
@@ -919,9 +916,18 @@ const preamble =
 \\input{title.tex}
 
 `;
+
+const personalizedPreamble = (studentName,courseName,examName) =>
+`\\newpage
+ \\thispagestyle{empty}
+ \\setcounter{page}{1}\\noindent ${studentName}: \\hfill  ${courseName}  ${examName}
+\\input{title.tex}
+`
 const generateTex = (problems) => {
-  let tex = preamble+"\\begin{enumerate}\n";
+  let tex = "\\begin{enumerate}\n";
   for (let p of problems) {
+    console.log('processing problem: ');
+    console.log(JSON.stringify(p,null,2));
     tex += "\\item\n"
     if (p.mimeType=='plain'){
       tex += '\\begin{verbatim}\n'
@@ -949,22 +955,42 @@ const generateTex = (problems) => {
 \\pagebreak
 `;
      }
-  tex += "\\end{enumerate}\n\\end{document}\n";
+  tex += "\\end{enumerate}\n";
+  console.log('exam tex is ');
+  console.log(tex);
   return tex;
 };
 
 app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", hasStaffAccess,
+  /* this route will generate a large latex file with a personalized exam
+     for the specified problemset in the specified course with one exam for
+     each student in the course. Also each exam has questions only for those skills
+     that that particular students has not yet mastered at this point in the course.
+
+     Currently the latex file requires a few additional tex files:
+     preamble.tex  - a latex file importing all necessary packages 
+     title.tex - a file containing the first explanation page(s) for the exam,
+        for example, the honesty pledge, the instructions, the grading policy, etc. 
+        This needs to be customized for each class.   
+
+  */
   async (req, res, next) => {
     const courseid = req.params.courseId;
     const psetId = req.params.psetId;
     const problemSet = await ProblemSet.findOne({_id: psetId});
     const psetProblems = await PsetProblem.find({psetId: psetId}).populate('problemId');
     const problems = psetProblems.map((x) => x.problemId);
-    const students = await CourseMember.find({courseId: courseid});
-    const studentIds = students.map((x) => x.studentId);
-    const mastery = await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
+
+    const courseMembers = await CourseMember.find({courseId: courseid}).populate('studentId');
+    const studentIds = courseMembers.map((x) => x.studentId._id);
+    const mastery = 
+      await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
+    console.log('mastery is');
     console.log(JSON.stringify(mastery, null, 2));
-    let skillMap = new Map();
+
+
+
+    let skillDict = {};
     /* 
        skillMap(studentId) = [skillId1, skillId2, ...]
        shows the skills that the student has mastered.
@@ -973,10 +999,85 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", hasStaffAccess,
       let skills = m.skills;
       let studentId = m.studentId;
       let skillIds = skills.map((x) => x._id);
-      let skillList = skillMap.get(studentId);
+      let skillList = skillDict[studentId];
       skillList = skillList ? skillList.concat(skillIds) : skillIds;
-      skillMap.set(studentId, skillList);
+      skillDict[studentId]= skillList;
     }
+    console.log('skillDict is');
+    console.log(JSON.stringify(skillDict,null,0));
+
+
+
+    /* create a dictionary problemDict indexed by skills which
+       maps each skill to the list of problems containing that skill
+       In practice each skill will correspond to exactly one problem,
+       but we can make this code a little more general.
+    */
+   let problemDict = {};
+   for (let p of problems){
+    if (p.skills.length!=1){
+      continue; // this shouldn't happen
+    } else {
+      problemDict[p.skills[0]] = p;
+    }
+   }
+   console.log('problemDict is')
+   console.log(JSON.stringify(problemDict,null,2));
+
+
+   let result = "";
+    for (let s of courseMembers){
+      /* generate a personalized exam for student s with only
+         the problems for skills that s has not yet mastered,
+         as determined by the skillList.
+      */
+     const studentId = s.studentId._id;
+     console.log('processing student')
+     console.log(JSON.stringify(s.studentId,null,2));
+     console.log('with skills')
+     const studentSkills = skillDict[studentId].map((x)=> x+"");
+
+     let testProblems = [];
+     for (let p of problems){
+      console.log(`problem ${p}`)
+      console.log('studentskills: '+JSON.stringify(studentSkills,null,2));
+      console.log('p.skills: '+JSON.stringify(p.skills,null,2));
+      console.log(studentSkills.includes(p.skills[0]+""))
+      if (studentSkills.includes(p.skills[0]+"")) {
+        console.log('mastered')
+      } else {
+        console.log('not mastered')
+        testProblems = testProblems.concat(p);
+      }
+      console.log('==========')
+
+     }
+     console.log('Test problems is');
+     console.log(JSON.stringify(testProblems,null,2));
+     //testProblems = problems.filter((p) => !(skillDict[studentId].includes(p.skills[0]+"")));
+     //console.log('and problems '+testProblems.map((p)=>(p.description)))
+     console.log(JSON.stringify(testProblems,null,2));
+
+     const exam =  
+        personalizedPreamble(s.studentId.googleemail,'Math10a','Fri 8/23/2024')
+        + generateTex(testProblems);
+     console.log('**** exam is ');
+     console.log(exam);
+     console.log('******\n\n\n');
+     result += exam;
+
+    }
+    const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
+    const endTex = '\\end{document}\n';
+    res.setHeader('Content-type', 'text/plain');
+    res.send(startTex+result+endTex);
+
+
+
+
+
+
+
 
   });
 
@@ -989,7 +1090,11 @@ app.get('/downloadAsTexFile/:courseId/:psetId', hasStaffAccess,
     let problems = psetProblems.map((x) => x.problemId);
     //res.setHeader('Content-disposition', 'attachment; filename=problems.tex');
     res.setHeader('Content-type', 'text/plain');
-    res.send(generateTex(problems));
+    const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
+    const endTex = '\\end{document}\n';
+
+    console.log('problems = '+problems);
+    res.send(startTex+generateTex(problems)+endTex);
     //res.send('downloadAsTexFile not implemented yet');
   });
 
@@ -1377,6 +1482,8 @@ app.get("/removeProblem/:courseId/:psetId/:probId", isOwner,
   async (req, res, next) => {
     const probId = req.params.probId;
     const psetId = req.params.psetId;
+    console.log(`psetId= ${psetId}`);
+    console.log(`problemId= ${probId}`);
     await PsetProblem.deleteOne({psetId: psetId, problemId: probId});
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
   });

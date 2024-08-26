@@ -60,9 +60,14 @@ router.use(isLoggedIn);
 /* GET home page. */
 router.get("/", isLoggedIn,
  async function (req, res, next) {
-  studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
-  console.log(`studentCourses:${studentCourses}`);
-  const courses = await MathCourse.find({_id:{$in:studentCourses}});
+  let courses = [];
+  if (req.isAdmin || req.isInstructor) {
+    courses = await MathCourse.find({});
+  } else {
+    studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
+    console.log(`studentCourses:${studentCourses}`);
+    courses = await MathCourse.find({_id:{$in:studentCourses}});
+  }
   res.locals.courses = courses;
   res.locals.isAdmin = req.isAdmin;
   res.render("mathgrades/mathindex");

@@ -31,7 +31,7 @@ this shows the course contents which vary depending on whether you are a student
 ### As a student
 When a student visits a course page they can see
 * the problem sets (as links to problem set pages)
-* a link to see the TAs
+* a link to see the TAs (which shows their names/emails and a link back to the course page)
 * a link to see the Skills
 
 

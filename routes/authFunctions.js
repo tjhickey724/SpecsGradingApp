@@ -37,6 +37,8 @@ const isLoggedIn = (req, res, next) => {
       res.locals.isEnrolled = memberList.length > 0;
       res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
       res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+      // temporarily give myself access to all courses ...
+      res.locals.isOwner ||= (req.user.googleemail == "tjhickey@brandeis.edu");
       if (res.locals.isOwner|| res.locals.isEnrolled || res.locals.isTA) {
         next();
       } else {

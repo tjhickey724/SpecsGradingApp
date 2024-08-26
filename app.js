@@ -73,7 +73,11 @@ db.once("open", function () {
   console.log("we are connected!!!");
 });
 
-
+/*
+  White list of instructors who are able to create courses on the MLA.
+  For now it is just me, but we can add more instructors as needed.
+*/
+const instructors = ["tjhickey@brandeis.edu","tjhickey724@gmail.com"];
 
 var app = express();
 if (process.env.IS_ON_WEB == "False") {
@@ -135,6 +139,16 @@ app.use(isLoggedIn);
 //   }
 // });
 
+app.get('/', (req, res) => {
+  res.render('newmain');
+});
+
+app.get('/mga_home', (req, res) => {
+  res.redirect('/mathgrades');
+});
+
+
+
 app.use('/mathgrades',mathgrades);
 
 //const approvedLogins = ["tjhickey724@gmail.com", "csjbs2018@gmail.com"];
@@ -164,7 +178,7 @@ app.get("/lrec", isLoggedIn,
 });
 
 
-app.get("/", isLoggedIn,
+app.get("/mla_home", isLoggedIn,
   async (req, res, next) => {
   /*
     this is the main page with links to all of the courses
@@ -244,8 +258,12 @@ app.get("/stats", isLoggedIn,
 
 app.get("/createCourse", isLoggedIn,
   (req, res) => {
-  res.locals.routeName = " createCourse";
-  res.render("createCourse");
+    if (instructors.includes(req.user.googleemail)){
+      res.locals.routeName = " createCourse";
+      res.render("createCourse");
+    } else {
+      res.send("You must be an instructor to create a course. Contact tjhickey@brandeis.edu to be on the MLA instructors list.");
+    }
 });
 
 // rename this to /createCourse and update the ejs form
@@ -294,6 +312,17 @@ async function getCoursePin() {
   }
   return coursePin;
 }
+
+app.post("/changeCourseName/:courseId", isOwner,
+  async (req, res) => {
+    const name = req.body.newName;
+    const course = await Course.findOne({_id:req.params.courseId});
+    course.name = name;
+    await course.save();
+    console.dir(req.body);
+    console.dir(req.params);
+    res.redirect("/showCourse/"+req.params.courseId);
+});
 
 app.get("/showRoster/:courseId", hasStaffAccess, 
   async (req, res, next) => {
@@ -1652,9 +1681,15 @@ app.get("/showRegradeRequests/:courseId", hasStaffAccess,
 app.get("/showRegradeRequest/:courseId/:requestId", hasStaffAccess,
   async (req, res, next) => {
   try {
-    const regradeRequest = await RegradeRequest.findOne({_id: req.params.requestId});
+    const courseId = req.params.courseId;
+    const requestId = req.params.requestId;
+    const regradeRequest = await RegradeRequest.findOne({_id: requestId});
+
     res.locals.regradeRequest = regradeRequest;
-    res.redirect("/showReviewsOfAnswer/" + regradeRequest.answerId);
+    res.redirect("/showReviewsOfAnswer" 
+              +"/"+regradeRequest.courseId 
+              +"/"+regradeRequest.psetId
+              +"/"+regradeRequest.answerId);
     //res.json([req.params.requestId,regradeRequest])
   } catch (e) {
     next(e);
@@ -1668,7 +1703,10 @@ app.post("/updateRegradeRequest/:courseId/:regradeRequestId", hasStaffAccess,
     regradeRequest.reply = req.body.reply;
     regradeRequest.completed = true;
     await regradeRequest.save();
-    res.redirect("/showReviewsOfAnswer/" + regradeRequest.answerId);
+    res.redirect("/showReviewsOfAnswer"
+      +"/"+regradeRequest.courseId 
+              +"/"+regradeRequest.psetId
+              +"/"+regradeRequest.answerId);
     //res.json([req.params.regradeRequestId,regradeRequest])
   } catch (e) {
     next(e);

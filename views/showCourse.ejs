@@ -44,6 +44,8 @@
       </ul>
 
       <hr>
+
+
       <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
       <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Add Problem Set
@@ -52,6 +54,8 @@
       <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Add a Skill
       </a>
+
+
 
       <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Show Summarized Student Info
@@ -64,6 +68,15 @@
       <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
         Show Mastery
       </a>
+
+      <hr>
+      <% if ( user._id.equals(courseInfo.ownerId)) { %>
+        <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
+           <input type="text" name="newName" value="<%= courseInfo.name %>">
+           <button type="submit" class="btn btn-sm btn-danger">Change Course Name</button>
+       <% } %>
+       <hr>
+       
       <% } else { %>
       <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
         show all problems and responses

@@ -30,9 +30,6 @@
             <i>
               <%= tas[i].googleemail %>
             </i>
-            <i>
-              <%= tas[i]._id %>
-            </i>
 
           </li>
           <% } %>
@@ -53,7 +50,7 @@
 
       <%} %>
       <hr>
-      <a href="/" class="btn btn-sm btn-danger">
+      <a href="/showCourse/<%= courseInfo._id%>" class="btn btn-sm btn-danger">
         Back to Home
       </a>
     </div>

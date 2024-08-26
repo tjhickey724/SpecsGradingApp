@@ -180,7 +180,10 @@
           if (rr.completed) continue %>
           <li>
               reason:<br>
-              <%= rr.reason %><br>
+<pre class="bg-warning"
+         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+><%= rr.reason %>
+          </pre><br>
               createAt:<%= rr.createdAt %><br>
        <% if (userIsTA){%>
            <form method="post" action="/updateRegradeRequest/<%= rr.courseId%>/<%= rr._id%>">

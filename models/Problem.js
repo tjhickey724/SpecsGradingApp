@@ -4,28 +4,29 @@ const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
 var problemSchema = Schema( {
-  courseId: {type:ObjectId,index:true},
-  psetId: {type:ObjectId,index:true},
+  courseId: {type:ObjectId,index:true}, // original course, control who gets to edit it
+  psetId: {type:ObjectId,index:true}, // original pset
   description: String,
   problemText: String,
   mimeType: String, // type of the problem text (plain, markdown, tex, etc.)
-  points: Number,
+
   rubric: String,
-  pendingReviews: mongoose.Schema.Types.Mixed,
-  createdAt: Date,
-  allowAnswers: Boolean,
-  skills:[{type:ObjectId,ref:'Skill'}],
-  visible: {type:Boolean, default: true},
-  submitable: {type:Boolean,default:true},
-  answerable: {type:Boolean, default:true},
-  peerReviewable:{type:Boolean, default:true}
+  pendingReviews: mongoose.Schema.Types.Mixed, // deprecated ... this needs to be in PsetProblem
+  createdAt: Date, // original creation date
+
+  skills:[{type:ObjectId,ref:'Skill'}], 
+  // MAP only needs 1 skill, but we keep this as a list for backward compatibility
+
+
+  // DEPRECATED 
+  points: Number, // deprecated  ... it is not needed in a MAP-based course
+  // we are keeping the following for backward compatibility
+  allowAnswers: Boolean, // default value
+  visible: {type:Boolean, default: true}, //default value, actual value in PsetProblem
+  submitable: {type:Boolean,default:true}, // default value
+  answerable: {type:Boolean, default:true}, // default value
+  peerReviewable:{type:Boolean, default:true} // default value
 } );
-/*
-  pendingReviews is a list of JSON objects of the form:
-   {answerId,reviewerId,timeSent}
-  before saving changes we need to run the command:
-    problem.markModified(pendingReviews)
-  or Mongoose won't update the change...
-*/
+
 
 module.exports = mongoose.model( 'Problem', problemSchema );

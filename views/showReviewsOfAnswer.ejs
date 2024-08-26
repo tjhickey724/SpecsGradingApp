@@ -138,13 +138,8 @@
         <div class="row">
             <div class="col-md-6">
 
-                <form method="post" action="/saveReview2/<%=problem.courseId%>/<%= problem._id %>/<%= answer._id %>">
-                    Points:
-                    <select name="points">
-                        <% for(let j = 0;j<=problem.points; j++) { %>
-                            <option> <%= j %> </option>
-                        <% } %>
-                    </select><br>
+                <form method="post" action="/saveReview2/<%=courseId%>/<%= psetId%>/<%= problem._id %>/<%= answer._id %>">
+
                     <% for(let i=0;i<skills.length;i++){%>
                         <input type="checkbox"
                                name="skill"
@@ -217,12 +212,12 @@
     <% }%>
     </ul>
     <hr>
-    <a href="/reviewAnswers/<%= courseInfo._id %>/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
-    <a href="/showProblem/<%= problem.courseId %>/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
-    <a href="/showProblemSet/<%= problem.courseId %>/<%= problem.psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+    <a href="/reviewAnswers/<%= courseId %>/<%= psetId %>/<%= problem._id %>" class="btn btn-small btn-warning">Review others answers</a>
+    <a href="/showProblem/<%= courseId %>/<%= psetId%>/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
+    <a href="/showProblemSet/<%= courseId %>/<%= psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
 <% if (userIsTA){%>
-<a href="/showRegradeRequests/<%= problem.courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
-<a href="/gradeProblemSet/<%= problem.courseId%>/<%= problem.psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
+<a href="/showRegradeRequests/<%= courseId %>" class="btn btn-small btn-primary">Back to Regrade Requests List</a>
+<a href="/gradeProblemSet/<%= courseId%>/<%= psetId %>" class="btn btn-small btn-danger">Back to Grade Problem Set</a>
 
     <% } %>
 

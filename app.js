@@ -84,100 +84,7 @@ var http = require("http").Server(app);
 var io = require("socket.io")(http);
 
 
-/*
-  Authentication Middleware 
-  There are five levels of authentication 
-  1. not logged in
-  2. user: logged in
-  3. student: logged in and enrolled in a course
-  4. ta: logged in and TA for a course
-  5. owner: logged in and owner of a course
-We set the authorization checking so that 
-the user must be logged in to access any of route except "/login"
-*/
-// route middleware to make sure a user is logged in
-const isLoggedIn = (req, res, next) => {
-  res.locals.loggedIn = false;
-  if (req.isAuthenticated()) {
-    res.locals.loggedIn = true;
-    return next();
-  } else {
-    res.redirect("/login");
-  }
-}
-
-const hasCourseAccess = async (req, res, next) => {
-  // students, TAs, and owners have access to the course
-  try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
-
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
-    res.locals.isEnrolled = memberList.length > 0;
-    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
-    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
-    if (res.locals.isOwner|| res.locals.isEnrolled || res.locals.isTA) {
-      next();
-    } else {
-      res.send("You do not have access to this course.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-const hasStaffAccess = async (req, res, next) => {
-  // Teaching Staff and Owners have access to the course route
-  try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = 
-        await Course.findOne({_id: id}, "name coursePin ownerId");
-    res.locals.isTA = 
-            req.user.taFor 
-         && req.user.taFor.includes(res.locals.courseInfo._id);
-
-    if (res.locals.courseInfo.ownerId == req.user._id+""
-        || res.locals.isTA) {
-      next();
-    } else {
-      res.send("Only TAs and the owner have access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-const isOwner = async (req, res, next) => {
-  try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
-    // the ownerId is a string and the user._id is an object
-    // so we need to add "" to the user._id to make them the same type
-    // before testing for equality
-    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
-    if (res.locals.isOwner) {
-      next();
-    } else {
-      res.send("Only the owner has access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-
-const isAdmin = async (req, res, next) => {
-  try {
-    if (req.user.googleemail == "tjhickey@brandeis.edu"){
-      next()
-    } else {
-      res.send("Only the administrator has access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
+const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin} = require('./routes/authFunctions.js');
 
 
 // view engine setup
@@ -783,6 +690,7 @@ app.post("/saveProblemSet/:courseId", isOwner,
       name: req.body.name,
       courseId: id,
       createdAt: new Date(),
+      pendingReviews: [],
     });
 
     await newProblemSet.save();
@@ -840,6 +748,7 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
   async (req, res, next) => {
   console.log("in showProblemSet");
   const psetId = req.params.psetId;
+  res.locals.courseId = req.params.courseId;
   res.locals.psetId = psetId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
   res.locals.problems = await Problem.find({psetId: psetId});
@@ -847,6 +756,7 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
     await PsetProblem
           .find({psetId: psetId})
           .populate('problemId');
+
   res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
   res.locals.myAnswers = await Answer.find({psetId: psetId, studentId: req.user._id});
   res.locals.pids = res.locals.myAnswers.map((x) => {
@@ -861,76 +771,84 @@ app.get("/showProblemSet/:courseId/:psetId", hasCourseAccess,
   res.render("showProblemSet");
 });
 
-app.get("/gradeProblemSet/:courseId/:psetId/json", hasStaffAccess,
-  async (req, res, next) => {
-  const psetId = req.params.psetId;
-  const problemSet = await ProblemSet.findOne({_id: psetId});
-  const problems = await Problem.find({psetId: psetId});
-  const answers = await Answer.find({psetId: psetId});
-  const courseInfo = await Course.findOne({_id: problemSet.courseId}, "ownerId");
-  const memberList = await CourseMember.find({courseId: courseInfo._id});
-  const students = memberList.map((x) => x.studentId);
+// app.get("/gradeProblemSet/:courseId/:psetId/json", hasStaffAccess,
+//   async (req, res, next) => {
+//   const psetId = req.params.psetId;
+//   const problemSet = await ProblemSet.findOne({_id: psetId});
+//   const psetProblems = await PsetProblem.find({psetId: psetId}).populate('problemId');
+//   //const problems = await Problem.find({psetId: psetId});
+//   const problems = psetProblems.map((x) => x.problemId);
+//   console.log("number of problems = "+problems.length);
+//   const answers = await Answer.find({psetId: psetId});
+//   const courseInfo = await Course.findOne({_id: problemSet.courseId}, "ownerId");
+//   const memberList = await CourseMember.find({courseId: courseInfo._id});
+//   const students = memberList.map((x) => x.studentId);
 
 
-  const studentsInfo = await User.find({_id: {$in: students}}, {}, {sort: {googleemail: 1}});
+//   const studentsInfo = await User.find({_id: {$in: students}}, {}, {sort: {googleemail: 1}});
 
-  const taList = await User.find({taFor: courseInfo._id});
-  const taIds = taList.map((x) => x._id);
+//   const taList = await User.find({taFor: courseInfo._id});
+//   const taIds = taList.map((x) => x._id);
 
-  const taReviews = await Review.find({psetId: psetId, reviewerId: {$in: taIds}});
+//   const taReviews = await Review.find({psetId: psetId, reviewerId: {$in: taIds}});
 
-  res.locals.taReviews = taReviews;
-  jsonGrades = [];
-  for (i = 0; i < studentsInfo.length; i++) {
-    let psetScore = 0;
-    let psetCount = 0; // number of problems graded by TAs
-    let jsonRow = {email: studentsInfo[i].googleemail, name: studentsInfo[i].googlename, grades: []};
-    for (j = 0; j <= problems.length - 1; j++) {
-      // find the scores of the reviews of this problem
-      const studentAnswers = answers.filter((a) => {
-        return a.studentId.equals(studentsInfo[i]._id) && a.problemId.equals(problems[j]._id);
-      });
+//   res.locals.taReviews = taReviews;
+//   jsonGrades = [];
+//   for (i = 0; i < studentsInfo.length; i++) {
+//     let psetScore = 0;
+//     let psetCount = 0; // number of problems graded by TAs
+//     let jsonRow = {email: studentsInfo[i].googleemail, name: studentsInfo[i].googlename, grades: []};
+//     for (j = 0; j <= problems.length - 1; j++) {
+//       // find the scores of the reviews of this problem
+//       const studentAnswers = answers.filter((a) => {
+//         return a.studentId.equals(studentsInfo[i]._id) && a.problemId.equals(problems[j]._id);
+//       });
 
-      const grades = taReviews.filter((r) => {
-        let zz = r.problemId && r.problemId.equals(problems[j]._id) && r.studentId && r.studentId.equals(studentsInfo[i]._id);
-        //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
+//       const grades = taReviews.filter((r) => {
+//         let zz = r.problemId && r.problemId.equals(problems[j]._id) && r.studentId && r.studentId.equals(studentsInfo[i]._id);
+//         //console.log(`${zz} ${i} ${j} ${r.problemId} ${problems[j]._id} ${studentsInfo[i]._id} ${r.studentId}`)
 
-        return zz;
-      });
-      answerId = null;
-      if (grades.length > 0) {
-        answerId = grades[0].answerId;
-      }
+//         return zz;
+//       });
+//       answerId = null;
+//       if (grades.length > 0) {
+//         answerId = grades[0].answerId;
+//       }
 
-      if (studentAnswers.length == 0) {
-        jsonRow.grades.push(-1);
-      } else if (!answerId) {
-        jsonRow.grades.push(0);
-      } else {
-        let scores = grades.map((r) => r.points);
-        let avgScore = Math.ceil(scores.reduce((a, b) => a + b, 0) / scores.length);
-        psetScore += avgScore;
-        psetCount += 1;
-        jsonRow.grades.push(avgScore);
-      }
-    }
-    jsonRow.grades.push(psetScore);
-    jsonRow.grades.push(psetCount);
-    let average = psetCount > 0 ? Math.round((psetScore / psetCount) * 10) / 10 : -1;
-    jsonRow.grades.push(average);
-    jsonGrades.push(jsonRow);
-    if (psetCount > 0) {
-    }
-  }
-  res.json(jsonGrades);
-});
+//       if (studentAnswers.length == 0) {
+//         jsonRow.grades.push(-1);
+//       } else if (!answerId) {
+//         jsonRow.grades.push(0);
+//       } else {
+//         let scores = grades.map((r) => r.points);
+//         let avgScore = Math.ceil(scores.reduce((a, b) => a + b, 0) / scores.length);
+//         psetScore += avgScore;
+//         psetCount += 1;
+//         jsonRow.grades.push(avgScore);
+//       }
+//     }
+//     jsonRow.grades.push(psetScore);
+//     jsonRow.grades.push(psetCount);
+//     let average = psetCount > 0 ? Math.round((psetScore / psetCount) * 10) / 10 : -1;
+//     jsonRow.grades.push(average);
+//     jsonGrades.push(jsonRow);
+//     if (psetCount > 0) {
+//     }
+//   }
+//   res.json(jsonGrades);
+// });
 
 app.get("/gradeProblemSet/:courseId/:psetId", hasStaffAccess,
   async (req, res, next) => {
   const psetId = req.params.psetId;
   res.locals.psetId = psetId;
+  res.locals.courseId = req.params.courseId;
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
-  res.locals.problems = await Problem.find({psetId: psetId});
+  const psetProblems = await PsetProblem.find({psetId: psetId}).populate('problemId');
+  //const problems = await Problem.find({psetId: psetId});
+  const problems = psetProblems.map((x) => x.problemId);
+  res.locals.problems = problems;
+  console.log("number of problems = "+problems.length);
   res.locals.answers = await Answer.find({psetId: psetId});
   res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
   //console.log("looking up students")
@@ -991,9 +909,6 @@ app.get("/gradeProblemSet/:courseId/:psetId", hasStaffAccess,
 // });
 const preamble =
 `
-\\input{preamble.tex}
-                               
-\\begin{document}
 
 \\thispagestyle{empty}
  \\setcounter{page}{1}\\noindent Name: All Problems \\hfill Section: 0 \\hfill  Math 10a: Friday Assessment \\#1 -- Sep 3
@@ -1001,9 +916,18 @@ const preamble =
 \\input{title.tex}
 
 `;
+
+const personalizedPreamble = (studentName,courseName,examName) =>
+`\\newpage
+ \\thispagestyle{empty}
+ \\setcounter{page}{1}\\noindent ${studentName}: \\hfill  ${courseName}  ${examName}
+\\input{title.tex}
+`
 const generateTex = (problems) => {
-  let tex = preamble+"\\begin{enumerate}\n";
+  let tex = "\\begin{enumerate}\n";
   for (let p of problems) {
+    console.log('processing problem: ');
+    console.log(JSON.stringify(p,null,2));
     tex += "\\item\n"
     if (p.mimeType=='plain'){
       tex += '\\begin{verbatim}\n'
@@ -1031,9 +955,131 @@ const generateTex = (problems) => {
 \\pagebreak
 `;
      }
-  tex += "\\end{enumerate}\n\\end{document}\n";
+  tex += "\\end{enumerate}\n";
+  console.log('exam tex is ');
+  console.log(tex);
   return tex;
 };
+
+app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", hasStaffAccess,
+  /* this route will generate a large latex file with a personalized exam
+     for the specified problemset in the specified course with one exam for
+     each student in the course. Also each exam has questions only for those skills
+     that that particular students has not yet mastered at this point in the course.
+
+     Currently the latex file requires a few additional tex files:
+     preamble.tex  - a latex file importing all necessary packages 
+     title.tex - a file containing the first explanation page(s) for the exam,
+        for example, the honesty pledge, the instructions, the grading policy, etc. 
+        This needs to be customized for each class.   
+
+  */
+  async (req, res, next) => {
+    const courseid = req.params.courseId;
+    const psetId = req.params.psetId;
+    const problemSet = await ProblemSet.findOne({_id: psetId});
+    const psetProblems = await PsetProblem.find({psetId: psetId}).populate('problemId');
+    const problems = psetProblems.map((x) => x.problemId);
+
+    const courseMembers = await CourseMember.find({courseId: courseid}).populate('studentId');
+    const studentIds = courseMembers.map((x) => x.studentId._id);
+    const mastery = 
+      await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
+    console.log('mastery is');
+    console.log(JSON.stringify(mastery, null, 2));
+
+
+
+    let skillDict = {};
+    /* 
+       skillMap(studentId) = [skillId1, skillId2, ...]
+       shows the skills that the student has mastered.
+    */
+    for (let m of mastery) {
+      let skills = m.skills;
+      let studentId = m.studentId;
+      let skillIds = skills.map((x) => x._id);
+      let skillList = skillDict[studentId];
+      skillList = skillList ? skillList.concat(skillIds) : skillIds;
+      skillDict[studentId]= skillList;
+    }
+    console.log('skillDict is');
+    console.log(JSON.stringify(skillDict,null,0));
+
+
+
+    /* create a dictionary problemDict indexed by skills which
+       maps each skill to the list of problems containing that skill
+       In practice each skill will correspond to exactly one problem,
+       but we can make this code a little more general.
+    */
+   let problemDict = {};
+   for (let p of problems){
+    if (p.skills.length!=1){
+      continue; // this shouldn't happen
+    } else {
+      problemDict[p.skills[0]] = p;
+    }
+   }
+   console.log('problemDict is')
+   console.log(JSON.stringify(problemDict,null,2));
+
+
+   let result = "";
+    for (let s of courseMembers){
+      /* generate a personalized exam for student s with only
+         the problems for skills that s has not yet mastered,
+         as determined by the skillList.
+      */
+     const studentId = s.studentId._id;
+     console.log('processing student')
+     console.log(JSON.stringify(s.studentId,null,2));
+     console.log('with skills')
+     const studentSkills = skillDict[studentId].map((x)=> x+"");
+
+     let testProblems = [];
+     for (let p of problems){
+      console.log(`problem ${p}`)
+      console.log('studentskills: '+JSON.stringify(studentSkills,null,2));
+      console.log('p.skills: '+JSON.stringify(p.skills,null,2));
+      console.log(studentSkills.includes(p.skills[0]+""))
+      if (studentSkills.includes(p.skills[0]+"")) {
+        console.log('mastered')
+      } else {
+        console.log('not mastered')
+        testProblems = testProblems.concat(p);
+      }
+      console.log('==========')
+
+     }
+     console.log('Test problems is');
+     console.log(JSON.stringify(testProblems,null,2));
+     //testProblems = problems.filter((p) => !(skillDict[studentId].includes(p.skills[0]+"")));
+     //console.log('and problems '+testProblems.map((p)=>(p.description)))
+     console.log(JSON.stringify(testProblems,null,2));
+
+     const exam =  
+        personalizedPreamble(s.studentId.googleemail,'Math10a','Fri 8/23/2024')
+        + generateTex(testProblems);
+     console.log('**** exam is ');
+     console.log(exam);
+     console.log('******\n\n\n');
+     result += exam;
+
+    }
+    const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
+    const endTex = '\\end{document}\n';
+    res.setHeader('Content-type', 'text/plain');
+    res.send(startTex+result+endTex);
+
+
+
+
+
+
+
+
+  });
 
 app.get('/downloadAsTexFile/:courseId/:psetId', hasStaffAccess,
   async (req, res, next) => {
@@ -1044,7 +1090,11 @@ app.get('/downloadAsTexFile/:courseId/:psetId', hasStaffAccess,
     let problems = psetProblems.map((x) => x.problemId);
     //res.setHeader('Content-disposition', 'attachment; filename=problems.tex');
     res.setHeader('Content-type', 'text/plain');
-    res.send(generateTex(problems));
+    const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
+    const endTex = '\\end{document}\n';
+
+    console.log('problems = '+problems);
+    res.send(startTex+generateTex(problems)+endTex);
     //res.send('downloadAsTexFile not implemented yet');
   });
 
@@ -1156,19 +1206,29 @@ app.post("/updateProblem/:courseId/:probId", isOwner,
   }
 });
 
-app.get("/showProblem/:courseId/:probId", hasCourseAccess,
+app.get("/showProblem/:courseId/:psetId/:probId", hasCourseAccess,
   async (req, res, next) => {
   try {
-    const probId = req.params.probId;
+    const psetProbId = req.params.psetProbId;
+    res.locals.psetProbId = psetProbId;
     const courseId = req.params.courseId;
+    res.locals.courseId = courseId;
+    const probId = req.params.probId;
     res.locals.probId = probId;
+    const psetId = req.params.psetId;
+    res.locals.psetId = psetId;
+    
+    const psetProb = await PsetProblem.findOne({psetId: psetId, problemId: probId});
+    res.locals.psetProb = psetProb;
+
+
     res.locals.problem = await Problem.findOne({_id: probId});
-    res.locals.course = await Course.findOne({_id: res.locals.problem.courseId}, "ownerId");
+    res.locals.course = await Course.findOne({_id: courseId}, "ownerId");
     res.locals.answerCount = await Answer.countDocuments({problemId: probId});
-    const reviews = await Review.find({problemId: probId});
+    const reviews = await Review.find({psetId:psetId, problemId: probId});
     res.locals.reviewCount = reviews.length;
     res.locals.averageReview = reviews.reduce((t, x) => t + x.points, 0) / reviews.length;
-    res.locals.answers = await Answer.find({problemId: probId, studentId: res.locals.user._id});
+    res.locals.answers = await Answer.find({psetId:psetId,problemId: probId, studentId: res.locals.user._id});
 
     res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
     res.locals.skillsMastered = await getStudentSkills(courseId,res.locals.user._id);
@@ -1418,6 +1478,16 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", isOwner,
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId); 
   });
 
+app.get("/removeProblem/:courseId/:psetId/:probId", isOwner,
+  async (req, res, next) => {
+    const probId = req.params.probId;
+    const psetId = req.params.psetId;
+    console.log(`psetId= ${psetId}`);
+    console.log(`problemId= ${probId}`);
+    await PsetProblem.deleteOne({psetId: psetId, problemId: probId});
+    res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
+  });
+
 app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
   async (req,res,next) => {
     res.locals.courseId = req.params.courseId;
@@ -1445,22 +1515,27 @@ function getElementBy_id(id, vals) {
 app.get("/showAllAnswers/:courseId/:probId", hasCourseAccess,
   async (req, res, next) => {
   try {
-    const id = req.params.probId;
+    const probId = req.params.probId;
+    res.locals.probId = req.params.probId;
     const courseId = req.params.courseId;
-    res.locals.problem = await Problem.findOne({_id: id});
+    res.locals.courseId = courseId;
+    res.locals.problem = await Problem.findOne({_id: probId});
     const course = await Course.findOne({_id: courseId});
+    // we should pass the psetId into showAllAnswers so we don't have to look it up here
+    const psetProblem = await PsetProblem.findOne({courseId:courseId,problemId:probId});
+    res.locals.psetId = psetProblem.psetId;
     res.locals.course = course;
-    const userReviews = await Review.find({problemId: id, reviewerId: req.user._id});
+    const userReviews = await Review.find({problemId: probId, reviewerId: req.user._id});
     res.locals.allSkills = await Skill.find({courseId: res.locals.problem.courseId});
-    res.locals.getSkill = (id, vals) => getElementBy_id(id, vals);
+    res.locals.getSkill = (id, vals) => getElementBy_id(probId, vals);
     res.locals.numReviews = userReviews.length;
     res.locals.canView = res.locals.numReviews >= 2 || req.user._id.equals(course.ownerId);
     if (!res.locals.canView) {
       res.locals.answers = [];
       res.locals.reviews = [];
     } else {
-      res.locals.answers = await Answer.find({problemId: id}).collation({locale: "en", strength: 2}).sort({answer: 1});
-      res.locals.reviews = await Review.find({problemId: id});
+      res.locals.answers = await Answer.find({problemId: probId}).collation({locale: "en", strength: 2}).sort({answer: 1});
+      res.locals.reviews = await Review.find({problemId: probId});
     }
     res.locals.isTA = req.user.taFor && req.user.taFor.includes(course._id);
     const taList = await User.find({taFor: res.locals.problem.courseId});
@@ -1491,14 +1566,17 @@ app.get("/editProblem/:courseId/:probId", isOwner,
   we should send them to a page that says their answer has
   been reviewed and they can't update it. 
 */
-app.post("/saveAnswer/:courseId/:probId", hasCourseAccess,
+app.post("/saveAnswer/:courseId/:psetId/:probId", hasCourseAccess,
   async (req, res, next) => {
-  const id = req.params.probId;
+  const probId = req.params.probId;
+  const psetId = req.params.psetId;
   const courseId = req.params.courseId;
-  res.locals.problem = await Problem.findOne({_id: id});
+  res.locals.courseId = courseId;
+  res.locals.probId = probId;
+  res.locals.problem = await Problem.findOne({_id: probId});
   const problem = res.locals.problem;
 
-  const answers = await Answer.find({studentId: req.user._id, problemId: problem._id});
+  const answers = await Answer.find({studentId: req.user._id, problemId: probId});
 
   const answerIds = answers.map((x) => x._id);
   const reviews = await Review.find({answerId: {$in: answerIds}});
@@ -1509,9 +1587,9 @@ app.post("/saveAnswer/:courseId/:probId", hasCourseAccess,
   } else {
     let newAnswer = new Answer({
       studentId: req.user._id,
-      courseId: problem.courseId,
-      psetId: problem.psetId,
-      problemId: problem._id,
+      courseId: courseId,
+      psetId: psetId,
+      problemId: probId,
       answer: req.body.answer,
       reviewers: [],
       numReviews: 0,
@@ -1521,11 +1599,11 @@ app.post("/saveAnswer/:courseId/:probId", hasCourseAccess,
 
     // we might want to move old answers to another collection
     // rather than deleting them... or set a "deleted" flag
-    await Answer.deleteMany({studentId: req.user._id, problemId: problem._id});
+    await Answer.deleteMany({studentId: req.user._id, problemId: probId});
 
     await newAnswer.save();
 
-    res.redirect("/showProblem/" +problem.courseId+"/" + id);
+    res.redirect("/showProblem/" +courseId+"/" + psetId+"/"+probId);
   }
 });
 
@@ -1762,9 +1840,12 @@ app.get("/showOneStudentInfo/:courseId/:studentId", hasCourseAccess,
        await Answer.find({courseId: courseId})
              .populate('skills');
 
-    res.locals.problems = 
-       await Problem.find({courseId: courseId})
-            .populate('skills');
+    let psetProblems = await PsetProblem.find({courseId: courseId}).populate('problemId');
+    console.dir(psetProblems);
+    res.locals.problems = psetProblems.map((x) => x.problemId);
+    // res.locals.problems = 
+    //    await Problem.find({courseId: courseId})
+    //         .populate('skills');
 
     res.locals.reviews = await Review.find({courseId: courseId});
 

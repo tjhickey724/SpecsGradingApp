@@ -5,21 +5,21 @@ See the README.md file for a discussion of the algorithm. The key idea
 is we want to fairly assign answers to be reviewed and so we need 
 to update the following fields 
 
-problem.pendingReviews [{answerId,reviewerId,createdAt}]
+psetProblem.pendingReviews [{answerId,reviewerId,createdAt}]
 answer.numReviews (including both completed and pending)
 answer.reviewers [reviewerId]
 
 A user can either directly grade a specified students answer to a problem
 which is fairly simple)
-or they can request to grade an answer to a problem.
+or they can request to grade a programmatically selected answer to a specified problem.
 
 In the former case, the route specifies a problem and student id.
 If the specified user has answered that problem, then the route
 renders a view with that problem and answer and generates a form
 where the reviewer can complete and submit their review.
-It also updates both the problem and the answer to indicate that the
+It also updates both the psetProblem and the answer to indicate that the
 reviewer will potentially submit a review. Thus the list of pending
-reviewers for answers to the problem is stored in the problem (along
+reviewers for answers to the psetProblem is stored in the psetProblem (along
   with the answerId, reviewerId, and createdAt time) and the answer
   itself has a list of the reviewerIds of pending reviewers, as well
   as a list of the reviewers that have completed their reviews.
@@ -29,7 +29,8 @@ and removed from the answer.pendingreviewers list
 
 Also their entry in the problem is removed.
 
-One complication is that they system will remove expired pending reviews.
+One complication is that the system must remove expired pending reviews.
+
 In this case, if the user does eventually submit a review, then the system
 will attempt to remove their pendingReviewer information, but it won't be there.
 This shouldn't create any kind of problem. The one issue is that it would allow
@@ -48,12 +49,14 @@ In the latter case, the system finds an answer with the fewest reviews
 is not pending.
 
 NOTES:
-Does this allow a user to review an answer twice?
-Also /saveReview is probably cruft, replaced with /saveReview2
-and the latter still uses .save() when it should be using .findByIdAndUpdate
-and it should probably use $pull instead of $set.
-Indeed, $set is dangerous in this context ...
+We may want to modify this so that in only takes into account TA reviews
+in the case where a psetProblem can be peer reviewed by both students and TAs.
+For now, we don't need to do that because exams should not be peer reviewable
+by default.
 
+DEV NOTES:
+I currenlty need to modify this reviewing code so that it uset the psetProblem
+object to store the pendingReviews and not the problem object.
 */
 
 const express = require("express");
@@ -62,6 +65,7 @@ const app = express.Router();
 // Models!
 
 const Problem = require("../models/Problem");
+const PsetProblem = require("../models/PsetProblem");
 const Course = require("../models/Course");
 const CourseMember = require("../models/CourseMember");
 const Answer = require("../models/Answer");
@@ -70,103 +74,11 @@ const User = require("../models/User");
 const Skill = require("../models/Skill");
 const RegradeRequest = require("../models/RegradeRequest");
 
+// const {method, otherMethod} = require('./myModule.js');
+const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin} = require('./authFunctions.js');
 
 
-/*
-  Authentication Middleware 
-  There are five levels of authentication 
-  1. not logged in
-  2. user: logged in
-  3. student: logged in and enrolled in a course
-  4. ta: logged in and TA for a course
-  5. owner: logged in and owner of a course
-We set the authorization checking so that 
-the user must be logged in to access any of route except "/login"
-*/
-// route middleware to make sure a user is logged in
-const isLoggedIn = (req, res, next) => {
-  res.locals.loggedIn = false;
-  if (req.isAuthenticated()) {
-    res.locals.loggedIn = true;
-    return next();
-  } else {
-    res.redirect("/login");
-  }
-}
 
-const hasCourseAccess = async (req, res, next) => {
-  // students, TAs, and owners have access to the course
-  try {
-    const id = req.params.courseId;
-    console.log(`id=${id}`)
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
-    console.log(`courseInfo=${JSON.stringify(res.locals.courseInfo)}`)
-
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
-    res.locals.isEnrolled = memberList.length > 0;
-    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
-    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
-    if (res.locals.isOwner|| res.locals.isEnrolled || res.locals.isTA) {
-      next();
-    } else {
-      res.send("You do not have access to this course.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-const hasStaffAccess = async (req, res, next) => {
-  // Teaching Staff and Owners have access to the course route
-  try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = 
-        await Course.findOne({_id: id}, "name coursePin ownerId");
-    res.locals.isTA = 
-            req.user.taFor 
-         && req.user.taFor.includes(res.locals.courseInfo._id);
-
-    if (res.locals.courseInfo.ownerId == req.user._id 
-        || res.locals.isTA) {
-      next();
-    } else {
-      res.send("Only TAs and the owner have access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-const isOwner = async (req, res, next) => {
-  try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
-    // the ownerId is a string and the user._id is an object
-    // so we need to add "" to the user._id to make them the same type
-    // before testing for equality
-    res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
-    if (res.locals.isOwner) {
-      next();
-    } else {
-      res.send("Only the owner has access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
-
-
-const isAdmin = async (req, res, next) => {
-  try {
-    if (req.user.googleemail == "tjhickey@brandeis.edu"){
-      next()
-    } else {
-      res.send("Only the administrator has access to this page.");
-    }
-  } catch (e) {
-    next(e);
-  }
-}
 
 /*
   This is the most complex of the routes for reviewing...
@@ -181,16 +93,20 @@ const isAdmin = async (req, res, next) => {
   with the $incr and $pull   operators.
 */
 
-  app.get("/reviewAnswers/:courseId/:probId", hasCourseAccess,
+  app.get("/reviewAnswers/:courseId/:psetId/:probId", hasCourseAccess,
     async (req, res, next) => {
-  //   res.redirect("/reviewAnswers/" + req.params.probId);
-  // })
 
-
-  // app.get("/reviewAnswers/:probId", async (req, res, next) => {
     try {
       const courseId = req.params.courseId; 
       const probId = req.params.probId;  
+      const psetId = req.params.psetId;
+      res.locals.courseId = courseId;
+      res.locals.psetId = psetId;
+      res.locals.probId = probId;
+
+      const psetProblem = await PsetProblem.findOne({psetId: psetId, problemId: probId});
+      res.locals.psetProblem = psetProblem;
+
       let problem = await Problem.findOne({_id: probId});
   
       //first we remove all pendingReviews that have exceeded
@@ -201,7 +117,8 @@ const isAdmin = async (req, res, next) => {
 
       const tooOld = new Date().getTime() - 1 *1000*60*10; // 10 minutes
       let expiredReviews = [];
-      let pendingReviews = problem.pendingReviews.filter((x) => {
+      psetProblem.pendingReviews ||= [];
+      let pendingReviews = psetProblem.pendingReviews.filter((x) => {
         if (x.timeSent < tooOld) {
           expiredReviews.push(x);
           return false;
@@ -214,7 +131,7 @@ const isAdmin = async (req, res, next) => {
       // and I'll set the timeout to be relatively short
 
       if (expiredReviews.length>0){
-        await Problem.findByIdAndUpdate(problem._id,
+        await PsetProblem.findByIdAndUpdate(psetProblem._id,
           {$pullAll:{pendingReviews:expiredReviews}});
       }
       
@@ -250,7 +167,7 @@ const isAdmin = async (req, res, next) => {
       let answer = await Answer.findOne({problemId:probId,pendingReviewers:req.user._id});
       if (answer) {
         // send the user the review they were already assigned!
-        res.redirect("/showReviewsOfAnswer/" + answer._id);
+        res.redirect("/showReviewsOfAnswer/" + courseId+"/"+psetId+"/"+answer._id);
       } else {
         // the user has not yet been assigned an answer for this problem
         // next, we find all answers to this Problem, sorted by numReviews
@@ -275,7 +192,7 @@ const isAdmin = async (req, res, next) => {
             let review = {answerId: answer._id, 
                           reviewerId: req.user._id, 
                           timeSent: new Date().getTime()};
-            await Problem.findByIdAndUpdate(problem._id,
+            await PsetProblem.findByIdAndUpdate(psetProblem._id,
                     {$push:{pendingReviews:review}});
             break;
           } else {
@@ -286,7 +203,7 @@ const isAdmin = async (req, res, next) => {
     
         if (answer) {
           // if we find an answer to review, then we redirect the user to that answer
-          res.redirect("/showReviewsOfAnswer/"+courseId+"/"+ answer._id);
+          res.redirect("/showReviewsOfAnswer/"+courseId+"/"+ psetId+"/"+answer._id);
         } else {
           // this is the case where there is nothing left for the user to review
           res.locals.routeName = " nothingToReview";
@@ -301,20 +218,20 @@ const isAdmin = async (req, res, next) => {
   });
 
 /*
- this is the route for writing a review of a particular student's answer to a problem
- this is what TAs do when grading a problem set
+ this is the route for recording that a student didn't answer a question
 */
-app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAccess,
+app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasStaffAccess,
   async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
     const probId = req.params.probId;
+    const psetId = req.params.psetId;
     const studentId = req.params.studentId;
 
     let problem = await Problem.findOne({_id: probId});
-    res.locals.student = await User.findOne({_id: studentId});
 
     const answers = await Answer.find({studentId: studentId, problemId: probId});
+
     if (!answers){
       res.send("this user already has answered the question")
     }else {
@@ -333,7 +250,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
 
       await newAnswer.save();
       
-      res.redirect('/gradeProblem/'+courseId+"/"+probId+"/"+studentId)
+      res.redirect('/gradeProblem/'+courseId+"/"+psetId+"/"+probId+"/"+studentId)
     }
   } catch (e) {
       next(e);
@@ -347,9 +264,11 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
  this is the route for writing a review of a particular student's answer to a problem
  this is what TAs do when grading a problem set
 */
- app.get("/gradeProblem/:courseId/:probId/:studentId", hasCourseAccess,
+ app.get("/gradeProblem/:courseId/:psetId/:probId/:studentId", hasCourseAccess,
   async (req, res, next) => {
   try {
+    const courseId = req.params.courseId;
+    const psetId = req.params.psetId;
     const probId = req.params.probId;
     const studentId = req.params.studentId;
 
@@ -376,12 +295,11 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
     // *** Handle the case where the user hasn't answered this one yet.
     // need a new view "noAnswerToReview"  ***
     if (answer) {
-      res.redirect("/showReviewsOfAnswer/" + answer.courseId+"/"+answer._id);
+      res.redirect("/showReviewsOfAnswer/" + courseId+"/"+psetId+"/"+answer._id);
     } else {
       // this is ugly and I'll need to fix it soon
       res.send("the user has not yet submitted an answer to this problem")
-      //res.locals.routeName = " reviewAnswer";
-      //res.render("reviewAnswer");
+
     }
   } catch (e) {
     next(e);
@@ -400,20 +318,24 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
 
 
   */
-  app.post("/saveReview2/:courseId/:probId/:answerId",hasCourseAccess,
+  app.post("/saveReview2/:courseId/:psetId/:probId/:answerId",hasCourseAccess,
   
     async (req, res, next) => {
       try {
+        const courseId = req.params.courseId;
+        const psetId = req.params.psetId;
+        const probId = req.params.probId;
+        const answerId = req.params.answerId;
         console.log("in saveReview2");
         console.dir(req.body);
         console.dir(req.headers);
         console.dir(req.method);
   
-        const problem = await Problem.findOne({_id: req.params.probId});
+        const problem = await Problem.findOne({_id: probId});
   
-        const answer = await Answer.findOne({_id: req.params.answerId});
+        const answer = await Answer.findOne({_id: answerId});
 
-        const courseInfo = await Course.findOne({_id: answer.courseId});
+        const courseInfo = await Course.findOne({_id: courseId});
   
         let skills = req.body.skill;
         console.log("skills=" + JSON.stringify(skills));
@@ -445,11 +367,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
   
         // if the user is a TA, then make their review
         // the official review
-        if (userIsOwner || req.user.taFor.includes(problem.courseId)) {
-          // answer.officialReviewId = newReviewDoc._id;
-          // answer.review = req.body.review;
-          // answer.points = req.body.points;
-          // answer.skills = skills;
+        if (userIsOwner || req.user.taFor.includes(courseId)) {
+    
           
           await Answer.findByIdAndUpdate(answer._id,
             {$set:{officialReviewId:newReviewDoc._id,
@@ -475,36 +394,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
              $pull:{pendingReviewers:req.user._id}});
           }
   
-        // this loop is for removing the req.user._id from the
-        // list of pendingReviewers for a problem
-        // we need to redo this using $pull ***
-        // let pendingReviewers = [];
-  
-        // for (let i = 0; i < answer.pendingReviewers.length; i++) {
-        //   const reviewer = answer.pendingReviewers[i];
-  
-        //   if (reviewer.equals(req.user._id)) {
-        //     answer.numReviews -= 1;
-  
-        //     // because we incremented it when we sent the review to user
-        //   } else {
-        //     pendingReviewers.push(reviewer);
-        //   }
-        // }
-
-        // // *** use $set instead of .save
-        // // or better use $PUSH and $INCR
-        // answer.pendingReviewers = pendingReviewers;
-        // answer.markModified("pendingReviewers");
-  
-        // await answer.save();
-  
-        // finally we update the pendingReviews field of the problem
-        // to remove this reviewer on this answer, if necessary
-        // the reviewInfo might have been removed earlier if they
-        // timed out before completing their review...
-
-        // redo this using $incr and $pull ***
+ 
+        // redid this using $incr and $pull ***
         let pendingReviews = [];
         for (let i = 0; i < problem.pendingReviews.length; i++) {
           reviewInfo = problem.pendingReviews[i];
@@ -521,23 +412,11 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
           }
         }
 
-        //await Problem.findByIdAndUpdate(problem._id,
-        //  {$set:{pendingReviews:pendingReviews}});
 
-  
-        // problem.pendingReviews = pendingReviews;
-
-        // // *** use $pull instead of .save() here ...
-  
-        // problem.markModified("pendingReviews");
-  
-        // await problem.save();
-  
-        //res.redirect('/showReviewsOfAnswer/'+answer._id)
         if (req.body.destination == "submit and view this again") {
-          res.redirect("/showReviewsOfAnswer/" + problem.courseId+"/"+req.params.answerId);
+          res.redirect("/showReviewsOfAnswer/" + courseId+"/"+psetId+"/"+answerId);
         } else {
-          res.redirect("/reviewAnswers/" +problem.courseId+"/" + problem._id);
+          res.redirect("/reviewAnswers/" +courseId+"/" +  psetId+"/"+probId);
         }
   
         // we can now redirect them to review more answers
@@ -548,6 +427,12 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
     }
   );
   
+
+  /*
+  I want to get rid of this route and not remove any reviews.
+  We should just keep a chain or reviews and not allow users to remove them.
+  For now, I'll leave this and ignore it. 
+  */
   app.post("/removeReviews/:courseId", hasCourseAccess,
     async (req, res, next) => {
     try {
@@ -570,17 +455,14 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
       } else {
         reviews = await Review.find({_id: {$in: deletes}});
       }
-      //console.log("reviews="+JSON.stringify(reviews))
+
       let answerId = reviews[0].answerId;
       let reviewerIds = reviews.map((r) => r.reviewerId);
       let answer = await Answer.findOne({_id: answerId});
   
-      //console.log(`answer= ${JSON.stringify(answer)}`)
-      //console.log(`answer.reviewers=${JSON.stringify(answer.reviewers)}`)
-      //console.log(`reviewerIds= ${JSON.stringify(reviewerIds)}`)
-      //console.log(answer.reviewers.indexOf(reviewerIds[0]))
+
       const newReviewerIds = removeElements(answer.reviewers, reviewerIds);
-      //console.log('nri = '+JSON.stringify(newReviewerIds))
+ 
 
       // try to use $pull instead of .save() ***
       answer.reviewers = newReviewerIds;
@@ -605,17 +487,28 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
     return slist;
   }
   
-  app.get("/showReviewsOfAnswer/:courseId/:answerId", hasCourseAccess,
+  app.get("/showReviewsOfAnswer/:courseId/:psetId/:answerId", hasCourseAccess,
     async (req, res, next) => {
     try {
+      const courseId = req.params.courseId;
+      res.locals.courseId = courseId;
+
+      const psetId = req.params.psetId;
+      res.locals.psetId = psetId;
+
+      const answerId = req.params.answerId;
+      res.locals.answerId = answerId;
+
       const id = req.params.answerId;
       
-      res.locals.answer = await Answer.findOne({_id: id});
-      res.locals.courseInfo = await Course.findOne({_id: res.locals.answer.courseId});
-      res.locals.problem = await Problem.findOne({_id: res.locals.answer.problemId});
-      res.locals.student = await User.findOne({_id: res.locals.answer.studentId});
-      res.locals.reviews = await Review.find({answerId: id}).populate('reviewerId').sort({points: "asc", review: "asc"});
-      const taList = await User.find({taFor: res.locals.problem.courseId});
+      const answer = await Answer.findOne({_id: answerId});
+      res.locals.answer = answer;
+      res.locals.courseInfo = await Course.findOne({_id: courseId});
+      const problem = await Problem.findOne({_id: answer.problemId});
+      res.locals.problem = problem;
+      res.locals.student = await User.findOne({_id: answer.studentId});
+      res.locals.reviews = await Review.find({answerId: answerId}).populate('reviewerId').sort({points: "asc", review: "asc"});
+      const taList = await User.find({taFor: courseId});
       res.locals.taList = taList.map((x) => x._id);
   
       for (rev of res.locals.reviews) {
@@ -625,9 +518,9 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
         }
       }
   
-      res.locals.skills = await Skill.find({_id: {$in: res.locals.problem.skills}});
-      res.locals.allSkills = await Skill.find({courseId: res.locals.answer.courseId});
-      res.locals.regradeRequests = await RegradeRequest.find({answerId: id});
+      res.locals.skills = await Skill.find({_id: {$in: problem.skills}});
+      res.locals.allSkills = await Skill.find({courseId: answer.courseId});
+      res.locals.regradeRequests = await RegradeRequest.find({answerId: answerId});
   
       res.locals.routeName = " showReviewsOfAnswer";
       res.render("showReviewsOfAnswer");
@@ -636,13 +529,19 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:probId/:studentId", hasStaffAcces
     }
   });
 
-  app.get("/showReviewsByUser/:courseId/:probId", hasCourseAccess,
+  app.get("/showReviewsByUser/:courseId/:psetId/:probId", hasCourseAccess,
     async (req, res, next) => {
-    const id = req.params.probId;
-    res.locals.problem = await Problem.findOne({_id: id});
+    const probId = req.params.probId;
+    res.locals.probId = probId;
+    const courseId = req.params.courseId;
+    res.locals.courseId = courseId;
+    const psetId = req.params.psetId;
+    res.locals.psetId = psetId;
+
+    res.locals.problem = await Problem.findOne({_id: probId});
     res.locals.course = await Course.findOne({_id: res.locals.problem.courseId});
-    res.locals.usersReviews = await Review.find({reviewerId: req.user._id, problemId: res.locals.problem._id});
-    res.locals.allReviews = await Review.find({problemId: res.locals.problem._id});
+    res.locals.usersReviews = await Review.find({reviewerId: req.user._id, problemId: probId});
+    res.locals.allReviews = await Review.find({problemId: probId});
     const answerIds = res.locals.usersReviews.map((r) => r.answerId);
     res.locals.usersReviewedAnswers = await Answer.find({_id: {$in: answerIds}});
     res.locals.routeName = " showReviewsByUser";

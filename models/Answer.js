@@ -7,6 +7,7 @@ var answerSchema = Schema( {
   studentId: {type:ObjectId, ref:'User'},
   courseId: {type:ObjectId,index:true},
   psetId: {type:ObjectId, ref:'ProblemSet'},
+  //psetProbId:{type:ObjectId,index:true}, // need to update this when
   problemId: {type:ObjectId,index:true,ref:'Problem'},
   answer: String,
   reviewers: [Schema.Types.ObjectId],

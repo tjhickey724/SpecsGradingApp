@@ -12,7 +12,7 @@
             <th>N </th>
             <th>Student</th>
             <% for(i = 0; i<= problems.length-1; i++){  %>
-            <th> <a href="/showProblem/<%= courseInfo._id%>/<%= problems[i]._id %>">
+            <th> <a href="/showProblem/<%= courseId%>/<%= psetId%>/<%= problems[i]._id %>">
                 P<%= i %><br> <%= problems[i].points %>
 
               </a></th>
@@ -74,12 +74,12 @@
               <% } else if (!answerId) {
                                     jsonRow.grades.push(0)
                                    %>
-              <a style="color:red" href="/gradeProblem/<%= problemSet.courseId%>/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
+              <a style="color:red" href="/gradeProblem/<%= courseId%>/<%= psetId%>/<%= problems[j]._id %>/<%= studentsInfo[i]._id  %>">
                 No TA reviews yet
               </a>
               <% } else { %>
 
-              <a href="/showReviewsOfAnswer/<%= answerId %>">
+              <a href="/showReviewsOfAnswer/<%= courseId %>/<%= answerId %>">
                 <% let scores = grades.map((r) => r.points)
                                        let avgScore =
                                             Math.ceil(

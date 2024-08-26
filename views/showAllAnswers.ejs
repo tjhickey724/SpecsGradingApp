@@ -12,7 +12,12 @@
     <script type="text/javascript" src="/js/clickThumb.js"></script>
     <% if (canView) { %>
       <h2>All <%= answers.length %> Answers with <%= reviews.length %> Reviews, total</h2>
-      <% for(let i=0; i<answers.length; i++){ %>
+      <% for(let i=0; i<answers.length; i++){ 
+            console.log('debugging answers '+i);
+            console.dir(answers[i]);
+            console.log(answers[i]._id);
+        
+        %>
         <div class="row" style="padding-top:20px; margin-top:20px; border-top:thick solid black">
           <div class="col-md-12">
             <%= answers[i].createdAt %>
@@ -37,13 +42,23 @@
         <h3> REVIEWS</h3>
         <% let numReviews=0 %>
 
-          <% for (let j=0; j<reviews.length; j++){ %>
+          <% for (let j=0; j<reviews.length; j++){ 
+            console.log('debugging reviews '+j);
+            //console.dir(reviews[j]);
+            console.log(reviews[j].answerId);
+            console.log(answers[i]._id);
+            console.log(reviews[j].answerId.equals(answers[i]._id));
+            %>
 
           <% if (reviews[j].answerId.equals(answers[i]._id)) {
+            console.log('inside if');
              numReviews += 1
              let rev=reviews[j]
              let skills = reviews[j].skills
-             let skillnames = skills.map((s) => getSkill(s,allSkills)['name'])
+             console.log('skills');
+             console.dir(skills);
+             console.dir(skills.map((s) => getSkill(s,allSkills)));
+             let skillnames = skills//.map((s) => getSkill(s,allSkills)['name'])
              let numLikesU = reviews[j].upvoters.length
              let userLikesU = reviews[j].upvoters.includes(user._id)
              let fa_prefixU = userLikesU?"fas":"far"
@@ -109,13 +124,13 @@
 
 
                                         <hr>
-                                        <a href="/reviewAnswers/<%= course._id%>/<%= problem._id %>"
+                                        <a href="/reviewAnswers/<%= courseId%>/<%= psetId%>/<%= probId %>"
                                           class="btn btn-small btn-warning">Review others answers</a>
-                                        <a href="/showReviewsByUser/<%=problem.courseId%>/<%= problem._id %>"
+                                        <a href="/showReviewsByUser/<%=courseId%>/<%= probId %>"
                                           class="btn btn-small btn-info">Your Reviews of other's answers</a>
-                                        <a href="/showProblem/<%= course._id %>/<%= problem._id %>" class="btn btn-small btn-danger">Back
+                                        <a href="/showProblem/<%= courseId %>/<%= psetId %>/<%= probId %>" class="btn btn-small btn-danger">Back
                                           to the Problem</a>
-                                        <a href="/showProblemSet/<%= problem.courseId%>/<%= problem.psetId %>"
+                                        <a href="/showProblemSet/<%= courseId%>/<%= psetId %>"
                                           class="btn btn-small btn-primary">Back to the Problem Set</a>
 
 

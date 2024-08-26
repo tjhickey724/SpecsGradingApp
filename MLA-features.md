@@ -21,4 +21,17 @@ The main MLA page allows you to do several things:
 * view your courses (as a student, TA, or owner)
 * create a new course (but this requires that you be white-listed by contacting the administrator running the site)
 
+## /createCourse
+this is only available to instructors (who are whitelisted in the app).
+It asks you for the courseName and it creates a course with a 7 digit PIN and sends you to the course page.
+
+## /showCourse/:courseId
+this shows the course contents which vary depending on whether you are a student, TA, or the course owner.
+
+### As a student
+When a student visits a course page they can see
+* the problem sets (as links to problem set pages)
+* a link to see the TAs
+* a link to see the Skills
+
 

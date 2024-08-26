@@ -43,9 +43,9 @@
                             numAnswers += 1
                             let answer = grades.answers[a].answer
                             let reviews = grades.answers[a].reviews
-                            let reviewScores = reviews.map((x)=>(x.points))
+                            let reviewScores = reviews.map((x)=>(x.skills.length))
                             let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
-                            let score = (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length * problem.points)*100)
+                            let score = (reviewScores.reduceRight((x,y)=>x+y,0)/(reviewScores.length * 1)*100)
                             score = parseInt((reviewScores.length==0)?0:score)
                             if (reviewScores.length>0) {
                                 numReviewed += 1

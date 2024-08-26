@@ -75,7 +75,7 @@ const Skill = require("../models/Skill");
 const RegradeRequest = require("../models/RegradeRequest");
 
 // const {method, otherMethod} = require('./myModule.js');
-const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin} = require('./authFunctions.js');
+const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize} = require('./authFunctions.js');
 
 
 
@@ -93,7 +93,7 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin} = require(
   with the $incr and $pull   operators.
 */
 
-  app.get("/reviewAnswers/:courseId/:psetId/:probId", hasCourseAccess,
+  app.get("/reviewAnswers/:courseId/:psetId/:probId", authorize, hasCourseAccess,
     async (req, res, next) => {
 
     try {
@@ -220,7 +220,7 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin} = require(
 /*
  this is the route for recording that a student didn't answer a question
 */
-app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasStaffAccess,
+app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", authorize, hasStaffAccess,
   async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
@@ -264,7 +264,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasSt
  this is the route for writing a review of a particular student's answer to a problem
  this is what TAs do when grading a problem set
 */
- app.get("/gradeProblem/:courseId/:psetId/:probId/:studentId", hasCourseAccess,
+ app.get("/gradeProblem/:courseId/:psetId/:probId/:studentId", authorize, hasCourseAccess,
   async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
@@ -318,7 +318,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasSt
 
 
   */
-  app.post("/saveReview2/:courseId/:psetId/:probId/:answerId",hasCourseAccess,
+  app.post("/saveReview2/:courseId/:psetId/:probId/:answerId",authorize, hasCourseAccess,
   
     async (req, res, next) => {
       try {
@@ -433,7 +433,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasSt
   We should just keep a chain or reviews and not allow users to remove them.
   For now, I'll leave this and ignore it. 
   */
-  app.post("/removeReviews/:courseId", hasCourseAccess,
+  app.post("/removeReviews/:courseId", authorize, hasCourseAccess,
     async (req, res, next) => {
     try {
       /*
@@ -487,7 +487,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasSt
     return slist;
   }
   
-  app.get("/showReviewsOfAnswer/:courseId/:psetId/:answerId", hasCourseAccess,
+  app.get("/showReviewsOfAnswer/:courseId/:psetId/:answerId", authorize, hasCourseAccess,
     async (req, res, next) => {
     try {
       const courseId = req.params.courseId;
@@ -529,7 +529,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", hasSt
     }
   });
 
-  app.get("/showReviewsByUser/:courseId/:psetId/:probId", hasCourseAccess,
+  app.get("/showReviewsByUser/:courseId/:psetId/:probId", authorize, hasCourseAccess,
     async (req, res, next) => {
     const probId = req.params.probId;
     res.locals.probId = probId;

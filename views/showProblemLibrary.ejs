@@ -16,13 +16,21 @@
       <tbody>
         <% if (problems.length == 0) { %>
           <tr><td>No problems found for this skill</td></tr>
-        <% } else {  problems.forEach(problem => { %>
+        <% } else {  problems.forEach(problem => { 
+          const now = new Date();
+          %>
             <tr>
-                <td><a href="/showProblem/<%= courseId %>/<%= problem._id %>"><%= problem.description %></a> </td>
+                <td><a href="/showProblem/<%= courseId %>/<%= psetId%>/<%= problem._id %>"><%= problem.description %></a> </td>
                 <td>
                 <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>">Add to Problem Set</a></td>
                 <td><%= problem.createdAt.toISOString() %></td>
-                <td><%= psetMap[problem._id][0].toISOString() %></td>
+                <td><%= Math.round((now - psetMap[problem._id][0])/(1000*3600*24)) %> days ago</td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                   <textarea readonly rows="4" cols="80"><%= problem.problemText %></textarea>
+                  <hr>
+                </td>
             </tr>
           <% }); %>  
         <% } %>

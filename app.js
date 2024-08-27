@@ -30,7 +30,6 @@ const Course = require("./models/Course");
 const CourseSkill = require("./models/CourseSkill");
 const ProblemSet = require("./models/ProblemSet");
 const Problem = require("./models/Problem");
-const ProblemCatalogCard = require("./models/ProblemCatalogCard");
 const PsetProblem = require("./models/PsetProblem");
 const Answer = require("./models/Answer");
 const Review = require("./models/Review");
@@ -1288,140 +1287,12 @@ app.get("/stopProblem/:courseId/:probId", authorize, isOwner,
   res.redirect("/showProblem/" + problem.courseId+"/"+req.params.probId);
 });
 
-/*
-*********************************************************************
-Administrative Upgrades
-These upgrades are needed to update the database schema
-when we make changes to the app 
-that require changes to the database schema
-*********************************************************************
-*/
 
 
 
-
-const problem2psetProblem = (p) => {
-  let psetProblem = {
-    courseId: p.courseId,
-    psetId: p.psetId,
-    problemId: p._id,
-    createdAt: new Date(),
-  }
-  return new PsetProblem(psetProblem);
-}
- 
-const updatePsetProblems = 
-/*
-   This function creates a PsetProblem entry 
-   for each problem in the Problem collection.
-   WARNING: This function will delete all of the
-    existing PsetProblem entries and replace them
-    with new entries created from the Problem collection.
-*/
-  async (req, res, next) => {
-  try {
-    const problems = await Problem.find({});
-    console.log('in updatePsetProblems');
-    console.dir(problems[0]);
-    let psetProblems = problems.map(problem2psetProblem);
-    console.dir(psetProblems[0]);
-    console.log(`num psetProblems = ${psetProblems.length}`);
-    await PsetProblem.deleteMany({});
-    let count = PsetProblem.find({}).count();
-    console.log(`psetProblem count = ${count}`);
-    await PsetProblem.insertMany(psetProblems);
-    next();
-  } catch (e) {
-    next(e);
-  }
-}
-
-const updateProblemMimeType =
-  async (req, res, next) => {
-    try {
-      const problems = await Problem.find({});
-      for (let p of problems) {
-        if (!p.mimeType || p.mimeType == "text/plain") {
-          p.mimeType = "plain";
-        }
-        await p.save();
-      }
-      next();
-    } catch (e) {
-      next(e);
-    }
-  };
-
-const createCourseSkills =
-  async (req, res, next) => {
-    try {
-      console.log('deleting all CourseSkills');
-      await CourseSkill.deleteMany({});
-      const courses = await Course.find({});
-      for (let c of courses) {
-        console.log(c.name);
-        let skills = await Skill.find({courseId: c._id});
-        for (let s of skills) {
-          const courseSkillData = {
-            courseId: c._id,
-            skillId: s._id,
-            createdAt: new Date(),
-          }
-          let courseSkill = new CourseSkill(courseSkillData);
-          await courseSkill.save();
-        }
-      }
-      next();
-    } catch (e) {
-      console.log(`error in createCourseSkills: ${e}`);
-      next(e);
-    }
-  };
-
-
-/*
-this creates the ProblemCatalogCard collection
-and it sets all of the problems to have mimeType="plain"
-unless they already have a mimeType
-*/
-app.get('/upgrade_v3_0_0', 
-        authorize, isAdmin,
-        updatePsetProblems,
-        updateProblemMimeType,
-        (req,res,next) => {
-          res.send("upgraded to v3.0.0");
-        }
-      );
-
-/*
-this creates the CourseSkill collection by adding every
-skill defined in the course to the CourseSkill collection
-It should only be used to upgrade to v3.1.0 because it will
-delete all of the existing CourseSkill entries including
-skills imported from other courses...
-*/
-app.get('/upgrade_v3_1_0', 
-        authorize, isAdmin,
-        createCourseSkills,
-        (req,res,next) => {
-          res.send("upgraded to v3.1.0");
-        }
-      )
-
-
-
-app.get("/updateSchema", authorize, isAdmin,
-  async (req, res, next) => {
-  const result = await Problem.updateMany({}, {allowAnswers: true});
-  //console.dir(result)
-  res.redirect("/");
-});
-
-
-
-app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
+app.get('/showProblemLibrary/:courseId/:psetId', isLoggedIn,
   async (req,res,next) => {
-    res.locals.routeName=" showProblemCatalog";
+    res.locals.routeName=" showProblemLibrary";
     res.locals.courseId = req.params.courseId;
     res.locals.psetId = req.params.psetId;
     res.locals.problems = [];
@@ -1432,7 +1303,7 @@ app.get('/showProblemCatalog/:courseId/:psetId', isLoggedIn,
     res.locals.newProblems=[];
     res.locals.psetProblems=[];
     //res.json(res.locals.skills);
-    res.render('showProblemCatalog');
+    res.render('showProblemLibrary');
   }
 )
 
@@ -1493,7 +1364,7 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
     res.locals.newProblems = 
       await Problem .find({_id: {$in:newProbIds}});
     //res.json(res.locals.problems);
-    res.render('showProblemCatalog');
+    res.render('showProblemLibrary');
   }
 )
 
@@ -1522,20 +1393,7 @@ app.get("/removeProblem/:courseId/:psetId/:probId", authorize, isOwner,
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
   });
 
-app.post('/searchProblems/:courseId/:psetId', isLoggedIn,
-  async (req,res,next) => {
-    res.locals.courseId = req.params.courseId;
-    res.locals.psetId = req.params.psetId;
-    res.locals.routeName=" showProblemCatalog";
-    console.log("searching for "+req.body.search);
-    res.locals.skills = await Skill.find({courseId: req.params.courseId});
-    res.locals.problems = 
-      await ProblemCatalogCard.find(
-          {tags:{$regex:req.body.search, $options: 'i'}}).populate('problemId');
-    console.log("found "+res.locals.problems.length+" problems");
-    res.render('showProblemCatalog');
-  }
-)
+
 
 function getElementBy_id(id, vals) {
   for (let i = 0; i < vals.length; i++) {
@@ -1557,6 +1415,7 @@ app.get("/showAllAnswers/:courseId/:probId", authorize, hasCourseAccess,
     const course = await Course.findOne({_id: courseId});
     // we should pass the psetId into showAllAnswers so we don't have to look it up here
     const psetProblem = await PsetProblem.findOne({courseId:courseId,problemId:probId});
+    console.log('psetProblem='+JSON.stringify(psetProblem));
     res.locals.psetId = psetProblem.psetId;
     res.locals.course = course;
     const userReviews = await Review.find({problemId: probId, reviewerId: req.user._id});
@@ -1962,156 +1821,6 @@ app.get("/showTAs/:courseId", authorize, hasCourseAccess,
   }
 });
 
-// add the studentId to each Review ...
-app.get("/updateReviews", authorize, isAdmin,
-  async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-    //console.log("did we get here???  Yes we did!!")
-    return;
-  } else {
-    res.send("we aren't doing this anymore!");
-    //console.log("did we get here???  Yes we did!!")
-    return;
-    try {
-      let counter = 0;
-      const reviews = await Review.find({});
-      reviews.forEach(async (r) => {
-        // lookup the answer, get the studentId,
-        // and add it to the review, and save it...
-        answer = await Answer.findOne({_id: r.answerId});
-        //console.log(counter+": "+r._id+" "+answer.studentId)
-        counter += 1;
-        r.studentId = answer.studentId;
-        await r.save();
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
-    }
-    res.send("all done");
-  }
-});
-
-// add the studentId to each Review ...
-app.get("/updateReviews2", authorize, isAdmin,
-  async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      // for each answer, find all of the reviews of that answer
-      // create the reviewers field of the answer and set it
-      let counter = 0;
-      const answers = await Answer.find({});
-      answers.forEach(async (a) => {
-        try {
-          //  answer, get the studentId,
-          // and add it to the review, and save it...
-          reviews = await Review.find({answerId: a._id});
-          reviewers = reviews.map((r) => r.reviewerId);
-          //console.log(a._id+" "+JSON.stringify(reviewers))
-          a.reviewers = reviewers;
-          await a.save();
-        } catch (e) {
-          console.log("caught an error updating an answer: " + e);
-        }
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
-    }
-    res.send("all done");
-  }
-});
-
-app.get("/removeGradeSheets", authorize, isAdmin,
-  async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      let counter = 0;
-      const courses = await Course.find({});
-      courses.forEach(async (c) => {
-        // lookup the answer, get the studentId,
-        // and add it to the review, and save it...
-        c.gradeSheet = {};
-        //console.log('updated course :'+JSON.stringify(c))
-        await c.save();
-      });
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
-    }
-    res.send("all done");
-  }
-});
-
-app.get("/removeOrphanAnswers", authorize, isAdmin,
-  async (req, res, next) => {
-  try {
-    if (req.user.googleemail != "tjhickey@brandeis.edu") {
-      res.send("you are not allowed to do this!");
-    } else {
-      /* 
-              Find all reviews whose answer has been deleted,
-              and remove those reviews. 
-              First we find all of the answers and create a list of the AnswerIds
-              Then we find all reviews whose answer is not in that list.
-              These are the orphans.
-              Then we delete those orphan reviews.
-          */
-      console.log("in /removeOrphanAnswers");
-      const answers = await Answer.find({});
-      console.log("num answers is " + answers.length);
-      const answerIds = answers.map((x) => x._id);
-      console.log("num answerIds is " + answerIds.length);
-      const orphans = await Review.find({answerId: {$not: {$in: answerIds}}});
-      console.log("num orphans is " + orphans.length);
-      const orphanIds = orphans.map((x) => x._id);
-      const numrevsBefore = await Review.find().count();
-      await Review.deleteMany({_id: {$in: orphanIds}});
-      const numrevsAfter = await Review.find().count();
-      res.send("before " + numrevsBefore + " after:" + numrevsAfter);
-    }
-  } catch (e) {
-    next(e);
-  }
-});
-
-app.get("/updateOfficialReviews", authorize, isAdmin,
-  async (req, res, next) => {
-  if (req.user.googleemail != "tjhickey@brandeis.edu") {
-    res.send("you are not allowed to do this!");
-  } else {
-    try {
-      // iterate through all answers
-      // look for reviews a review by a TA
-      // if found, then use it to update the answer
-
-      let answers = await Answer.find();
-      for (let answer of answers) {
-        let reviews = await Review.find({answerId: answer._id});
-        for (let review of reviews) {
-          let reviewer = await User.findOne({_id: review.reviewerId});
-          if (reviewer && reviewer.taFor && reviewer.taFor.includes(answer.courseId)) {
-            answer.officialReviewId = review._id;
-            answer.points = review.points;
-            answer.review = review.review;
-            answer.skills = review.skills;
-            await answer.save();
-          }
-        }
-      }
-    } catch (e) {
-      console.log("caught an error: " + e);
-      console.dir(e);
-      next(e);
-    }
-    res.send("all done");
-  }
-});
 
 const ObjectId = mongoose.Types.ObjectId;
 

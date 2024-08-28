@@ -35,6 +35,8 @@ this shows the course contents which vary depending on whether you are a student
 When a student visits a course page they can see
 * the problem sets (as links to problem set pages)
 * a link to see the TAs (which shows their names/emails and a link back to the course page)
-* a link to see the Skills for the course
+* a link to see the Skills for the course (is this needed??)
+* a list of each of the skills and the number of times each has been mastered
+* a link to all of the problems and your responses.
 
 

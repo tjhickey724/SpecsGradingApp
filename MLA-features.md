@@ -11,19 +11,22 @@ Once logged in you have access to a menubar at the top of the page which lets yo
 * logout
 * view your Profile
 * view the About and Stats pages
-
 ## MGA
 We won't document this now because it is an interim feature and will be replaced by the next version of the MLA...
 
-## MLA
+# MLA
 The main MLA page allows you to do several things:
 * join an MLA course using a 7 digit PIN
 * view your courses (as a student, TA, or owner)
 * create a new course (but this requires that you be white-listed by contacting the administrator running the site)
 
+---
+
 ## /createCourse
 this is only available to instructors (who are whitelisted in the app).
 It asks you for the courseName and it creates a course with a 7 digit PIN and sends you to the course page.
+
+---
 
 ## /showCourse/:courseId
 this shows the course contents which vary depending on whether you are a student, TA, or the course owner.
@@ -32,6 +35,6 @@ this shows the course contents which vary depending on whether you are a student
 When a student visits a course page they can see
 * the problem sets (as links to problem set pages)
 * a link to see the TAs (which shows their names/emails and a link back to the course page)
-* a link to see the Skills
+* a link to see the Skills for the course
 
 

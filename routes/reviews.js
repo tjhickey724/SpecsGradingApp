@@ -274,8 +274,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
 
     let answer = await Answer.findOne({problemId: probId, studentId: studentId});
 
-    //console.log("answer= "+JSON.stringify(answer))
-    // and we need to add it to the problem.pendingReviews
+
     res.locals.answer = answer;
     res.locals.problem = problem;
 
@@ -286,8 +285,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
     res.locals.numReviewsByMe = myReviews.length;
     res.locals.alreadyReviewed = myReviews.length > 0;
 
-    //console.log('\n\n\nmy reviews='+JSON.stringify(myReviews))
-    //console.log(res.locals.numReviewsByMe)
+
 
     // *** Handle the case where the user hasn't answered this one yet.
     // need a new view "noAnswerToReview"  ***
@@ -323,11 +321,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
         const psetId = req.params.psetId;
         const probId = req.params.probId;
         const answerId = req.params.answerId;
-        console.log("in saveReview2");
-        console.dir(req.body);
-        console.dir(req.headers);
-        console.dir(req.method);
-        console.dir(req.params);
+  
   
         const problem = await Problem.findOne({_id: probId});
   
@@ -336,8 +330,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
         const courseInfo = await Course.findOne({_id: courseId});
   
         let skills = req.body.skill;
-        console.log("skills=" + JSON.stringify(skills));
-        console.log("typeof(skills=" + typeof skills);
+
         if (typeof skills == "undefined") {
           skills = [];
         } else if (typeof skills == "string") {
@@ -440,8 +433,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
         for the answer...
         */
       let deletes = req.body.deletes;
-      //console.log(`deletes=${deletes}`)
-      //console.log(`type(deletes)=${typeof(deletes)}`)
+
       let reviews = null;
   
       if (!deletes) {
@@ -477,10 +469,8 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
     for (let i = 0; i < rems.length; i++) {
       slist = slist.filter((s) => {
         const z = !s.equals(rems[i]);
-        //console.log(`${s} ${rems[i]} ${z}`)
         return z;
       });
-      //console.log(`${i}  ${JSON.stringify(slist)}`)
     }
     return slist;
   }
@@ -509,12 +499,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
       const taList = await User.find({taFor: courseId});
       res.locals.taList = taList.map((x) => x._id);
   
-      for (rev of res.locals.reviews) {
-        rev.fullskills = await Skill.find({_id: {$in: rev.skills}});
-        for (x of rev.fullskills) {
-          console.log(x["name"]);
-        }
-      }
+
   
       res.locals.skills = await Skill.find({_id: {$in: problem.skills}});
       res.locals.allSkills = await Skill.find({courseId: answer.courseId});

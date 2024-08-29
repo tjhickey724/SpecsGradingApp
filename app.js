@@ -170,8 +170,6 @@ app.get("/lrec", isLoggedIn,
       loginer.logintime = loginer.logintime || [];
       loginer.logintime.push(new Date());
       loginer.markModified("logintime");
-      //console.log("updating ta "+ta._id)
-      //console.dir(ta)
       await loginer.save();
     }
     res.redirect("/");
@@ -267,7 +265,7 @@ app.get("/createCourse", isLoggedIn,
 // rename this to /createCourse and update the ejs form
 app.post("/createNewCourse", isLoggedIn,
   async (req, res, next) => {
-  //console.dir(req.body)
+
   if (false && !req.user.googleemail.endsWith("@brandeis.edu")) {
     res.send("You must log in with an @brandeis.edu account to create a class. <a href='/logout'>Logout</a>");
     return;
@@ -277,7 +275,7 @@ app.post("/createNewCourse", isLoggedIn,
   }
   try {
     let coursePin = await getCoursePin();
-    //console.dir(req.user)
+  
     let newCourse = new Course({
       name: req.body.courseName,
       ownerId: req.user._id,
@@ -324,8 +322,6 @@ app.post("/changeCourseName/:courseId", authorize, isOwner,
     const course = await Course.findOne({_id:req.params.courseId});
     course.name = name;
     await course.save();
-    console.dir(req.body);
-    console.dir(req.params);
     res.redirect("/showCourse/"+req.params.courseId);
 });
 
@@ -337,9 +333,9 @@ app.get("/showRoster/:courseId", authorize, hasStaffAccess,
 
     const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
     const memberIds = memberList.map((x) => x.studentId);
-    //console.log("memberIds = "+JSON.stringify(memberIds))
+
     res.locals.members = await User.find({_id: {$in: memberIds}});
-    //console.dir(res.locals.members)
+
     res.locals.routeName = " showRoster";
     res.render("showRoster");
   } catch (e) {
@@ -355,7 +351,6 @@ app.get("/dumpStats/:courseId", authorize, isOwner,
 
     const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
     const memberIds = memberList.map((x) => x.studentId);
-    //console.log("memberIds = "+JSON.stringify(memberIds))
     const members = await User.find({_id: {$in: memberIds}});
     const grades = 
         await Answer.find({courseId:id,studentId:{$in: memberIds}})
@@ -364,7 +359,6 @@ app.get("/dumpStats/:courseId", authorize, isOwner,
               .populate('psetId')
               .populate('problemId')
                 ;
-    //console.dir(res.locals.members)
     res.json(grades);
   } catch (e) {
     next(e);
@@ -377,12 +371,9 @@ app.post("/addStudents/:courseId", authorize, isOwner,
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
 
-    console.log("emails=");
     let emails = req.body.emails.split("\n").map((x) => x.trim());
-    //console.log(emails)
     for (let e of emails) {
       let z = await User.findOneAndUpdate({googleemail: e}, {googleemail: e}, {upsert: true, new: true});
-      console.log(e, z.googlename);
       let registration = {
         studentId: z._id,
         courseId: id,
@@ -390,10 +381,8 @@ app.post("/addStudents/:courseId", authorize, isOwner,
       };
       let cm = await CourseMember.findOneAndUpdate({studentId: z._id, courseId: id}, registration, {upsert: true, new: true});
 
-      console.log("inserted " + JSON.stringify(registration));
     }
     let users = await User.find({googleemail: {$in: emails}});
-    console.log("number of users is " + users.length);
 
     res.redirect("/showRoster/" + id);
   } catch (e) {
@@ -488,7 +477,6 @@ app.get("/showCourse/:courseId", authorize, hasCourseAccess,
         skillCount[s] = (skillCount[s] || 0) + 1;
       }
     }
-    console.dir(skillCount);
     res.locals.skillCount = skillCount;
 
     let skillIds = Array.from(new Set(flatten(skillLists)));
@@ -755,7 +743,6 @@ app.post("/updateProblemSet/:courseId/:psetId", authorize, isOwner,
   try {
     const id = req.params.psetId;
     const pset = await ProblemSet.findOne({_id: id});
-    console.log("id=" + id);
     pset.name = req.body.name;
     pset.visible = req.body.visible == "visible";
     await pset.save();
@@ -769,7 +756,6 @@ app.post("/updateProblemSet/:courseId/:psetId", authorize, isOwner,
 const getStudentSkills = async (courseId,studentId) => {
   try {
     const skills = await Answer.find({courseId:courseId,studentId: studentId}).distinct("skills");
-    console.log(skills);
     return skills.map((c) => c.toString());
   } catch (e) {
     console.log("error in skills");
@@ -813,25 +799,16 @@ app.get("/gradeProblemSet/:courseId/:psetId", authorize, hasStaffAccess,
   const problems = await Problem.find({psetId: psetId});
 
   res.locals.problems = problems;
-  console.log("number of problems = "+problems.length);
   res.locals.answers = await Answer.find({psetId: psetId});
   res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
-  //console.log("looking up students")
   const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
   res.locals.students = memberList.map((x) => x.studentId);
-  //console.log(res.locals.students)
-  //console.log("getting student info")
   res.locals.studentsInfo = await User.find({_id: {$in: res.locals.students}}, {}, {sort: {googleemail: 1}});
-  //console.log(res.locals.studentsInfo)
   const taList = await User.find({taFor: res.locals.courseInfo._id});
   const taIds = taList.map((x) => x._id);
-  //console.log('taIds='+JSON.stringify(taIds))
   const taReviews = await Review.find({psetId: psetId, reviewerId: {$in: taIds}});
-  //console.log("found "+taReviews.length+" reviews by "+taList.length+" tas")
 
   res.locals.taReviews = taReviews;
-  //console.log(JSON.stringify(req.user._id))
-  //console.log(JSON.stringify(taIds))
   let userIsOwner = req.user._id.equals(res.locals.courseInfo.ownerId);
 
   if (userIsOwner || taIds.filter((x) => x.equals(req.user._id)).length > 0) {
@@ -842,36 +819,7 @@ app.get("/gradeProblemSet/:courseId/:psetId", authorize, hasStaffAccess,
   }
 });
 
-// app.get("/gradeProblemSetJSON/:courseId/:psetId", async (req, res, next) => {
-//   const psetId = req.params.psetId;
-//   res.locals.psetId = psetId;
-//   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
-//   res.locals.problems = await Problem.find({psetId: psetId});
-//   res.locals.answers = await Answer.find({psetId: psetId});
-//   res.locals.courseInfo = await Course.findOne({_id: res.locals.problemSet.courseId}, "ownerId");
-//   //console.log("looking up students")
-//   const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
-//   res.locals.students = memberList.map((x) => x.studentId);
-//   //console.log(res.locals.students)
-//   //console.log("getting student info")
-//   res.locals.studentsInfo = await User.find({_id: {$in: res.locals.students}}, {}, {sort: {googleemail: 1}});
-//   //console.log(res.locals.studentsInfo)
-//   const taList = await User.find({taFor: res.locals.courseInfo._id});
-//   const taIds = taList.map((x) => x._id);
-//   //console.log('taIds='+JSON.stringify(taIds))
-//   const taReviews = await Review.find({psetId: psetId, reviewerId: {$in: taIds}});
-//   //console.log("found "+taReviews.length+" reviews by "+taList.length+" tas")
 
-//   res.locals.taReviews = taReviews;
-//   //console.log(JSON.stringify(req.user._id))
-//   //console.log(JSON.stringify(taIds))
-//   if (taIds.filter((x) => x.equals(req.user._id)).length > 0) {
-//     res.locals.routeName = " gradeProblemSetJSON";
-//     res.render("gradeProblemSetJSON");
-//   } else {
-//     res.send("You are not allowed to grade problem sets.");
-//   }
-// });
 const preamble =
 `
 
@@ -891,8 +839,6 @@ const personalizedPreamble = (studentName,courseName,examName) =>
 const generateTex = (problems) => {
   let tex = "\\begin{enumerate}\n";
   for (let p of problems) {
-    console.log('processing problem: ');
-    console.log(JSON.stringify(p,null,2));
     tex += "\\item\n"
     if (p.mimeType=='plain'){
       tex += '\\begin{verbatim}\n'
@@ -921,8 +867,6 @@ const generateTex = (problems) => {
 `;
      }
   tex += "\\end{enumerate}\n";
-  console.log('exam tex is ');
-  console.log(tex);
   return tex;
 };
 
@@ -949,8 +893,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
     const studentIds = courseMembers.map((x) => x.studentId._id);
     const mastery = 
       await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
-    console.log('mastery is');
-    console.log(JSON.stringify(mastery, null, 2));
 
 
 
@@ -967,8 +909,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
       skillList = skillList ? skillList.concat(skillIds) : skillIds;
       skillDict[studentId]= skillList;
     }
-    console.log('skillDict is');
-    console.log(JSON.stringify(skillDict,null,0));
 
 
 
@@ -985,8 +925,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
       problemDict[p.skills[0]] = p;
     }
    }
-   console.log('problemDict is')
-   console.log(JSON.stringify(problemDict,null,2));
 
 
    let result = "";
@@ -996,38 +934,24 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
          as determined by the skillList.
       */
      const studentId = s.studentId._id;
-     console.log('processing student')
-     console.log(JSON.stringify(s.studentId,null,2));
-     console.log('with skills')
+     
      const studentSkills = skillDict[studentId].map((x)=> x+"");
 
      let testProblems = [];
      for (let p of problems){
-      console.log(`problem ${p}`)
-      console.log('studentskills: '+JSON.stringify(studentSkills,null,2));
-      console.log('p.skills: '+JSON.stringify(p.skills,null,2));
-      console.log(studentSkills.includes(p.skills[0]+""))
+      
       if (studentSkills.includes(p.skills[0]+"")) {
-        console.log('mastered')
       } else {
-        console.log('not mastered')
         testProblems = testProblems.concat(p);
       }
-      console.log('==========')
 
      }
-     console.log('Test problems is');
-     console.log(JSON.stringify(testProblems,null,2));
-     //testProblems = problems.filter((p) => !(skillDict[studentId].includes(p.skills[0]+"")));
-     //console.log('and problems '+testProblems.map((p)=>(p.description)))
-     console.log(JSON.stringify(testProblems,null,2));
+     
 
      const exam =  
         personalizedPreamble(s.studentId.googleemail,'Math10a','Fri 8/23/2024')
         + generateTex(testProblems);
-     console.log('**** exam is ');
-     console.log(exam);
-     console.log('******\n\n\n');
+     
      result += exam;
 
     }
@@ -1056,7 +980,6 @@ app.get('/downloadAsTexFile/:courseId/:psetId', authorize, hasStaffAccess,
     const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
     const endTex = '\\end{document}\n';
 
-    console.log('problems = '+problems);
     res.send(startTex+generateTex(problems)+endTex);
     //res.send('downloadAsTexFile not implemented yet');
   });
@@ -1120,7 +1043,6 @@ app.post("/saveProblem/:courseId/:psetId", authorize, isOwner,
 app.post("/updateProblem/:courseId/:probId", authorize, isOwner,
   async (req, res, next) => {
   try {
-    console.log('in updateProblem')
     const problem = await Problem.findOne({_id: req.params.probId});
     const courseId = problem.courseId;
     problem.description = req.body.description;
@@ -1134,11 +1056,9 @@ app.post("/updateProblem/:courseId/:probId", authorize, isOwner,
     problem.submitable = req.body.submitable == "submitable";
     problem.peerReviewable = req.body.peerReviewable == "peerReviewable";
 
-    console.log("in updateProblem", problem.visible, req.body.visible, problem.submitable, req.body.submitable, problem.answerable, req.body.answerable, problem.peerReviewable, req.body.peerReviewable);
-    console.dir(req.body);
+   
     let skills = req.body.skill;
-    console.log("skills=" + JSON.stringify(skills));
-    console.log("typeof(skills=" + typeof skills);
+  
     if (typeof skills == "undefined") {
       skills = [];
     } else if (typeof skills == "string") {
@@ -1266,7 +1186,6 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
       Eventually, we will narrow this search to the problems
       used in a set of courses, or in an organization...
     */
-    console.log(`req.params=${JSON.stringify(req.params)}`);
     const routeName=" showProblem";
     const courseId = req.params.courseId;
     const psetId = req.params.psetId;
@@ -1319,23 +1238,18 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
     const compProbs = (a,b) => {
       let d1 = psetMap[a._id][0];
       let d2 = psetMap[b._id][0];
-      //console.log(['***',d1,d2,d1<d2]);
       if (d1>d2){
         return 1;
       }else{
         return -1;
       };
     }
-    //console.dir( problems.map((x) => psetMap[x._id][0]));
-    //console.log('sorting');
+  
     const newProblems = 
       problems.filter((x) => x.parentProblemId==null);
 
     newProblems.sort(compProbs);
-    //console.dir( problems.map((x) => psetMap[x._id][0]));
 
-    //console.log('psetMap=');
-    //console.dir(psetMap);
 
     res.locals = 
       {...res.locals, 
@@ -1366,9 +1280,7 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", authorize, isOwner,
     newProblem.createdAt = new Date();
     newProblem._id = undefined;
     await newProblem.save();
-    console.log(JSON.stringify(newProblem));
 
-    //res.json(newProblem);
 
     res.redirect("/showProblemSet/" + courseId+"/"+ psetId); 
   });
@@ -1377,8 +1289,7 @@ app.get("/removeProblem/:courseId/:psetId/:probId", authorize, isOwner,
   async (req, res, next) => {
     const probId = req.params.probId;
     const psetId = req.params.psetId;
-    console.log(`psetId= ${psetId}`);
-    console.log(`problemId= ${probId}`);
+
     await Problem.deleteOne({psetId: psetId, problemId: probId});
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
   });
@@ -1470,10 +1381,8 @@ app.post("/saveAnswer/:courseId/:psetId/:probId", authorize, hasCourseAccess,
 
   const answerIds = answers.map((x) => x._id);
   const reviews = await Review.find({answerId: {$in: answerIds}});
-  console.log("about to try to save the new answer");
-  console.dir(reviews);
+
   if (reviews.length > 0) {
-    console.log(`there are ${reviews.length} reviews`);
     res.redirect("/showReviewsOfAnswer/" + courseId +"/" + psetId+"/"+ answerIds[0]);
   } else {
     let newAnswer = new Answer({
@@ -1517,9 +1426,7 @@ app.post("/requestRegrade/:courseId/:reviewId", authorize, hasCourseAccess,
       createdAt: new Date(),
     });
     await regradeRequest.save();
-    console.log("The Review is:");
-    console.dir(review);
-    console.log("ci" + review.courseId);
+
     res.redirect("/showRegradeRequests/" + review.courseId);
   } catch (e) {
     next(e);
@@ -1575,43 +1482,7 @@ app.post("/updateRegradeRequest/:courseId/:regradeRequestId", authorize, hasStaf
   }
 });
 
-// app.post("/giveGoodGrade/:probId/:answerId", async (req, res, next) => {
-//   let answerId = req.params.answerId;
-//   let userId = req.params.userId;
-//   let review = req.body.review;
-//   let points = req.body.points;
-//   console.log("in giveGoodGrade");
-//   console.log(review + " " + points);
-//   console.log("req.body=");
-//   console.dir(req.body);
 
-//   const problem = await Problem.findOne({_id: req.params.probId});
-
-//   const answer = await Answer.findOne({_id: req.params.answerId});
-
-//   const newReview = new Review({
-//     reviewerId: req.user._id,
-//     courseId: problem.courseId,
-//     psetId: problem.psetId,
-//     problemId: problem._id,
-//     answerId: req.params.answerId,
-//     studentId: answer.studentId,
-//     review: req.body.review,
-//     points: req.body.points,
-//     upvoters: [],
-//     downvoters: [],
-//     createdAt: new Date(),
-//   });
-
-//   await newReview.save();
-
-//   answer.reviewers.push(req.user._id);
-//   answer.numReviews += 1;
-
-//   answer.save();
-
-//   res.send("testing giveGoodGrade");
-// });
 
 app.get("/thumbsU/:courseId/:mode/:reviewId/:userId", authorize, hasCourseAccess,
   async (req, res, next) => {
@@ -1658,8 +1529,7 @@ app.get("/showTheStudentInfo/:courseId/:option", authorize, hasStaffAccess,
     const isOwner = req.user._id.equals(res.locals.courseInfo.ownerId);
 
     if (!(isOwner || isTA)) {
-      //console.log('isOwner = '+isOwner)
-      //console.log('isTA = '+isTA)
+      
       res.send("only the course owner and TAs can see this page");
       return;
     }
@@ -1755,17 +1625,14 @@ app.get("/showOneStudentInfo/:courseId/:studentId", authorize, hasCourseAccess,
 app.post("/addTA/:courseId", authorize, isOwner, 
   async (req, res, next) => {
   try {
-    //console.log("in addTA handler "+req.body.email)
     let ta = await User.findOne({googleemail: req.body.email});
     if (ta) {
       ta.taFor = ta.taFor || [];
       ta.taFor.push(req.params.courseId);
       ta.markModified("taFor");
-      //console.log("updating ta "+ta._id)
-      //console.dir(ta)
+
       await ta.save();
     }
-    console.log(`res.locals=${JSON.stringify(res.locals,null,5)}`);
     res.redirect("/showTAs/" + req.params.courseId);
   } catch (e) {
     next(e);
@@ -1775,18 +1642,12 @@ app.post("/addTA/:courseId", authorize, isOwner,
 app.post("/removeTAs/:courseId", authorize, isOwner, 
   async (req, res, next) => {
   try {
-    //console.log("in removeTAs handler ")
-    //console.dir(req.body)
-    //console.log(typeof req.body.ta)
+
     if (req.body.ta == null) {
-      //console.log("nothing to delete")
     } else if (typeof req.body.ta == "string") {
-      //console.log("delete "+req.body.ta)
       await User.update({_id: req.body.ta}, {$set: {taFor: []}});
     } else {
-      //console.log("delete several:")
       req.body.ta.forEach(async (x) => {
-        //console.log('x='+x)
         await User.update({_id: x}, {$set: {taFor: []}});
       });
     }
@@ -1802,7 +1663,6 @@ app.get("/showTAs/:courseId", authorize, hasCourseAccess,
   try {
     res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId coursePin");
     res.locals.tas = await User.find({taFor: req.params.courseId});
-    //console.log("in showTAs handler")
     res.locals.routeName = " showTAs";
 
     res.render("showTAs");
@@ -1838,7 +1698,6 @@ const masteryAgg = (courseId) => [
 app.get("/mastery/:courseId", authorize, hasStaffAccess,
   async (req, res, next) => {
   const agg = masteryAgg(req.params.courseId);
-  console.dir(agg);
   const zz = await Answer.aggregate(agg);
   res.json(zz);
 });
@@ -1886,7 +1745,6 @@ app.get("/mastery2/:courseId", authorize, isOwner,
   async (req, res, next) => {
   const courseId = req.params.courseId;
   const agg = masteryAgg2(courseId);
-  console.dir(agg);
   const mastery = await Answer.aggregate(agg);
   const studentIds = mastery.map((x) => x._id);
   const students = await User.find({_id: {$in: studentIds}});
@@ -1959,7 +1817,6 @@ function createGradeSheet(students, problems, answers, reviews) {
   let gradeSheet = {};
   let problemList = {};
   let answerList = {};
-  console.dir(['gradesheet',students,problems,answers,reviews]);
   for (let s in students) {
     let student = students[s];
     gradeSheet[student._id] = {student: student, answers: {}};
@@ -1972,12 +1829,7 @@ function createGradeSheet(students, problems, answers, reviews) {
     let answer = answers[a];
     try {
       answerList[answer._id] = answer;
-      if (answer == undefined) {
-        console.log("answer undefined a=" + a);
-      } else if (!("studentId" in answer)) {
-        console.log("answer.studentId undefined. answer =");
-        console.dir(answer);
-      }
+     
       // it is possible that a TA will not be a student
       // so we need to create a
       gradeSheet[answer.studentId] = gradeSheet[answer.studentId] || {status: "non-student", student: "non-student", answers: {}};
@@ -2003,7 +1855,7 @@ function createGradeSheet(students, problems, answers, reviews) {
       console.log("Error in createGradeSheet-2s: " + error.message + " " + error);
       console.log("error.lineNumber = " + error.linenNumber);
       console.log("stack: " + error.stack);
-    }
+    } 
   }
 
   return {grades: gradeSheet, problems: problemList, answers: answerList};

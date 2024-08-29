@@ -108,11 +108,12 @@ const isLoggedIn = (req, res, next) => {
   
   const isAdmin = async (req, res, next) => {
     try {
-      if (res.locals.isAdmin){
+      if (req.user.googleemail == "tjhickey@brandeis.edu"){
+        res.locals.isAdmin = true;
         next()
       } else {
-        res.send("Only the administrator has access to this page.");
-      }
+        res.send("Only the admin has access to this page.");
+      }      
     } catch (e) {
       next(e);
     }

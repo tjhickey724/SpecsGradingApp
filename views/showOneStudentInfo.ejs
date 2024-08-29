@@ -19,6 +19,7 @@
          for (a in grades.answers) {
           answeredProblemIds.push(""+grades.answers[a].answer.problemId)
           let problem = gradeSheet.problems[grades.answers[a].answer.problemId]
+          console.log(`problem: ${problem}`);
           let courseId = problem.courseId;
           let answer = grades.answers[a].answer
           let reviews = grades.answers[a].reviews

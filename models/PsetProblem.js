@@ -13,8 +13,13 @@ var psetProblemSchema = Schema( {
   psetId: {type:ObjectId,index:true,ref:'ProblemSet'},
   problemId: {type:ObjectId,ref:'Problem',index:true},
   pendingReviews: mongoose.Schema.Types.Mixed, // used to fairly distribute reviewing
+  allowAnswers: Boolean, // default value
+  visible: {type:Boolean, default: true}, //default value, actual value in PsetProblem
+  submitable: {type:Boolean,default:true}, // default value
+  answerable: {type:Boolean, default:true}, // default value
+  peerReviewable:{type:Boolean, default:true}, // default value
   createdAt: Date,
-} );
+});
 
 module.exports = mongoose.model( 'PsetProblem', psetProblemSchema );
 

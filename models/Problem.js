@@ -17,15 +17,22 @@ var problemSchema = Schema( {
   skills:[{type:ObjectId,ref:'Skill'}], 
   // MAP only needs 1 skill, but we keep this as a list for backward compatibility
 
-
-  // DEPRECATED 
-  points: Number, // deprecated  ... it is not needed in a MAP-based course
-  // we are keeping the following for backward compatibility
+  // used for determining whether and how to show the problem
   allowAnswers: Boolean, // default value
   visible: {type:Boolean, default: true}, //default value, actual value in PsetProblem
   submitable: {type:Boolean,default:true}, // default value
   answerable: {type:Boolean, default:true}, // default value
-  peerReviewable:{type:Boolean, default:true} // default value
+  peerReviewable:{type:Boolean, default:true}, // default value
+
+  parentProblemId: {type:ObjectId, default:null}, 
+  // this is used to link a problem to a parent problem,
+  // if the problem is a variation of another problem the variant flag will be set
+  variant: {type:Boolean, default:false}, // default value
+
+  // DEPRECATED 
+  points: Number, // deprecated  ... it is not needed in a MAP-based course
+
+
 } );
 
 

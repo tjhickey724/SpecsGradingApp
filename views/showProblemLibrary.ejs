@@ -4,6 +4,10 @@
   <div class="container-fluid ">
     <h1>Problem Search Page
     </h1>
+    <a href="/showProblemSet/<%= courseId %>/<%= psetId %>"
+       class="btn btn-sm btn-info">
+      Back to Problem Set
+    </a>
     <hr>
     <% if (skill) { %>
       <h2>Selected Skill: <%= skill.name %></h2>
@@ -14,9 +18,9 @@
         <tr><th>problem</th><th>add to pset</th><th>createdAt</th><th>last use</th></tr>
       </thead>
       <tbody>
-        <% if (problems.length == 0) { %>
+        <% if (newProblems.length == 0) { %>
           <tr><td>No problems found for this skill</td></tr>
-        <% } else {  problems.forEach(problem => { 
+        <% } else {  newProblems.forEach(problem => { 
           const now = new Date();
           %>
             <tr>
@@ -24,7 +28,7 @@
                 <td>
                 <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>">Add to Problem Set</a></td>
                 <td><%= problem.createdAt.toISOString() %></td>
-                <td><%= Math.round((now - psetMap[problem._id][0])/(1000*3600*24)) %> days ago</td>
+                <td><%= ((now - psetMap[problem._id][0])/(1000*3600*24)).toFixed(6) %> days ago</td>
             </tr>
             <tr>
                 <td colspan="5">
@@ -44,7 +48,7 @@
       <% if (skills.length > 0) { 
         skills.forEach(skill => { %>
         <li>
-            <a href="/showProblemsBySkill/<%= skill.courseId %>/<%= psetId %>/<%= skill._id %>">
+            <a href="/showProblemsBySkill/<%= courseId %>/<%= psetId %>/<%= skill._id %>">
               <%= skill.name %> | <%= skill._id%> </a>
         </li>
       <% })}; %>

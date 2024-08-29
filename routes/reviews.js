@@ -5,7 +5,7 @@ See the README.md file for a discussion of the algorithm. The key idea
 is we want to fairly assign answers to be reviewed and so we need 
 to update the following fields 
 
-psetProblem.pendingReviews [{answerId,reviewerId,createdAt}]
+problem.pendingReviews [{answerId,reviewerId,createdAt}]
 answer.numReviews (including both completed and pending)
 answer.reviewers [reviewerId]
 
@@ -17,9 +17,9 @@ In the former case, the route specifies a problem and student id.
 If the specified user has answered that problem, then the route
 renders a view with that problem and answer and generates a form
 where the reviewer can complete and submit their review.
-It also updates both the psetProblem and the answer to indicate that the
+It also updates both the problem and the answer to indicate that the
 reviewer will potentially submit a review. Thus the list of pending
-reviewers for answers to the psetProblem is stored in the psetProblem (along
+reviewers for answers to the problem is stored in the problem (along
   with the answerId, reviewerId, and createdAt time) and the answer
   itself has a list of the reviewerIds of pending reviewers, as well
   as a list of the reviewers that have completed their reviews.
@@ -50,12 +50,12 @@ is not pending.
 
 NOTES:
 We may want to modify this so that in only takes into account TA reviews
-in the case where a psetProblem can be peer reviewed by both students and TAs.
+in the case where a problem can be peer reviewed by both students and TAs.
 For now, we don't need to do that because exams should not be peer reviewable
 by default.
 
 DEV NOTES:
-I currenlty need to modify this reviewing code so that it uset the psetProblem
+I currenlty need to modify this reviewing code so that it uses the problem
 object to store the pendingReviews and not the problem object.
 */
 
@@ -65,7 +65,6 @@ const app = express.Router();
 // Models!
 
 const Problem = require("../models/Problem");
-const PsetProblem = require("../models/PsetProblem");
 const Course = require("../models/Course");
 const CourseMember = require("../models/CourseMember");
 const Answer = require("../models/Answer");
@@ -104,8 +103,6 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize}
       res.locals.psetId = psetId;
       res.locals.probId = probId;
 
-      const psetProblem = await PsetProblem.findOne({psetId: psetId, problemId: probId});
-      res.locals.psetProblem = psetProblem;
 
       let problem = await Problem.findOne({_id: probId});
   
@@ -117,8 +114,8 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize}
 
       const tooOld = new Date().getTime() - 1 *1000*60*10; // 10 minutes
       let expiredReviews = [];
-      psetProblem.pendingReviews ||= [];
-      let pendingReviews = psetProblem.pendingReviews.filter((x) => {
+      problem.pendingReviews ||= [];
+      let pendingReviews = problem.pendingReviews.filter((x) => {
         if (x.timeSent < tooOld) {
           expiredReviews.push(x);
           return false;
@@ -131,7 +128,7 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize}
       // and I'll set the timeout to be relatively short
 
       if (expiredReviews.length>0){
-        await PsetProblem.findByIdAndUpdate(psetProblem._id,
+        await Problem.findByIdAndUpdate(problem._id,
           {$pullAll:{pendingReviews:expiredReviews}});
       }
       
@@ -192,7 +189,7 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize}
             let review = {answerId: answer._id, 
                           reviewerId: req.user._id, 
                           timeSent: new Date().getTime()};
-            await PsetProblem.findByIdAndUpdate(psetProblem._id,
+            await Problem.findByIdAndUpdate(problem._id,
                     {$push:{pendingReviews:review}});
             break;
           } else {
@@ -330,6 +327,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
         console.dir(req.body);
         console.dir(req.headers);
         console.dir(req.method);
+        console.dir(req.params);
   
         const problem = await Problem.findOne({_id: probId});
   

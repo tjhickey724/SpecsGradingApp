@@ -4,7 +4,7 @@
 Every user must log in using google authentication to see any page in this app.
 When they do they are sent to the mainindex page which has links to two page:
 * MGA - the Math Grading App:   used for the Math 5a, 10a, 10b courses at Brandeis
-* MLAp - the Mastery Learning App: used for any course that adopts the M.A.P approach to teaching
+* MLA - the Mastery Learning App: used for any course that adopts the M.A.P approach to teaching
 
 Once logged in you have access to a menubar at the top of the page which lets you
 * return to Home
@@ -62,8 +62,7 @@ The staff have their own view of the problem which does not have an answer form.
 Finally, if the problem is peer reviewable, then after the user has submitted an answer,
 they will be able to review others answers and see all of the answers.
 
-These features of the problem are stored in the PsetProblem object, not in the problem itself,
-as the problem can be shared in many classes which may want different states at different times.
+These features of the problem are stored in the Problem object.
 
 
 

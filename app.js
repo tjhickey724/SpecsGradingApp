@@ -1425,7 +1425,9 @@ app.get("/showAllAnswers/:courseId/:probId", authorize, hasCourseAccess,
     const routeName = " showAllAnswers";
     res.locals = {
       ...res.locals,
-      courseId,probId,problem,course,psetId,allSkills,
+      courseId,probId,psetId, 
+      problem,course,
+      allSkills,getSkill,
       numReviews,canView,answers,reviews,isTA,taList,routeName
     }
     //res.json(res.locals);

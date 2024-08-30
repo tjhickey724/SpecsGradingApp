@@ -24,7 +24,7 @@
           <% for(let i=0; i<courses.length; i++){ %>
           <li>
             <%= courses[i].name %>
-            <%= courses[i]._id %>
+            <a href="/showCourse/<%= courses[i]._id %>">view</a>
           </li>
           <% } %>
 

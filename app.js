@@ -531,29 +531,36 @@ const flatten = (vals) => {
   return flist;
 };
 
+
+/* 
+  this route is used to proess a request to join a course 
+  by entering the course pin 
+*/
+
 app.post("/joinCourse", isLoggedIn,
   async (req, res, next) => {
   try {
-    let coursePin = req.body.coursePin;
+    const userId = req.user._id;
+    const coursePin = req.body.coursePin;
 
-    res.locals.courseInfo = await Course.findOne({coursePin: coursePin}, "name coursePin ownerId");
+    // look up the course with the given course pin
+    const course = await Course.findOne({coursePin: coursePin}, "name coursePin ownerId");
 
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
-    res.locals.isEnrolled = memberList.length > 0;
-
-    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
-
-    let registration = {
-      studentId: res.locals.user._id,
-      courseId: res.locals.courseInfo._id,
-      createdAt: new Date(),
-    };
-
-    let newCourseMember = new CourseMember(registration);
-
-    await newCourseMember.save();
-
-    res.redirect("/showCourse/" + res.locals.courseInfo._id);
+    // check if the user is already enrolled in the course
+    const memberList = await CourseMember.find({studentId: userId, courseId: course._id});
+    const isEnrolled = memberList.length > 0;
+    
+    if (!isEnrolled) {
+      // only enroll the student if they are not already enrolled!
+      const registration = {
+        studentId: userId,
+        courseId: course._id,
+        createdAt: new Date(),
+      };
+      const newCourseMember = new CourseMember(registration);
+      await newCourseMember.save();
+    } 
+    res.redirect("/showCourse/" + course._id);
   } catch (e) {
     next(e);
   }
@@ -568,12 +575,14 @@ Skill routes
 app.get("/showSkills/:courseId", authorize, hasCourseAccess,
   async (req, res, next) => {
   try {
-    res.locals.skills = await Skill.find({courseId: req.params.courseId});
-    res.locals.courseId = req.params.courseId;
-
-    res.locals.courseSkills = await CourseSkill.find({courseId: req.params.courseId}).populate('skillId');
+    const courseId = req.params.courseId;
+    const skills = await Skill.find({courseId: courseId});
+    const courseSkills = await CourseSkill.find({courseId: courseId}).populate('skillId');
     
-    res.locals.routeName = " showSkills";
+    res.locals = {
+      ...res.locals,
+      courseId,skills,courseSkills
+    };
     res.render("showSkills");
   } catch (e) {
     next(e);
@@ -583,24 +592,29 @@ app.get("/showSkills/:courseId", authorize, hasCourseAccess,
 app.get("/addSkill/:courseId", authorize, isOwner, 
   (req, res) => {
     res.locals.courseId = req.params.courseId;
-
-    res.locals.routeName = " addSkill";
     res.render("addSkill");
 });
 
+/* when a user adds a skill to the course
+   it is added to the skills collection and to the courseSkills collection
+   skills can be shared by multiple courses, 
+   but courseSkills are unique to a course
+*/
 app.post("/addSkill/:courseId",  authorize, isOwner, 
   async (req, res, next) => {
     try {
-      let newSkill = new Skill({
+      const courseId = req.params.courseId;
+
+      const newSkill = new Skill({
         name: req.body.name,
         description: req.body.description,
         createdAt: new Date(),
-        courseId: req.params.courseId,
+        courseId: courseId,
       });
       await newSkill.save();
 
-      let courseId = req.params.courseId;
-      let courseSkill = new CourseSkill({
+      
+      const courseSkill = new CourseSkill({
         courseId: courseId,
         skillId: newSkill._id,
         createdAt: new Date(),
@@ -614,11 +628,15 @@ app.post("/addSkill/:courseId",  authorize, isOwner,
     }
 });
 
+// this removes a skill from the CourseSkill collection
+// but does not remove the skill from the Skill collection
+// as other course owners might be using the skill in other courses
 app.get("/removeSkill/:courseId/:skillId", authorize, isOwner, 
   async (req, res, next) => {
     await CourseSkill.findOneAndDelete({courseId: req.params.courseId, skillId: req.params.skillId});
     res.redirect("/showSkills/"+req.params.courseId);
 });
+
 
 app.get("/showSkill/:courseId/:skillId", authorize, hasCourseAccess,
   async (req, res, next) => {
@@ -626,11 +644,12 @@ app.get("/showSkill/:courseId/:skillId", authorize, hasCourseAccess,
   try {
     const skillId = req.params.skillId;
     res.locals.skillId = skillId;
-    res.locals.skill = await Skill.findOne({_id: skillId});
-    let courseId = res.locals.skill.courseId;
+    const skill = await Skill.findOne({_id: skillId});
+    res.locals.skill = skill;
+    const courseId = res.locals.skill.courseId;
     res.locals.courseInfo = await Course.findOne({_id: courseId}, "name ownerId");
     res.locals.isOwner = res.locals.courseInfo.ownerId == req.user.id;
-    res.locals.routeName = " showSkill";
+
     res.render("showSkill");
   } catch (e) {
     console.log("Error in showSkill: " + e);

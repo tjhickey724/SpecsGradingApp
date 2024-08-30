@@ -11,9 +11,12 @@
       <ul>
         <% for(i=0; i<=courseSkills.length-1; i++){ %>
         <li>
+          <% if (isOwner) { %>
           <a href="/removeSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>" class="btn btn-sm btn-info">
             X
           </a>
+          <% } %>
+
           <a href="/showSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>">
             <%= courseSkills[i].skillId.name %>
           </a>
@@ -25,7 +28,8 @@
       <hr>
     </div>
 
-
+    <% // the courseOwner might want to see which skill they created
+       if (isOwner) { %>
     <div class="p-2">
       <h6 class="pb-2 border-bottom fw-bold"> Skills created in this class!
       </h6>
@@ -42,6 +46,7 @@
       </ul>
       <hr>
     </div>
+    <% } %>
 
     <div>
 

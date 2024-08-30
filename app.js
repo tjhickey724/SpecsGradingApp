@@ -5,13 +5,15 @@
 // get help with
 // pm2
 
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+// here are the standard requires for an express app
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 require("dotenv").config();
 
+// TJH -- I don't think we need these any more ...
 if (process.env.IS_ON_WEB == "False") {
   var livereload = require("livereload");
   var connectLiveReload = require("connect-livereload");
@@ -39,6 +41,7 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const ejsLint = require("ejs-lint");
 
+// TJH - I don't think we need this any more
 if (process.env.IS_ON_WEB == "False") {
   const liveReloadServer = livereload.createServer();
   liveReloadServer.server.once("connection", () => {
@@ -48,23 +51,23 @@ if (process.env.IS_ON_WEB == "False") {
   });
 }
 
-//const mongoose = require( 'mongoose' );
-//const ObjectId = mongoose.Schema.Types.ObjectId;
 
-//var apikey = require('./config/apikey');
 
 // AUTHENTICATION MODULES
-(session = require("express-session")), (bodyParser = require("body-parser")), (flash = require("connect-flash"));
-
+// TJH - why are these not defined with "CONST" declarations??
+// TJH - make sure we need all of these ...
+(session = require("express-session")), 
+(bodyParser = require("body-parser")), 
+(flash = require("connect-flash"));
+// This allows the session variables to be stored in the database
+// so we can use multiple servers with the same session data
 const MongoStore = require("connect-mongo")(session);
-
 // END OF AUTHENTICATION MODULES
 
+// INITIALIZING THE MONGOOSE DATABASE CONNECTION
 const mongoose = require("mongoose"); 
 
-
-//mongoose.connect("mongodb+srv://" + process.env.MONGO_USER + ":" + process.env.MONGO_PW + "@cluster0.f3f06uz.mongodb.net/test", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
-//mongoose.connect("mongodb://localhost/sga_v_1_0_TESTING", {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
+// we load the mongoose server data from the .env file
 mongoose.connect(process.env.MONGODB_URL, {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -73,20 +76,45 @@ db.once("open", function () {
 });
 
 /*
-  White list of instructors who are able to create courses on the MLA.
+  Whitelist of instructors who are able to create courses on the MLA.
   For now it is just me, but we can add more instructors as needed.
 */
-const instructors = ["tjhickey@brandeis.edu","tjhickey724@gmail.com"];
+const instructors = [
+  "tjhickey@brandeis.edu",
+  "tjhickey724@gmail.com",
+];
 
 var app = express();
+
+// TJH - I don't think we need this any more
 if (process.env.IS_ON_WEB == "False") {
   app.use(connectLiveReload());
 }
 
 var http = require("http").Server(app);
+
+// TJH - I don't think we need this any more
 var io = require("socket.io")(http);
 
-
+/*
+Authentication middleware:
+  isLoggedIn - checks if the user is logged in
+  isAdmin - checks if the user is an admin
+The rest of these middleware function assume that the user is logged in
+and that there is a request parameter named :courseId
+and that the authorize middleware has been invoked first.
+  hasCourseAccess - checks if the user is enrolled in the course
+  hasStaffAccess - checks if the user is a TA or the owner of the course
+  isOwner - checks if the user is the owner of the course
+This middleware function assumes that the user is logged in
+and that there is a courseId parameter in the request
+and it sets the local variables in res.locals for
+isEnrolled, isTA, isOwner, isStaff, is Admin
+  authorize - checks if the user is logged in and has access to the course
+Every route that requires authentication for access to a course
+should start with the authorize middleware and then will have those
+functions available in res.locals.
+*/
 const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize} = require('./routes/authFunctions.js');
 
 
@@ -94,6 +122,7 @@ const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize}
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
+// TJH - this needs more explanation ...
 app.disable('etag'); // get rid of 304 error?
 
 app.use(logger("dev"));
@@ -106,7 +135,7 @@ app.use(express.static(path.join(__dirname, "public")));
      HERE ARE THE AUTHENTICATION ROUTES
 **************************************************************************/
 
-//app.use(session({ secret: 'zzbbyanana',resave: false,  saveUninitialized: false }));
+// this is used to allow for session variables, which are used for authentication
 app.use(session(
   {
     secret: "zzbbyanana",
@@ -116,6 +145,8 @@ app.use(session(
     store: new MongoStore({mongooseConnection: mongoose.connection}),
   })
 );
+
+// TJH - I don't think we are sending flash messages  
 app.use(flash());
 
 app.use(bodyParser.json());
@@ -125,19 +156,14 @@ app.use(similarity);
 app.use(updates);
 
 
+
 /*
-  the user must be logged in to access any of the routes below
+The main page of this app "/" provides access to multiple
+apps that are part of the Mastery Learning Project. Currently
+we have access to
+  - the Math Grades App
+  - the Mastery Learning App 
 */
-
-
-// this can be used to require onlyh brandeis people have access 
-// app.use((req, res, next) => {
-//   if (true || req.user.googleemail.endsWith("@brandeis.edu")) {
-//     next();
-//   } else {
-//     res.send("You must have a Brandeis email to use this Peer Review App server\n " + "You can set up your own server. The code is at http://github.com/tjhickey724/PeerReviewApp branch v2.1 ");
-//   }
-// });
 
 app.get('/', (req, res) => {
   res.render('newmain');
@@ -146,7 +172,6 @@ app.get('/', (req, res) => {
 app.get('/mga_home', (req, res) => {
   res.redirect('/mathgrades');
 });
-
 
 
 app.use('/mathgrades',mathgrades);
@@ -160,7 +185,8 @@ app.use('/mathgrades',mathgrades);
 
 
 
-
+// this stores the times that a user has logged in to their user object
+// we may want to store this in a separate collection in the future
 app.get("/lrec", isLoggedIn, 
  async (req, res, next) => {
   try {
@@ -188,23 +214,24 @@ app.get("/mla_home", isLoggedIn,
     existing course if they have the course pin.
   */
   if (!req.user) next();
+  const userId = req.user._id;
+  const coursesOwned = await Course.find({ownerId: userId}, "name");
 
-  let coursesOwned = await Course.find({ownerId: req.user._id}, "name");
-  res.locals.coursesOwned = coursesOwned;
-  res.locals.coursesTAing = [];
+  const registrations = await CourseMember.find({studentId: userId}, "courseId");
+  const registeredCourses = registrations.map((x) => x.courseId);
+  const coursesTaken = await Course.find({_id: {$in: registeredCourses}}, "name");
+  
+  const coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
+  const title = "PRA";
+  const routeName = " index";
 
-  let registrations = await CourseMember.find({studentId: req.user._id}, "courseId");
-  res.locals.registeredCourses = registrations.map((x) => x.courseId);
+  res.locals = {
+    ...res.locals,
+    title,
+    routeName,
+    coursesOwned,coursesTAing,coursesTaken,
+  };
 
-  let coursesTaken = await Course.find({_id: {$in: res.locals.registeredCourses}}, "name");
-  res.locals.coursesTaken = coursesTaken;
-
-  let coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
-  res.locals.coursesTAing = coursesTAing;
-
-  res.locals.title = "PRA";
-
-  res.locals.routeName = " index";
   res.render("index");
 });
 

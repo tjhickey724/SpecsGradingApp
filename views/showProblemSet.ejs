@@ -28,12 +28,12 @@
              if (numSkillsToMaster==0){ %>
                 <% // the owner can remove the problem from the problem set
                    if (isOwner){ %>
-                    <a href="/removeProblem/<%= courseId%>/<%= problems[i].psetId %>/<%= problems[i]._id %>">
+                    <a href="/removeProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
                       <span style="color:red"> X</span>
                     </a>
                 <% } %>
          
-                <a href="/showProblem/<%= courseId%>/<%= problems[i].psetId %>/<%= problems[i]._id %>">
+                <a href="/showProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
                   <span style="color:green">
                     <%= problems[i].description || "no name" %>
                     all skills in this problem have been mastered
@@ -43,12 +43,12 @@
           <% } else { %>
             <% // process problems that have not been fully mastered
               if (isOwner){ %>
-                <a href="/removeProblem/<%= courseId%>/<%= problems[i].psetId %>/<%= problems[i]._id %>">
+                <a href="/removeProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
                     <span style="color:red"> X</span>
                 </a>
             <% } %>
 
-          <a href="/showProblem/<%= courseId%>/<%= problems[i].psetId %>/<%= problems[i]._id %>">
+          <a href="/showProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
             <%= problems[i].description || "no name" %>
           </a>
 

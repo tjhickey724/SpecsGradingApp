@@ -1275,6 +1275,7 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", authorize, isOwner,
     const problem = await Problem.findOne({_id:probId}); 
     const newProblem = problem;
     newProblem.isNew = true;
+    newProblem.courseId = courseId;
     newProblem.psetId = psetId;
     newProblem.parentProblemId = problem._id;  
     newProblem.createdAt = new Date();
@@ -1286,11 +1287,14 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", authorize, isOwner,
   });
 
 app.get("/removeProblem/:courseId/:psetId/:probId", authorize, isOwner,
+  // we don't need to pass the psetId to this route, but it is useful for debugging
   async (req, res, next) => {
     const probId = req.params.probId;
     const psetId = req.params.psetId;
+    console.log("removing problem: " + probId +" from pset: " + psetId);
 
-    await Problem.deleteOne({psetId: psetId, problemId: probId});
+    const deletedCourse = await Problem.deleteOne({_id: probId});
+    console.log("deleted course: " + JSON.stringify(deletedCourse,null,2));
     res.redirect("/showProblemSet/" + req.params.courseId+"/"+ psetId);
   });
 

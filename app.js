@@ -637,7 +637,12 @@ app.get("/removeSkill/:courseId/:skillId", authorize, isOwner,
     res.redirect("/showSkills/"+req.params.courseId);
 });
 
-
+/*
+  this route is used to show the details of a skill
+  the user must be the owner of the course it was defined in
+  to be able to edit the skill.
+  TJH - we ought to allow users to edit their own skills...
+*/
 app.get("/showSkill/:courseId/:skillId", authorize, hasCourseAccess,
   async (req, res, next) => {
 

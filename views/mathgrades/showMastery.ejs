@@ -1,6 +1,12 @@
 <%- include('../bootheader') -%>
 <%- include('./menubar') -%>
-
+<script type="text/javascript" src="/js/sort-table.js"></script>
+<style type="text/css">
+  th,
+  td {
+    border: 1px solid black
+  }
+</style>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
@@ -11,11 +17,12 @@
         Created at <%= course.createdAt %>
     </div>
       <h1>Mastery Summary</h1>
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped js-sort-table">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Section</th>
                 <th>Fskills</th>
                 <th>Gskills</th>
                 <% for (let skill of skillSet) { %>
@@ -32,6 +39,7 @@
                     "bg-warning" %>"
 
                         ><%= email %></td>
+                    <td><%= sectionDict[email] %></td>
                     <td><%= mastery[email]['Fskills'] %></td>
                     <td><%= mastery[email]['Gskills'] %></td>
                     <% for (let skill of skillSet) { 

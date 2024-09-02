@@ -48,6 +48,20 @@
           <input class="btn btn-lg btn-primary" type="submit">
         </form>
       </div>
+
+      <hr>
+      <div>
+        <h2>Upload/Reupload Section Info</h2>
+        <form method="post" 
+              action="/mathgrades/uploadSectionData/<%= course._id %>" 
+              enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="sections" class="form-label">Section Data (section,name,email in csv)</label>
+            <input required class="form-control" type="file" name="sections" >
+          </div>
+          <input class="btn btn-lg btn-primary" type="submit">
+        </form>
+      </div>
   </div>
 </div>
 

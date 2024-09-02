@@ -11,10 +11,28 @@ const ejs = require('ejs');
 
 const MathCourse = require("../models/MathCourse");
 const MathExam = require("../models/MathExam");
+const MathSection = require("../models/MathSection");
 const MathGrades = require("../models/MathGrades");
 
 const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
-const instructors = admins.concat(["timhickey@me.com"])
+const instructors 
+  = admins.concat(
+  [ "timhickey@me.com",
+    "tjhickey724@gmail.com",
+    "rocklykleining@brandeis.edu",
+    "mkrumpak@brandeis.edu",
+    "sreshtav@brandeis.edu",
+    "polyanabenk@brandeis.edu",
+    "johnmfigueroa@brandeis.edu",
+    "ewhyman@brandeis.edu",
+    "ngoregaokar@brandeis.edu",
+    "jjfang@brandeis.edu",
+    "rtorrey@brandeis.edu",
+    "merrill2@brandeis.edu",
+    "hou@brandeis.edu",
+    "vneckrasov@brandeis.edu",
+    "aleighton@brandeis.edu",
+    ])
 
 /*
   Authentication middleware:
@@ -99,7 +117,7 @@ router.get("/showCourse/:courseId",isLoggedIn,
 
 });
 
-/* any logged in user can access the student view of a course */
+/* any logged in user can access their student view of a course */
 
 router.get("/showStudentCourse/:courseId",isLoggedIn,
  async (req,res,next) => {
@@ -174,6 +192,10 @@ const getClassGrades = async (req,res,next) => {
   next()
 }
 
+/*
+  Any student or instructor can see the grades for a given student
+  on a given exam.
+*/
 router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
             getClassGrades,
             async (req,res,next) => {
@@ -219,32 +241,14 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   res.json({message:"you are not authorized to view this page"});
 }})
 
-router.use((req, res, next) => {
-  if (!admins.includes(req.user.googleemail)) {
-    res.json({message:"you are not an admin"});
-  }else {
-    next();
-  }
-})
 
-router.get("/createCourse", hasAdminAccess, 
- async function (req, res, next) {
-    res.render("mathgrades/createCourse");
-  });
 
-router.post("/createCourse", hasAdminAccess,
- async (req, res, next)=> {
-    const courseJSON = {
-        name:req.body.name,
-        description:req.body.description,
-        createdAt: new Date(),
-        ownerId:req.user._id,
-    }
-    const course = new MathCourse(courseJSON);
-    await course.save()
-    res.redirect("/mathgrades");
-//    res.json(courseJSON);
-  });
+/* ********************************************************** */
+// only admins and instructors can access the remaining routes
+/* ********************************************************** */
+router.use(hasStaffAccess);
+
+
 
 router.get("/showCourse/:courseId", hasAdminAccess,
  async (req,res,next) => {
@@ -296,17 +300,16 @@ const calculateMastery = (grades) => {
       if (!mastery[email]){
         mastery[email] = {name:grade.name};
       }
-      //console.log(`grades.skillsMastered:${grade.skillsMastered}`);
       (grade.skillsMastered).forEach(skill => {
         skillSet.add(skill);
         mastery[email][skill] = 1.0;
       }
       );
-      for (let skill of grade.skillsSkipped) {
+      (grade.skillsSkipped).forEach(skill => {
         if (!mastery[email][skill]) {
           mastery[email][skill] = 0.0;
         }
-      }
+      });
   }
   for (let email in mastery) {
     /* calculate number of F skills and G skills and
@@ -314,10 +317,14 @@ const calculateMastery = (grades) => {
     mastery[email]["Fskills"] = 0;
     mastery[email]["Gskills"] = 0;
     for (let skill in mastery[email]) {
-      if ((skill[0] == "F") && (mastery[email][skill] == 1.0)) {
+      if ((skill[0] == "F") 
+          && (skill != "Fskills")
+          && (mastery[email][skill] == 1.0)) {
         mastery[email]["Fskills"] += 1;
       }
-      if ((skill[0] == "G")&& (mastery[email][skill] == 1.0)) {
+      if ((skill[0] == "G")
+          && (skill != "Gskills")
+          && (mastery[email][skill] == 1.0)) {
         mastery[email]["Gskills"] += 1;
       }
     }
@@ -353,6 +360,12 @@ router.get("/showMastery/:courseId", hasStaffAccess,
   const csv = req.query.csv;
   res.locals.course = course;
   const grades = await MathGrades.find({courseId:courseId});
+  const sections = await MathSection.find({courseId:courseId});
+  const sectionDict = {};
+  for (let section of sections) {
+    sectionDict[section.email] = section.section;
+  }
+  res.locals.sectionDict = sectionDict;
   [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
   console.log(res.locals.skillSet);
   if (csv){
@@ -375,6 +388,15 @@ router.get("/showExam/:courseId/:examId", hasStaffAccess,
     res.locals.grades = grades;
     res.render('mathgrades/showExam');
 })
+
+
+
+
+/* ********************************************************** */
+// only admins can access the remaining routes
+/* ********************************************************** */
+router.use(hasAdminAccess);
+
 
 router.get("/deleteExam/:courseId/:examId", hasAdminAccess,
  async (req,res,next) => {
@@ -427,6 +449,7 @@ const processSkills = (grades) => {
         if ((grades[key] === "1.0") && (key.includes(": "))) {
             skillsMastered.push(trimSkillString(key));
         } else if ((grades[key] === "0.0") 
+                  && trimSkillString(key) != "" 
                   && (!key.includes("Honor Pledge")) 
                   && (!key.includes("Total Score"))) {
             skillsSkipped.push(trimSkillString(key));
@@ -512,6 +535,85 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
  //res.json({message:"grades uploaded"});
  res.redirect(`/mathgrades/showCourse/${courseId}`);
 });
+
+router.post("/uploadSectionData/:courseId", hasStaffAccess,
+  upload.single('sections'),
+ async (req, res, next) => {
+
+    const courseId = req.params.courseId;
+    const course = await MathCourse.findOne({_id:courseId})
+    res.locals.course = course;
+    //console.log(`courseId:${courseId} course:${course}`)
+    //console.log(req.file);
+
+    /*
+    read the uploaded csv file and update the grades
+    */
+
+    const { buffer, originalname } = req.file;
+
+  const dataFromRows = [];
+
+  streamifier
+    .createReadStream(buffer)
+    .pipe(csv()) //.parse({ headers: true, ignoreEmpty: true })) // <== this is @fast-csv/parse!!
+    .on("data", (row) => {
+      dataFromRows .push(row);
+    })
+    .on("end", async (rowCount) => {
+      try {
+
+        // read section data
+        let documents = []
+        dataFromRows.forEach(async (row) => {
+            const email = row.email;
+            const name = row.name;
+            const section = row.section;
+
+            // create new MathGrades object
+            const sectionJSON = {              
+                name: name,
+                email: email,  
+                section: section,
+                courseId: courseId,
+                createdAt: new Date(),
+            }
+            documents.push(sectionJSON);
+
+
+        });
+        console.dir(documents);
+        await MathSection.deleteMany({courseId:courseId});
+        await MathSection.insertMany(documents); 
+        //res.json({ rowCount, dataFromRows });
+      } catch (error) {
+        console.log(error);
+        //res.json({ error});
+      }
+    });
+
+ //res.json({message:"grades uploaded"});
+ res.redirect(`/mathgrades/showCourse/${courseId}`);
+});
+
+router.get("/createCourse", hasAdminAccess, 
+  async function (req, res, next) {
+     res.render("mathgrades/createCourse");
+   });
+ 
+ router.post("/createCourse", hasAdminAccess,
+  async (req, res, next)=> {
+     const courseJSON = {
+         name:req.body.name,
+         description:req.body.description,
+         createdAt: new Date(),
+         ownerId:req.user._id,
+     }
+     const course = new MathCourse(courseJSON);
+     await course.save()
+     res.redirect("/mathgrades");
+ //    res.json(courseJSON);
+   });
     
 
 module.exports = router;

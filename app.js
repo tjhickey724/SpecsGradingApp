@@ -977,7 +977,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
     }
    }
 
-
+   let studentsWithFullMastery = [];
    let result = "";
     for (let s of courseMembers){
       /* generate a personalized exam for student s with only
@@ -986,7 +986,8 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
       */
      const studentId = s.studentId._id;
      
-     const studentSkills = skillDict[studentId].map((x)=> x+"");
+     const studentSkills = 
+         skillDict[studentId]?skillDict[studentId].map((x)=> x+""): [];
 
      let testProblems = [];
      for (let p of problems){
@@ -1003,7 +1004,13 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
         personalizedPreamble(s.studentId.googleemail,'Math10a','Fri 8/23/2024')
         + generateTex(testProblems);
      
-     result += exam;
+     if (testProblems.length>0) {
+        result += exam;
+     } else {
+        studentsWithFullMastery.push(s.studentId.googleemail);
+     }
+     
+     
 
     }
     const startTex = '\\input{preamble.tex}\n\\begin{document}\n';

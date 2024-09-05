@@ -155,6 +155,8 @@ const getClassGrades = async (req,res,next) => {
   const courseId = req.params.courseId;
   // const examId = req.params.examId;
   const grades = await MathGrades.find({courseId:courseId});
+  const sections = await MathSection.find({courseId:courseId});
+  const enrolledStudents = sections.map(section => section.email);
   /*
     create a dictionary which gives the number of students
     who have mastered each skill, indexed by skill name
@@ -164,7 +166,8 @@ const getClassGrades = async (req,res,next) => {
   let studentCount = 0;
   let studentEmails = [];
   for (let grade of grades) {
-    
+    if (!enrolledStudents.includes(grade.email)) {continue;}
+
     for (let skill of grade.skillsMastered) {
       if (!studentEmails.includes(grade.email)) {
         studentEmails.push(grade.email);
@@ -208,6 +211,10 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   const grades = 
     await MathGrades.find({email:grade.email,
                            courseId:courseId});
+  // find all students in the course by section
+  // if a student drops the course, they will not be in the section list                           
+  const sections = await MathSection.find({courseId:courseId});
+  const studentEmails = sections.map(section => section.email);
   /*
     Here is where we make sure only 
     the student or an instructor/admin 
@@ -225,7 +232,7 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
       for (let grade of grades) {
         //console.log(grade.skillsMastered);
         skillsMastered = skillsMastered.concat(grade.skillsMastered);
-        allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped); 
+        allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped);       
       }
       allSkills = [...new Set(allSkills)].sort(compareExams);
       res.locals.allSkills = allSkills;
@@ -335,11 +342,12 @@ const calculateMastery = (grades) => {
 }
 
 const masteryCSVtemplate =
-`name,email,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
+`name,email,section,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
     skillSet[skill] %>,<% } %>
 <% for (let email in mastery) { %><%= 
     mastery[email]['name'] %>,<%= 
     email %>,<%= 
+    sectionDict[email] %>,<%=
     mastery[email]['Fskills'] %>,<%= 
     mastery[email]['Gskills'] %>,<% 
     for (let skill of skillSet) { 

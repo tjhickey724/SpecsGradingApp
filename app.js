@@ -700,7 +700,12 @@ app.post("/editSkill/:courseId/:skillId", authorize, isOwner,
 app.get("/importSkills/:courseId", authorize, isOwner,
   async (req, res, next) => {
     res.locals.courseId = req.params.courseId;
-    res.locals.courses = await Course.find({ownerId: req.user._id}).sort({name: 1});
+    // find courses that the user has staff access to
+    const taCourses = req.user.taFor || [];
+    const ownedCourses = await Course.find({ownerId: req.user._id});
+    const visibleCourses = taCourses.concat(ownedCourses.map((x) => x._id));
+
+    res.locals.courses = await Course.find({_id:{$in:visibleCourses}}).sort({name: 1});
 
     res.locals.routeName = " importSkills";
     res.render("importSkills");
@@ -1282,19 +1287,28 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
       variants = await Skill.find({original: skill.original});
       variants.push(skill.original._id);
     }else {
-      variants = [skill];
+      variants = await Skill.find({original: skill._id});
+      variants.push(skill._id);
     }
     const variantIds = variants.map((x) => x._id);
     console.log(`variantIds: ${JSON.stringify(variantIds)}`);
 
 
+    const taCourses = req.user.taFor || [];
+    const ownedCourses = await Course.find({ownerId: req.user._id});
+    const visibleCourses = taCourses.concat(ownedCourses.map((x) => x._id));
+
     // get the problems that have that skill in their list of skills
+    // and for which the user is the owner or is a TA
     // and populate the courseId field
     // we use $elemMatch to find problems whose skills list
     // contains any of the variant skills
     const problems =
         await Problem
-              .find({skills: {$elemMatch:{$in:variantIds}}})
+              .find(
+                {skills: {$elemMatch:{$in:variantIds}},
+                 courseId: {$in: visibleCourses}
+                })
               .populate('courseId')
               .sort({createdAt: -1});
 

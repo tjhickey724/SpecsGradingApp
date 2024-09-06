@@ -720,14 +720,32 @@ app.get("/showSkillsToImport/:courseId/:otherCourseId", authorize, isOwner,
 app.get('/importAllSkills/:courseId/:otherCourseId', authorize, isOwner,
   async (req, res, next) => {
     try {
+      const courseId = req.params.courseId;
       const otherCourseId = req.params.otherCourseId;
       const skills = await Skill.find({courseId: otherCourseId});
       for (let skill of skills) {
-        let courseSkills = await CourseSkill.find({courseId: req.params.courseId, skillId: skill._id});
+
+        // create newSkill which is a copy of the skill
+        // we will add the newSkill to our courseSkills collection
+        // but when we search the library for problems
+        // we will first find ids of all derived skills
+        // and then search for problem with skills in that set of Ids.
+        const newSkill = skill;
+        newSkill.isNew = true;
+        newSkill.courseId = courseId;
+        newSkill.original = skill.original?skill.original._id:skill._id;  
+        newSkill.createdAt = new Date();
+        newSkill._id = undefined;
+        await newSkill.save();
+
+        let courseSkills = 
+           await CourseSkill.find(
+               {courseId: req.params.courseId, 
+                skillId: newSkill._id});
         if (courseSkills.length == 0) {
           let courseSkill = new CourseSkill({
             courseId: req.params.courseId,
-            skillId: skill._id,
+            skillId: newSkill._id,
             createdAt: new Date(),
           });
           await courseSkill.save();
@@ -1241,6 +1259,10 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
       sorted by the last time they were used in any course.
       We also only want original problems not, copies of problems,
       but we want the last time any copy was used in any course.
+      We also want the problems whose skill is a variant of the specified skill.
+      We keep track of the original skill for each skill that gets duplicated
+      in a course, so we can find the list of variants of a skill
+      and look for problems with any of those skills.
       So we need to compute a psetMap which maps problemIds to the
       list of dates that copies of that problem were used in a course
       and sort the problems by the first (latest) date in that list.
@@ -1254,16 +1276,29 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
 
     // get the skill object we are interested in
     const skill = await Skill.findOne({_id:  skillId});
+    // get the skill variants, i.e. skills with the same original skill
+    let variants = [];
+    if (skill.original) {
+      variants = await Skill.find({original: skill.original});
+      variants.push(skill.original._id);
+    }else {
+      variants = [skill];
+    }
+    const variantIds = variants.map((x) => x._id);
+    console.log(`variantIds: ${JSON.stringify(variantIds)}`);
+
 
     // get the problems that have that skill in their list of skills
     // and populate the courseId field
+    // we use $elemMatch to find problems whose skills list
+    // contains any of the variant skills
     const problems =
         await Problem
-              .find({skills: skillId})
+              .find({skills: {$elemMatch:{$in:variantIds}}})
               .populate('courseId')
               .sort({createdAt: -1});
 
-
+    console.log(`num problems is ${problems.length}`);
     
     
     // get the list of skills for this course
@@ -1325,12 +1360,18 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
 )
 
 
-
-app.get("/addProblemToPset/:courseId/:psetId/:probId", authorize, isOwner,
+/*
+  This route is used to add a problem to a problem set from the library
+  of problems that contain a specified skill. Even though problems can
+  contain multiple skills, we are only looking for problems that contain
+  a single skill (or a variant) and the new problem will just have that new skill
+*/
+app.get("/addProblemToPset/:courseId/:psetId/:probId/:skillId", authorize, isOwner,
   async (req, res, next) => {
     const courseId = req.params.courseId;
     const probId = req.params.probId;
     const psetId = req.params.psetId;
+    const skillId = req.params.skillId;
 
     // create a copy of the problem object
     const problem = await Problem.findOne({_id:probId}); 
@@ -1340,6 +1381,7 @@ app.get("/addProblemToPset/:courseId/:psetId/:probId", authorize, isOwner,
     newProblem.psetId = psetId;
     newProblem.parentProblemId = problem._id;  
     newProblem.createdAt = new Date();
+    newProblem.skills = [skillId];
     newProblem._id = undefined;
     await newProblem.save();
 

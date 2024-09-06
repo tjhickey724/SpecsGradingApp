@@ -26,7 +26,7 @@
             <tr>
                 <td><a href="/showProblem/<%= courseId %>/<%= psetId%>/<%= problem._id %>"><%= problem.description %></a> </td>
                 <td>
-                <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>">Add to Problem Set</a></td>
+                <a href="/addProblemToPset/<%= courseId %>/<%= psetId %>/<%= problem._id %>/<%= skillId %>">Add to Problem Set</a></td>
                 <td><%= problem.createdAt.toISOString() %></td>
                 <td><%= ((now - psetMap[problem._id][0])/(1000*3600*24)).toFixed(6) %> days ago</td>
             </tr>

@@ -8,6 +8,7 @@ var skillSchema = Schema( {
     description: String,
     createdAt: Date,
     courseId: ObjectId,
+    original: {type: ObjectId, index: true},
   } );
 
 module.exports = mongoose.model( 'Skill', skillSchema );

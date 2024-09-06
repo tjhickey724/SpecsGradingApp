@@ -26,7 +26,21 @@
                 <th>Fskills</th>
                 <th>Gskills</th>
                 <% for (let skill of skillSet) { %>
-                    <th><%= skill %></th>
+                    <th 
+                       <% if (skillCounts[skill]==studentCount){ %> 
+                            class="bg-warning"
+                       <% } else { 
+                            let cm = 100*skillCounts[skill] / studentCount;
+                            let b = 255 - cm*2.55;
+                            let r = cm*2.55;
+                           %> 
+                           style="font-weight:bold;color:rgb(<%= r %>,0,<%= b %>)"
+                        <% } %>
+                       >
+                      <%= skill %>
+                    <br>
+                    <%= skillCounts[skill] %>/<%= studentCount %>
+                    </th>
                 <% } %>
             </tr>
         </thead>

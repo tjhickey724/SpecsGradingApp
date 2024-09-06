@@ -155,8 +155,10 @@ const getClassGrades = async (req,res,next) => {
   const courseId = req.params.courseId;
   // const examId = req.params.examId;
   const grades = await MathGrades.find({courseId:courseId});
-  const sections = await MathSection.find({courseId:courseId});
+  const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
   const enrolledStudents = sections.map(section => section.email);
+  console.log(`num enrolledStudents:${enrolledStudents.length}`);
+  console.log(`enrolledStudents:${JSON.stringify(enrolledStudents)}`);
   /*
     create a dictionary which gives the number of students
     who have mastered each skill, indexed by skill name
@@ -166,13 +168,18 @@ const getClassGrades = async (req,res,next) => {
   let studentCount = 0;
   let studentEmails = [];
   for (let grade of grades) {
-    if (!enrolledStudents.includes(grade.email)) {continue;}
-
-    for (let skill of grade.skillsMastered) {
-      if (!studentEmails.includes(grade.email)) {
+    console.log(`grade:${JSON.stringify(grade.email)}`);
+    if (!enrolledStudents.includes(grade.email)) {
+      console.log('skipping');
+      continue;}
+    // count all students who have been graded for this course
+    if (!studentEmails.includes(grade.email)) {
         studentEmails.push(grade.email);
         studentCount += 1;
       }
+
+    for (let skill of grade.skillsMastered) {
+      
       if (skillCounts[skill]) {
         if (!skillMastery[skill].includes(grade.email)) {
           skillMastery[skill].push(grade.email);
@@ -187,9 +194,10 @@ const getClassGrades = async (req,res,next) => {
   }
   res.locals.skillCounts = skillCounts;
   res.locals.studentCount = studentCount;
-  //console.dir(`skillCounts.keys:${Object.keys(skillCounts)}`);
-  //console.dir(`skillCounts.values:${Object.values(skillCounts)}`);
-  //console.log(`studentCount:${studentCount}`);
+  console.dir(`skillCounts:${JSON.stringify(skillCounts,null,2)}`);
+  console.dir(`skillCounts.keys:${Object.keys(skillCounts)}`);
+  console.dir(`skillCounts.values:${Object.values(skillCounts)}`);
+  console.log(`studentCount:${studentCount}`);
 
 
   next()
@@ -361,7 +369,7 @@ const masteryCSVtemplate =
 `;
 
 
-router.get("/showMastery/:courseId", hasStaffAccess,
+router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
  async (req,res,next) => {
   const courseId = req.params.courseId;
   const course = await MathCourse.findOne({_id:courseId});
@@ -376,6 +384,7 @@ router.get("/showMastery/:courseId", hasStaffAccess,
   res.locals.sectionDict = sectionDict;
   [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
   console.log(res.locals.skillSet);
+
   if (csv){
     res.set('Content-Type', 'text/csv');
     res.send(ejs.render(masteryCSVtemplate,res.locals));

@@ -82,6 +82,9 @@ db.once("open", function () {
 const instructors = [
   "tjhickey@brandeis.edu",
   "tjhickey724@gmail.com",
+  "jamespetullo@brandeis.edu",
+  "rtorrey@brandeis.edu",
+  "merrill2@brandeis.edu",
 ];
 
 var app = express();

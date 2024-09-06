@@ -31,7 +31,9 @@
         
         <div class="p-2">
             <ul>
-            <% for (let i = 0; i < allSkills.length; i++) { %>
+            <% for (let i = 0; i < allSkills.length; i++) { 
+                if (!skillCounts[allSkills[i]]) skillCounts[allSkills[i]] = 0;
+                %>
                 <li>
                     
                     <% let cm = 100*skillCounts[allSkills[i]] /

@@ -25,7 +25,8 @@
                 <th>Section</th>
                 <th>Fskills</th>
                 <th>Gskills</th>
-                <% for (let skill of skillSet) { %>
+                <% for (let skill of skillSet) { 
+                     if (!skillCounts[skill]) skillCounts[skill]=0; %>
                     <th 
                        <% if (skillCounts[skill]==studentCount){ %> 
                             class="bg-warning"

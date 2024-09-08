@@ -18,7 +18,6 @@ const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandei
 const instructors 
   = admins.concat(
   [ "timhickey@me.com",
-    "tjhickey724@gmail.com",
     "rocklykleining@brandeis.edu",
     "mkrumpak@brandeis.edu",
     "sreshtav@brandeis.edu",
@@ -205,7 +204,10 @@ const getClassGrades = async (req,res,next) => {
 
 /*
   Any student or instructor can see the grades for a given student
-  on a given exam.
+  on a given exam. We don't need the examId and ideally should
+  just include the student's email in the URL...
+  but we would need to make sure that the user is the student
+  or a staff member to see the page.
 */
 router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
             getClassGrades,
@@ -218,7 +220,8 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   const grade = await MathGrades.findOne({_id:gradesId});
   const grades = 
     await MathGrades.find({email:grade.email,
-                           courseId:courseId});
+                           courseId:courseId})
+                    .populate('examId');
   // find all students in the course by section
   // if a student drops the course, they will not be in the section list                           
   const sections = await MathSection.find({courseId:courseId});
@@ -230,8 +233,10 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   */
   if ((req.user.googleemail == grade.email) || (instructors.includes(req.user.googleemail))) {
       res.locals.course = course;
-      res.locals.exam = exam;
-      res.locals.grade = grade;
+      //res.locals.exam = exam;
+      //res.locals.grade = grade;
+      res.locals.name = grade.name;
+      res.locals.email = grade.email;
       res.locals.grades = grades;
       let skillsMastered = [];
       let allSkills = [];

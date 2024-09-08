@@ -6,7 +6,7 @@
         <h1 class="pb-2 border-bottom">
           Course: <%= course.name %></h1>
         <h2 class="pb-2 border-bottom">
-            Skill Mastery for  <%= grade.name %>: <%= grade.email %></h2>
+            Skill Mastery for <%= name%>/<%= email%> </h2>
         <h3>Skills Mastered so far: <%= skillsMastered.length %>/<%= allSkills.length %> = 
              <%= (skillsMastered.length/allSkills.length*100).toFixed(1) %>%
         </h3>
@@ -66,7 +66,8 @@
             <% for (let i = 0; i < grades.length; i++) { %>
                 <li>
     
-                    Skills Mastered: <%= grades[i].skillsMastered %> ....
+                    Skills Mastered on <%= grades[i].examId.name %>:
+                    <%= grades[i].skillsMastered %> ....
                     <!-- Skills Skipped:  <%= grades[i].skillsSkipped %> : <br>-->
                 </li>
             <% } %>

@@ -11,8 +11,9 @@
                     </h3>
                     <b>The Question</b>
                     <div class="bg-default"
-                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
-                        <%= problem.problemText %>
+                        style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+                        ><% if (problem.mimeType!='tex'){ %><%= problem.problemText 
+                        %><% } else { %>Tex problems are hidden.<% } %>
                     </div>
                     <hr>
                     <b class="text-bg-danger px-4 rounded-pill shadow" style="padding:10px">There is nothing for

@@ -9,7 +9,9 @@
 
     <div class="p-2">
       <small>Submission time and date: <%= problem.createdAt %></small>
-      <pre class="bg-success      "><%= problem.problemText %></pre>
+      <pre class="bg-success      "
+      ><% if (problem.mimeType!='tex') { %><%= problem.problemText %><% } else { 
+        %>Tex problems are hidden. Owners can view when editing.<% } %></pre>
       <br>
       <h2>Your reviews of other's answers</h2>
       <ul>

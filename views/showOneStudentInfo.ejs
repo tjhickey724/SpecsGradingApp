@@ -35,7 +35,9 @@
             
           <h4 style="margin-top: 60px; border-top:thick solid blue"> <%= problem.description %> </h4>
           <h6>Problem:</h6>
-          <div class="bg-default" style="border:thin solid black; margin-top:10px; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+          <div class="bg-default" style="border:thin solid black; margin-top:10px; white-space: pre-wrap; font-family:monospace; padding:10px"
+          ><% if (problem.mimeType!='tex'){%><%= problem.problemText %><%
+          } else {%> Tex Problems are hidden <% } %></div>
           <div class="bg-primary" style="color:white; border:thin solid black; padding:10px">
             <h4>Skills Tested</h4>
             <% if (skillsMastered.length==0) {%>

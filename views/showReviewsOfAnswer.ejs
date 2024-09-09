@@ -16,7 +16,9 @@
     <h1>Problem</h1>
     <h3><%= problem.description %></h3>
     <b>The Question</b>
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+    ><% if (problem.mimeType != 'tex'){ %><%= problem.problemText %><%
+    } else { %>Tex answers are hidden. Owners can see the answers when editting <%} %></div>
 
     <b>Their Answer</b>
     <small>Submission time and date:<%= answer.createdAt %> </small>
@@ -46,7 +48,7 @@
         youReviewed = youReviewed || yourReview
         let taReviewer = taList.filter(x=> (x.equals(reviews[i].reviewerId)))
         let isTAreview = taReviewer.length==1
-        let fullskills = reviews[i].fullskills
+        let fullskills = reviews[i].skills
         %>
 	<h2>Reviewed by <%= reviews[i].id %>
         <% if (isOfficial) {%>

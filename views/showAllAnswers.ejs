@@ -7,7 +7,9 @@
       <%= problem.description %>
 </h3>
                 <div class="p-2">
-    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+    ><% if (problem.mimeType!='tex'){ %><%= problem.problemText %><%
+    } else {%>Tex problems are hidden.<% } %></div>
     <hr>
     <script type="text/javascript" src="/js/clickThumb.js"></script>
     <% if (canView) { %>

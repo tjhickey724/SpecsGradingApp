@@ -33,7 +33,9 @@ Student Info for <%= courseInfo.name %>				</h1>
                                         <%= problem.description %>
                                     </h4>
                                     <div class="bg-default"
-                                        style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px"><%= problem.problemText %></div>
+                                        style="border:thin solid black; margin-top:40px; white-space: pre-wrap; font-family:monospace; padding:10px"
+                                        ><% if (problem.mimeType!='tex'){%><%= problem.problemText %><%
+                                        } else {%> Tex Problems are hidden <% } %></div>
                                     <div class="bg-info"
                                         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"><%= answer.answer %></div>
                                     Review Scores:: <%= JSON.stringify(reviewScores,null,10) %> / <%= problem.points %>

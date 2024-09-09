@@ -47,7 +47,8 @@
 
       <div class="bg-default border border-dark rounded border-2" 
            style="white-space: pre-wrap; font-family:monospace; padding:10px"
-           ><% // show the problem text %><%= problem.problemText %>
+           ><% if (problem.mimeType!='tex') {// show the problem text %><%= problem.problemText %><% } else { 
+            %>Tex problems are hidden from users. To see the problem, click the edit button if you own the course.<% } %></div>
       </div>
 
       <hr>

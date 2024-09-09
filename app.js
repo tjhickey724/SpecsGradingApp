@@ -1722,7 +1722,7 @@ app.get("/showOneStudentInfo/:courseId/:studentId", authorize, hasCourseAccess,
         await Answer.find({courseId: courseId})
               .populate('skills');
 
-      let problems = await Problem.find({courseId: courseId}).populate('problemId');
+      let problems = await Problem.find({courseId: courseId});
       res.locals.problems = problems;
 
       // res.locals.problems = 

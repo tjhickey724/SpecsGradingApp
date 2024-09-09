@@ -81,7 +81,7 @@
               && p.visible
              ){
             %>
-            <li><a href="/showProblem/<%= p.courseId %>/<%= p['_id']%>">
+            <li><a href="/showProblem/<%= p.courseId %>/<%= p.psetId %>/<%= p['_id']%>">
               <%= p.description %></a>
               <%= JSON.stringify(p.createdAt,null,5) %>
               <a href="/showProblemSet/<%= p.courseId%>/<%= p.psetId %>">view problem set</a>

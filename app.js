@@ -39,6 +39,8 @@ const User = require("./models/User");
 const CourseMember = require("./models/CourseMember");
 const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
+const MathGrades = require("./models/MathGrades");
+const MathSection = require("./models/MathSection");
 const ejsLint = require("ejs-lint");
 
 // TJH - I don't think we need this any more
@@ -440,7 +442,7 @@ app.post("/addStudents/:courseId", authorize, isOwner,
   showCourse is the main page for a course
   which can only be viewed by course members
   (students, TAs, and the owner)
-  it shows the course information, the problem sets, 
+  it shows the course information, the sets, 
   and the course skills that the user has mastered
 */
 app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
@@ -985,10 +987,10 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
   async (req, res, next) => {
     const courseid = req.params.courseId;
     const psetId = req.params.psetId;
-    const problemSet = await ProblemSet.findOne({_id: psetId});
+    //const problemSet = await ProblemSet.findOne({_id: psetId});
     const problems = await Problem.find({psetId: psetId});
 
-    const courseMembers = await CourseMember.find({courseId: courseid}).populate('studentId');
+    const courseMembers = await CourseMember.find({courseId: coursr}).populate('studentId');
     const studentIds = courseMembers.map((x) => x.studentId._id);
     const mastery = 
       await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
@@ -1074,6 +1076,212 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
 
 
   });
+
+
+  /*
+    This asynchronous function returns a dictionary: masteredSkills
+    which maps each studentEmail to a list of skillIds that the student has mastered
+  */
+  const getSkillsMastered = async (mathCourseId) => {
+    console.log("in getClassMastery")
+    const courseId = mathCourseId;
+    const grades = await MathGrades.find({courseId:courseId});
+    const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
+    const enrolledStudents = sections.map(section => section.email);
+    console.log(`num enrolledStudents:${enrolledStudents.length}`);
+    console.log(`enrolledStudents:${JSON.stringify(enrolledStudents)}`);
+    /*
+      create a dictionary, skillMastery, which gives the set of students
+      who have mastered each skill, indexed by skill name
+    */
+    const skillCounts = {};
+    const skillMastery = {};  // list of students who have mastered each skill
+    let studentCount = 0;
+    let studentEmails = [];
+    for (let grade of grades) {
+      console.log(`grade:${JSON.stringify(grade.email)}`);
+      if (!enrolledStudents.includes(grade.email)) {
+        console.log('skipping');
+        continue;
+      }
+      // count all students who have been graded for this course
+      if (!studentEmails.includes(grade.email)) {
+          studentEmails.push(grade.email);
+          studentCount += 1;
+        }
+  
+      for (let skill of grade.skillsMastered) {
+        
+        if (skillCounts[skill]) {
+          if (!skillMastery[skill].includes(grade.email)) {
+            skillMastery[skill].push(grade.email);
+            skillCounts[skill] += 1;
+          }
+          
+        } else {
+          skillMastery[skill] = [grade.email];
+          skillCounts[skill] = 1;
+        }
+      }
+    } // end of for (let grade of grades) ....
+
+    /*
+    create a dictionary skillsMastered, indexed by student emails,
+    containing a list of the skills that student has mastered.
+    We create this from the skillMastery dictinonary: skills->[students]
+    to get the "transpose"  students -> [skills]
+    */
+    const skillsMastered = {};
+    for (let skill in skillMastery) {
+      for (let student of skillMastery[skill]) {
+        if (skillsMastered[student]) {
+          skillsMastered[student].push(skill);
+        } else {
+          skillsMastered[student] = [skill];
+        }
+      }
+    }
+    console.log('leaving getClassMastery')
+    console.dir(skillsMastered);
+
+
+    /*
+    these skills are just the names of the skills F1, F2, ..., G1, G2, ...
+    We need to return instead a list of skillIds. First though we
+    create a dictionary from skill names to skillIds
+    */
+    
+    return {skillsMastered,skillCounts};
+
+    // console.dir(`skillCounts:${JSON.stringify(skillCounts,null,2)}`);
+    // console.dir(`skillCounts.keys:${Object.keys(skillCounts)}`);
+    // console.dir(`skillCounts.values:${Object.values(skillCounts)}`);
+    // console.log(`studentCount:${studentCount}`);
+  
+  
+ 
+  }
+
+
+  app.get("/downloadPersonalizedExamsAsTexFileMGA/:courseId/:psetId", authorize, hasStaffAccess,
+    /* this route will generate a large latex file with a personalized exam
+       for the specified problemset in the specified course with one exam for
+       each student in the course. Also each exam has questions only for those skills
+       that that particular students has not yet mastered at this point in the course.
+  
+       The list of mastered skills is obtained from the MGA database!
+
+       Currently the latex file requires a few additional tex files:
+       preamble.tex  - a latex file importing all necessary packages 
+       title.tex - a file containing the first explanation page(s) for the exam,
+          for example, the honesty pledge, the instructions, the grading policy, etc. 
+          This needs to be customized for each class.   
+  
+    */
+    async (req, res, next) => {
+      const courseId = req.params.courseId;
+      const course = await Course.findOne({_id: courseId});
+      if (!course.mathCourseId) {
+        res.send("This course does not have an associated math course.");
+      } else {
+        const mathCourseId = course.mathCourseId;
+        const {skillsMastered,skillCounts} = await getSkillsMastered(mathCourseId);
+        
+        console.log('all skills in the course')
+        console.log(courseId);
+        let allSkills = await Skill.find({courseId:courseId});
+        for (let skill of allSkills) {
+          console.dir([skill._id+"",skill.name]);
+          console.log(JSON.stringify(skill));
+        }
+        let skillIdMap = {}
+        for (let skillName in skillCounts) {
+          let skill = await Skill.findOne({courseId:courseId,name: skillName});
+          skillIdMap[skillName] = skill._id+"";
+        }
+        console.log('skillIdMap');
+        console.log(JSON.stringify(skillIdMap));
+
+
+ 
+
+        let skillIdsMastered = {}
+        for (let student in skillsMastered) {
+          skillIdsMastered[student] 
+            = skillsMastered[student].map((x) => skillIdMap[x]);
+        }
+        console.dir(skillIdsMastered);
+
+        
+        const psetId = req.params.psetId;
+        const problems = await Problem.find({psetId: psetId});
+    
+        const courseMembers = await CourseMember.find({courseId: courseId}).populate('studentId');
+ 
+    
+    
+  
+
+    
+    
+    
+        /* create a dictionary problemDict indexed by skills which
+           maps each skill to the list of problems containing that skill
+           In practice each skill will correspond to exactly one problem,
+           but we can make this code a little more general.
+        */
+       let problemDict = {};
+       for (let p of problems){
+        if (p.skills.length!=1){
+          continue; // this shouldn't happen
+        } else {
+          problemDict[p.skills[0]] = p;
+        }
+       }
+    
+       let studentsWithFullMastery = [];
+       let result = "";
+        for (let studentEmail in skillIdsMastered){
+          /* generate a personalized exam for student s with only
+             the problems for skills that s has not yet mastered,
+             as determined by the skillList.
+          */
+         
+         const studentSkills = 
+             skillIdsMastered[studentEmail];
+    
+         let testProblems = [];
+         for (let p of problems){
+          console.log([studentEmail,p.skills[0]+"",studentSkills]);
+          if (studentSkills.includes(p.skills[0]+"")) {
+            // skip the problem
+            console.log('skipping')
+          } else {
+            console.log('adding '+p.skills[0]+" to exam");
+            testProblems = testProblems.concat(p);
+          }
+        }
+      
+  
+       const exam =  
+          personalizedPreamble(studentEmail,'CourseName','ExamDate')
+          + generateTex(testProblems);
+       
+       if (testProblems.length>0) {
+          result += exam;
+       } else {
+          studentsWithFullMastery.push(studentEmail);
+       }
+      
+       
+  
+        }
+        const startTex = '\\input{preamble.tex}\n\\begin{document}\n';
+        const endTex = '\\end{document}\n';
+        res.setHeader('Content-type', 'text/plain');
+        res.send(startTex+result+endTex);
+      }
+    });
 
 app.get('/downloadAsTexFile/:courseId/:psetId', authorize, hasStaffAccess,
   async (req, res, next) => {

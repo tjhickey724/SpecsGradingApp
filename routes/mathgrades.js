@@ -156,6 +156,13 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
   //res.render('mathgrades/showCourse');
 });
 
+
+/*
+This middleware creates res.locals.skillCounts, which is a dictionary
+indexed by skill name, whose values are the number of students who have
+mastered that skill. It also creates res.locals.studentCount, which is
+the number of students who have been graded for the course.
+*/
 const getClassGrades = async (req,res,next) => {
   //console.log('in getClassGrades');
   const courseId = req.params.courseId;

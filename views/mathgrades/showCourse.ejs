@@ -4,11 +4,21 @@
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
-      Show Math Course <%= course.name %></h1>
+      MGA: <%= course.name %></h1>
     <div class="p-2">
         <%= course.description %>
         <br>
         Created at <%= course.createdAt %>
+        <br>
+        <%if (mlaCourse) {%>
+          Linked to MLA Course: 
+          <a href="/showCourse/<%= mlaCourse._id %>">
+             <%= mlaCourse.name %> 
+          </a>
+        <% } else {%>
+          No MLA Course linked
+        <% } %>
+
     </div>
       <div class="p-2">
         <a href="/mathgrades/deleteCourse/<%= course._id %>">Delete Course</a>
@@ -58,6 +68,28 @@
           <div class="mb-3">
             <label for="sections" class="form-label">Section Data (section,name,email in csv)</label>
             <input required class="form-control" type="file" name="sections" >
+          </div>
+          <input class="btn btn-lg btn-primary" type="submit">
+        </form>
+      </div>
+      <hr>
+      <div>
+        <h2>Link to MLA course</h2>
+        <p>
+          To link to an MLA course, you need the PIN for the course.
+          You can find this in the course settings in MLA. Once a course
+          is linked, the MLA course can use the mastery data from the MGA 
+          course to create personalized exams.
+        </p>
+        <form method="post" 
+              action="/mathgrades/linkMLACourse/<%= course._id %>" >
+          <div class="mb-3">
+            <label for="coursePinMLA" class="form-label">MLA course PIN:</label>
+            <input  
+                  class="form-control" 
+                  type="text" 
+                  value="<%= course.coursePinMLA %>"
+                  name="coursePinMLA" >
           </div>
           <input class="btn btn-lg btn-primary" type="submit">
         </form>

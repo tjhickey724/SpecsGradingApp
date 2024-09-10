@@ -13,6 +13,7 @@ const MathCourse = require("../models/MathCourse");
 const MathExam = require("../models/MathExam");
 const MathSection = require("../models/MathSection");
 const MathGrades = require("../models/MathGrades");
+const Course = require("../models/Course");
 
 const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
 const instructors 
@@ -109,6 +110,12 @@ router.get("/showCourse/:courseId",isLoggedIn,
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
     res.locals.isAdmin = req.isAdmin;
+    if (course.coursePinMLA) {
+      console.log(`coursePinMLA:${course.coursePinMLA}`);
+      const mlaCourse = await Course.findOne({coursePin:course.coursePinMLA});
+      console.log(`mlaCourse:${JSON.stringify(mlaCourse)}`);
+      res.locals.mlaCourse = mlaCourse;
+    }
     //console.log(exams);
     //res.json(course);
     res.render('mathgrades/showCourse');
@@ -300,7 +307,7 @@ const compareSkills = (a,b) => {
       return 0;
     }
   }
-}
+} 
 
 const calculateMastery = (grades) => {
   /* 
@@ -557,6 +564,21 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
  //res.json({message:"grades uploaded"});
  res.redirect(`/mathgrades/showCourse/${courseId}`);
 });
+
+router.post("/linkMLACourse/:courseId", hasStaffAccess,
+ async (req, res, next) => {
+    const courseId = req.params.courseId;
+    const course = await MathCourse.findOne({_id:courseId});
+    course.coursePinMLA = req.body.coursePinMLA;
+    const mlaCourse = await Course.findOne({coursePin:course.coursePinMLA});
+    if (mlaCourse) {
+      mlaCourse.mathCourseId = courseId;
+      await mlaCourse.save();
+      await course.save();
+    }
+    
+    res.redirect(`/mathgrades/showCourse/${courseId}`);
+ });
 
 router.post("/uploadSectionData/:courseId", hasStaffAccess,
   upload.single('sections'),

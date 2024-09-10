@@ -48,19 +48,35 @@ const isLoggedIn = (req, res, next) => {
           await CourseMember.find(
               {studentId: req.user._id, 
                 courseId: res.locals.courseInfo._id});
-
-        res.locals.isEnrolled = memberList.length > 0;
+        res.locals.isMgaStudent = memberList.length>0 && res.locals.courseInfo.nonGrading
+        res.locals.isEnrolled = memberList.length > 0 && !res.locals.courseInfo.nonGrading;
         res.locals.isTA = 
             req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);  
         res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
         res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
-
+        res.locals.hasCourseAccess = res.locals.isEnrolled || res.locals.isTA || res.locals.isOwner;
         res.locals.isStaff = res.locals.isTA || res.locals.isOwner;
         console.dir(res.locals);
 
         // give Admin access to all courses ...
         res.locals.isOwner ||= res.locals.isAdmin;
         next()
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  const hasMGAStudentAccess = async (req, res, next) => {
+    // students, TAs, and owners have access to the course
+    try {
+      if (res.locals.isMgaStudent 
+          || res.locals.isEnrolled
+          || res.locals.isTA 
+          || res.locals.isOwner) {
+        next();
+      } else {
+        res.send("You do not have access to this course.");
       }
     } catch (e) {
       next(e);
@@ -122,6 +138,7 @@ const isLoggedIn = (req, res, next) => {
     module.exports = {
         authorize,
         isLoggedIn,
+        hasMGAStudentAccess,
         hasCourseAccess,
         hasStaffAccess,
         isOwner,

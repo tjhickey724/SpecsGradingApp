@@ -10,9 +10,12 @@
     </h3>
     <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
     <span class="lead fs-2">Promoting Effective and Engaged Learning</span>
-
+    
     
     <% if (loggedIn){ %>
+      <hr>
+
+      
     <form method="post" action="/joinCourse">
       <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
         <div class="col-auto">
@@ -45,13 +48,26 @@
 <h2>You must login through Brandeis to use the Peer Review App:
   <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
 </h2>
-<% } else {%>
+<% } else {
+  const now = new Date();
+  %>
+  <% if (show=='currentOnly'){ %>
+    <a href="/mla_home/showAll">Show Archived and Current Courses</a>
+  <% } else { %>
+    <a href="/mla_home">Show Current Courses Only</a>
+  <% } %>
 <hr>
 <div class="card-group">
   <div class="card text-bg-warning">
     <div class="card-header">Courses I'm taking</div>
     <ul class="pt-1 mb-2">
-      <% for(i=0; i<=coursesTaken.length-1; i++){ %>
+      <% for(i=0; i<=coursesTaken.length-1; i++){ 
+           if (show=='currentOnly' 
+               && (!coursesTaken[i].stopDate 
+                  || coursesTaken[i].stopDate < now)) {
+                    continue;}
+          
+        %>
       <li>
         <a href="/showCourse/<%= coursesTaken[i]._id %>">
           <%= coursesTaken[i].name %>
@@ -63,7 +79,11 @@
   <div class="card bg-primary">
     <div class="card-header">Courses I'm TAing</div>
     <ul class="pt-1 mb-2">
-      <% for(i=0; i<=coursesTAing.length-1; i++){ %>
+      <% for(i=0; i<=coursesTAing.length-1; i++){
+        if (show=='currentOnly' 
+        && (!coursesTAing[i].stopDate 
+           || coursesTAing[i].stopDate < now)) {
+             continue;} %>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesTAing[i]._id %>">
           <%= coursesTAing[i].name %>
@@ -76,7 +96,11 @@
   <div class="card bg-danger">
     <div class="card-header">Courses I'm Teaching</div>
     <ul class="pt-1 mb-2">
-      <% for(i=0; i<=coursesOwned.length-1; i++){ %>
+      <% for(i=0; i<=coursesOwned.length-1; i++){ 
+        if (show=='currentOnly' 
+        && (!coursesOwned[i].stopDate 
+           || (coursesOwned[i].stopDate < now))) {
+             continue;}%>
       <li>
         <a class="link-info" href="/showCourse/<%= coursesOwned[i]._id %>">
           <%= coursesOwned[i].name %>
@@ -84,6 +108,9 @@
       </li>
       <% } %>
     </ul>
+    <pre>
+
+</pre>
   </div>
 </div>
 

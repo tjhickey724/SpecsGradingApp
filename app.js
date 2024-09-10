@@ -118,7 +118,7 @@ Every route that requires authentication for access to a course
 should start with the authorize middleware and then will have those
 functions available in res.locals.
 */
-const {isLoggedIn, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize} = require('./routes/authFunctions.js');
+const {isLoggedIn, hasMGAStudentAccess, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize} = require('./routes/authFunctions.js');
 
 
 // view engine setup
@@ -207,8 +207,11 @@ app.get("/lrec", isLoggedIn,
   }
 });
 
+app.get("/mla_home", isLoggedIn, (req,res) => {
+  res.redirect("/mla_home/showCurrent");
+});
 
-app.get("/mla_home", isLoggedIn,
+app.get("/mla_home/:show", isLoggedIn,
   async (req, res, next) => {
   /*
     this is the main page with links to all of the courses
@@ -216,23 +219,28 @@ app.get("/mla_home", isLoggedIn,
     they be logged in and they can create a new course or join an
     existing course if they have the course pin.
   */
+  
+
   if (!req.user) next();
   const userId = req.user._id;
-  const coursesOwned = await Course.find({ownerId: userId}, "name");
+  const coursesOwned = await Course.find({ownerId: userId});
 
   const registrations = await CourseMember.find({studentId: userId}, "courseId");
   const registeredCourses = registrations.map((x) => x.courseId);
-  const coursesTaken = await Course.find({_id: {$in: registeredCourses}}, "name");
+  const coursesTaken = await Course.find({_id: {$in: registeredCourses}});
   
   const coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
   const title = "PRA";
   const routeName = " index";
+  const show = (req.params.show=="showAll")?'showAll':'currentOnly';
+  console.log(`show is ${show}`);
 
   res.locals = {
     ...res.locals,
     title,
     routeName,
     coursesOwned,coursesTAing,coursesTaken,
+    show,
   };
 
   res.render("index");
@@ -349,8 +357,15 @@ app.use(reviews);
 app.post("/changeCourseName/:courseId", authorize, isOwner,
   async (req, res) => {
     const name = req.body.newName;
+    const startDate = req.body.startDate;
+    const stopDate = req.body.stopDate;
+    const nonGrading = req.body.nonGrading == "true";
+    console.log(`req.body=${JSON.stringify(req.body)}`);
     const course = await Course.findOne({_id:req.params.courseId});
     course.name = name;
+    course.startDate = new Date(startDate);
+    course.stopDate = new Date(stopDate);
+    course.nonGrading = nonGrading;
     await course.save();
     res.redirect("/showCourse/"+req.params.courseId);
 });
@@ -428,11 +443,11 @@ app.post("/addStudents/:courseId", authorize, isOwner,
   it shows the course information, the problem sets, 
   and the course skills that the user has mastered
 */
-app.get("/showCourse/:courseId", authorize, hasCourseAccess,
+app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
   async (req, res, next) => {
   try {
     const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    res.locals.courseInfo = await Course.findOne({_id: id});
 
     const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
     res.locals.isEnrolled = memberList.length > 0;
@@ -520,7 +535,14 @@ app.get("/showCourse/:courseId", authorize, hasCourseAccess,
     res.locals.regradeRequests = await RegradeRequest.find({courseId: id, completed: false});
 
     res.locals.routeName = " showCourse";
-    res.render("showCourse");
+
+    if (res.locals.hasCourseAccess) {
+      res.render("showCourse");
+    } else if (res.locals.isMgaStudent) {
+      res.render("showCourseMGA");
+    } else {
+      res.send("You do not have access to this course.");
+    }
   } catch (e) {
     next(e);
   }

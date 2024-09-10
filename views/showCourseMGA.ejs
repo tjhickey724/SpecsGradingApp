@@ -1,0 +1,51 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= courseInfo.name %>
+    </h1>
+    <div class="p-2">
+     
+      <h2>Skills Mastery Evidence</h2>
+      <ul>
+        <% for(i = 0; i< skills.length; i++){  %>
+        <li>
+
+          <a href="/showSkill/<%= courseInfo._id%>/<%= skills[i]._id %>">
+            <%= skills[i].name %>
+          </a>
+          <span style="color:red">
+            times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
+          </span>
+        </li>
+        <% } %>
+
+        <%
+    skillIds = skills.map((x)=>x.id)
+    %>
+
+        <% for(i = 0; i< allSkills.length; i++){
+         if (skillIds.includes(allSkills[i].id)) continue; %>
+        <li>
+          <a href="/showSkill/<%=courseInfo._id%>/<%= allSkills[i]._id %>">
+            <%= allSkills[i].name %>
+          </a>
+          mastery not yet demonstrated
+        </li>
+        <% } %>
+      </ul>
+      <hr>
+
+      <a href="/" class="btn btn-sm btn-danger">
+        Back to Home
+      </a>
+
+
+
+    </div>
+  </div>
+</div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

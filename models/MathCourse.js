@@ -7,10 +7,9 @@ var courseSchema = Schema( {
   name: String,
   description:String,
   ownerId: {type:ObjectId,index:true},
-//  coursePin: {type:Number,index:true},
+  coursePinMLA: {type:Number,index:true},
   createdAt: Date,
-//  gradeSheet: mongoose.Schema.Types.Mixed,
-//  gradesUpdateTime: Date
+
 } );
 
 module.exports = mongoose.model( 'MathCourse', courseSchema );

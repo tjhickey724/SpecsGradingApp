@@ -8,8 +8,14 @@
     <div class="p-2">
       studentPin: <%= courseInfo.coursePin %>
       <br>
+      <% if (courseInfo.mathCourseId) { %>
+        Linked to 
+                <a href="/mathgrades/showCourse/<%= courseInfo.mathCourseId %>">
+                  an MGA courses
+                </a>
+      <% } %>
       <hr>
-      <b>Problem Sets</b>
+      <b>Problem Sets</b> 
       <ul>
         <% for(i = 0; i<= problemSets.length-1; i++){ %>
         <%
@@ -68,23 +74,14 @@
       <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
         Show Mastery
       </a>
-
-      <hr>
-      <% if ( user._id.equals(courseInfo.ownerId)) { %>
-        <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
-           <input type="text" name="newName" value="<%= courseInfo.name %>">
-           <button type="submit" class="btn btn-sm btn-danger">Change Course Name</button>
-       <% } %>
-       <hr>
-       
       <% } else { %>
-      <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
-        show all problems and responses
-      </a>
-
-      <%} %>
-      <br>
-
+        <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
+          show all problems and responses
+        </a>
+  
+        <%} %>
+      <hr>
+     
 
       Number of reviews I've made: <%= myReviews.length %>
       with <%= thumbsUp %> thumbs up and
@@ -139,6 +136,32 @@
       </a>
       <% } %>
       <hr>
+      <% if ( user._id.equals(courseInfo.ownerId)) { %>
+        <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
+           <input type="text" name="newName" value="<%= courseInfo.name %>">
+           course name
+           <br>
+           <input type="text" name="startDate" value="<%= courseInfo.startDate %>">
+            startDate
+            <br>
+            <input type="text" name="stopDate" value="<%= courseInfo.stopDate %>">
+            stopDate
+            <br>
+            <input type="checkbox" 
+                    name="nonGrading" 
+                    value="true"
+                    <%= courseInfo.nonGrading?"checked":"" %>
+              >
+            non-Grading mode - student work will be graded externally and uploaded to the course
+            students will not be able to see the problems or the answers
+            <br>
+           <button type="submit" class="btn btn-sm btn-danger">Update Course Info</button>
+       <% } %>
+       <hr>
+       
+
+      <br>
+
 
 
       <a href="/" class="btn btn-sm btn-danger">

@@ -1211,7 +1211,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
           This needs to be customized for each class. 
        
        If this problem set is a makeup, then we only include students who have not
-       taken the specified makeupOf exam. 
+       taken the specified exam for which this is a makeup. 
   
     */
     async (req, res, next) => {

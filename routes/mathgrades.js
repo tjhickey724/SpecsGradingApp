@@ -103,6 +103,8 @@ router.get("/showCourse/:courseId",isLoggedIn,
     res.redirect("/mathgrades/showStudentCourse/"+ courseId );
   }else {
     const course = await MathCourse.findOne({_id:courseId})
+    const mlaCourse = await Course.findOne({coursePin:course.coursePinMLA});
+    res.locals.mlaCourse = mlaCourse;
     res.locals.course = course;
     res.locals.results = [];
     console.log(`courseId:${courseId} course:${course}`)

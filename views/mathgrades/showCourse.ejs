@@ -44,8 +44,17 @@
       </div>
       <hr>
       <div>
-        <h2>Upload New Exam</h2>
-        <form method="post" 
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th style="width:25%">Action</th>
+            <th style="width:75%">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h2>Upload New Exam</h2></td>
+            <td><form method="post" 
               action="/mathgrades/uploadGrades/<%= course._id %>" 
               enctype="multipart/form-data">
           <div class="mb-3">
@@ -56,13 +65,12 @@
             <input required class="form-control" type="file" name="grades" >
           </div>
           <input class="btn btn-lg btn-primary" type="submit">
-        </form>
-      </div>
+        </form></td>
+          </tr>
 
-      <hr>
-      <div>
-        <h2>Upload/Reupload Section Info</h2>
-        <form method="post" 
+          <tr>
+            <td><h2>Upload/Reupload Section Info</h2></td>
+            <td><form method="post" 
               action="/mathgrades/uploadSectionData/<%= course._id %>" 
               enctype="multipart/form-data">
           <div class="mb-3">
@@ -70,18 +78,18 @@
             <input required class="form-control" type="file" name="sections" >
           </div>
           <input class="btn btn-lg btn-primary" type="submit">
-        </form>
-      </div>
-      <hr>
-      <div>
-        <h2>Link to MLA course</h2>
-        <p>
-          To link to an MLA course, you need the PIN for the course.
-          You can find this in the course settings in MLA. Once a course
-          is linked, the MLA course can use the mastery data from the MGA 
-          course to create personalized exams.
-        </p>
-        <form method="post" 
+        </form></td>
+          </tr>
+
+          <tr>
+            <td><h2>Link to MLA course</h2>
+              <p>
+                To link to an MLA course, you need the PIN for the course.
+                You can find this in the course settings in MLA. Once a course
+                is linked, the MLA course can use the mastery data from the MGA 
+                course to create personalized exams.
+              </p></td>
+            <td><form method="post" 
               action="/mathgrades/linkMLACourse/<%= course._id %>" >
           <div class="mb-3">
             <label for="coursePinMLA" class="form-label">MLA course PIN:</label>
@@ -92,8 +100,37 @@
                   name="coursePinMLA" >
           </div>
           <input class="btn btn-lg btn-primary" type="submit">
-        </form>
+        </form></td>
+          </tr>
+
+          <tr>
+            <td><h2>Rename Course</h2></td>
+            <td>
+              <form method="post" action="/mathgrades/renameCourse/<%= course._id %>">
+                <div class="mb-3">
+                  <label for="courseName" class="form-label">New Course Name:</label>
+                  <input  
+                        class="form-control" 
+                        type="text" 
+                        value="<%= course.name %>"
+                        name="courseName" >
+                </div>
+                <input class="btn btn-lg btn-primary" type="submit">
+              </form>
+            </td>
+          </tr>
+
+          <tr>
+            <td></td>
+            <td></td>
+          </tr>
+
+        </tbody>
+      </table>
+        
+        
       </div>
+
   </div>
 </div>
 

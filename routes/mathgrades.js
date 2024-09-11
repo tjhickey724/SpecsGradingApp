@@ -667,6 +667,16 @@ router.get("/createCourse", hasAdminAccess,
      res.redirect("/mathgrades");
  //    res.json(courseJSON);
    });
+
+router.post("/renameCourse/:courseId", hasAdminAccess,
+  async (req, res, next) => {
+    const courseId = req.params.courseId;
+    const course = await MathCourse.findOne({_id:courseId});
+    course.name = req.body.courseName;
+    await course.save();
+    res.redirect("/mathgrades");
+  });
+
     
 
 module.exports = router;

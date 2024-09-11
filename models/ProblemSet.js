@@ -8,6 +8,7 @@ var problemSetSchema = Schema( {
   name: String,
   createdAt: Date,
   visible: Boolean,
+  makeupOf: {type: ObjectId, ref:'MathExam' } // if this is a makeup set, this is the original set; else it is null
 } );
 
 module.exports = mongoose.model( 'ProblemSet', problemSetSchema );

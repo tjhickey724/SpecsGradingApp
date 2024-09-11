@@ -85,7 +85,23 @@
         class="btn btn-sm btn-info">
         Download personalized exams
       </a>
-
+<br>
+<br>
+<form method="post" action="/setAsMakeup/<%=courseId%>/<%= psetId %>">
+  If this is a makeup of another problem set, select the problem set here:
+  <select name="makeupSet">
+    <% for (let i=0; i<makeupSets.length; i++){ %>
+      <option 
+        <%= (makeupSets[i]._id == problemSet.makeupOf) ? "selected" : "" %>
+        value="<%= makeupSets[i]._id %>">
+        <%= makeupSets[i].name %>
+      </option>
+    <% } %>
+    </select>
+    
+  <input type="submit" value="Set as Makeup" class="btn btn-sm btn-info">
+</form>
+<br>
       <% } %>
 
 

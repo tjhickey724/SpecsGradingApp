@@ -56,7 +56,7 @@ const isLoggedIn = (req, res, next) => {
         res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
         res.locals.hasCourseAccess = res.locals.isEnrolled || res.locals.isTA || res.locals.isOwner;
         res.locals.isStaff = res.locals.isTA || res.locals.isOwner;
-        console.dir(res.locals);
+        
 
         // give Admin access to all courses ...
         res.locals.isOwner ||= res.locals.isAdmin;

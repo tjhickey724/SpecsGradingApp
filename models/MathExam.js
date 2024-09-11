@@ -8,8 +8,6 @@ var examSchema = Schema( {
   filename: String,
   courseId: {type:ObjectId,index:true},
   createdAt: Date,
-//  gradeSheet: mongoose.Schema.Types.Mixed,
-//  gradesUpdateTime: Date
 } );
 
 module.exports = mongoose.model( 'MathExam', examSchema );

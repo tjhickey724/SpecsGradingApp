@@ -1,5 +1,5 @@
 # The Mastery Learning App
-The Mastery Learning App has been designed to help faculty teach course using the 
+The Mastery Learning App has been designed to help faculty teach courses using the 
 Mastery Assessment Pedagogy (M.A.P.) approach which has been used in Brandeis University
 to teach the PreCalculus and Calculus sections and which has been studied and analyzed
 in Dr. Ella Tuson's recent PhD Dissertation, 

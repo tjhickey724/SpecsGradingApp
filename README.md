@@ -5,7 +5,7 @@ to teach the PreCalculus and Calculus sections and which has been studied and an
 in Dr. Ella Tuson's recent PhD Dissertation, 
 "M.A.P. — Mastery Assessment Pedagogy for Learning Computer Science"
 
-This software is open source and you are free to download it and modify it and run it on your own servers, but you may not use it for commercial purposes, though you can use it to teach your classes as long as you don't charge the students or instructors for its use.
+This software is open source [open source (GNU Affero)](https://github.com/tjhickey724/SpecsGradingApp/blob/main/LICENSE) and you are free to download it and modify it and run it on your own servers and you can use it to teach your classes as long as you don't charge the students or instructors for its use.
 
 # Mastery Learning App User's Guide
 

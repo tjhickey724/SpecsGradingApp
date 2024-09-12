@@ -1,12 +1,15 @@
 # The Mastery Learning App
-## Other links
-* [MLA architecture](./MLA-architecture.md)
-* [old README](./oldREADME.md)
-* [MLA Feature List (for testing and debugging)](./MLA-features.md)
+The Mastery Learning App has been designed to help faculty teach course using the 
+Mastery Assessment Pedagogy (M.A.P.) approach which has been used in Brandeis University
+to teach the PreCalculus and Calculus sections and which has been studied and analyzed
+in Dr. Ella Tuson's recent PhD Dissertation, 
+"M.A.P. — Mastery Assessment Pedagogy for Learning Computer Science"
 
 # Mastery Learning App User's Guide
-The Mastery Learning App has been designed to help faculty teach course using the 
-Mastery Assessment Pedagogy (M.A.P.) approach presented in Dr. Ella Tuson's recent PhD Dissertation.
+
+The goal of this app is to help make it easier for faculty to try out the M.A.P. approach
+by providing libraries of skills and problems and software for managing the mechanics of
+such a course. We describe this approach and the app in more detail below. 
 
 ## Mastery Assessment Pedagogy
 There can be variations to this approach, but this app is designed for a very particular style of pedagogy
@@ -27,3 +30,9 @@ We have used this style of teaching in courses in Discrete Math and it has been 
 4. Clearly communicating to the students which skills they have mastered and which they have not.
 
 
+
+
+# Other links
+* [MLA architecture](./MLA-architecture.md)
+* [old README](./oldREADME.md)
+* [MLA Feature List (for testing and debugging)](./MLA-features.md)

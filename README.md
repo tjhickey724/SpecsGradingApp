@@ -76,7 +76,7 @@ After you create the skills you can create problem sets which is the name we hav
 A problem set consists of a set of problems, each one associated to a skill. 
 
 #### Creating a problem in a problem set.
-You can either create a new problem (where you will be prompted for the problem text, rubric, skills, name, etc.) or you can search for a problem in the problem library by specifying a skill and finding all problems containing that skill in all courses for which you have been given access. The problem can be written in plain text, or markdown, or LaTeX.
+You can either create a new problem (where you will be prompted for the problem text, rubric, skills, name, etc.) or you can search for a problem in the problem library by specifying a skill and finding all problems containing that skill in all courses for which you have been given access. The problem can be written in plain text, or markdown, or LaTeX. When searching for problems for a particular skill, they are ordered chronologically according to their last use in a course you have access to. This allows you to attempt to avoid problems that have been used in the recent past. 
 
 #### Creating and administering a personalized exam
 Once you have linked your MLA course with an MGA course, you can press the "create a personalized exam"

@@ -139,12 +139,14 @@
       <% if ( user._id.equals(courseInfo.ownerId)) { %>
         <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
            <input type="text" name="newName" value="<%= courseInfo.name %>">
-           course name
+           course name 
            <br>
-           <input type="text" name="startDate" value="<%= courseInfo.startDate %>">
+           <input type="text" name="startDate" 
+           value="<%= courseInfo.startDate.toISOString().slice(0,10) %>">
             startDate
             <br>
-            <input type="text" name="stopDate" value="<%= courseInfo.stopDate %>">
+            <input type="text" name="stopDate" 
+            value="<%= courseInfo.stopDate.toISOString().slice(0,10) %>">
             stopDate
             <br>
             <input type="checkbox" 
@@ -152,9 +154,11 @@
                     value="true"
                     <%= courseInfo.nonGrading?"checked":"" %>
               >
-            non-Grading mode - student work will be graded externally and uploaded to the course
-            students will not be able to see the problems or the answers
+            non-Grading mode - student work will be graded externally and uploaded to the course.
+            Students will not be able to see the problems or the answers. Uncheck this box
+            if you will grade the students' work in the course using this App.
             <br>
+            <hr>
            <button type="submit" class="btn btn-sm btn-danger">Update Course Info</button>
        <% } %>
        <hr>

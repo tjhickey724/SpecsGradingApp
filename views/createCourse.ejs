@@ -3,7 +3,9 @@
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="">Create a Course</h1>
-    <p class="border-bottom pb-2"> Enter a new course name and hit return</p>
+    <p class="border-bottom pb-2"> Enter a new course name, starting and ending dates,
+      and whether the course is in non-grading mode.
+    </p>
     <div class="p-2">
 
       <form method="post" action="createNewCourse">
@@ -13,6 +15,29 @@
             <input type="text" name="courseName" class="form-control">
           </div>
         </div>
+        <br>
+        <% let now = new Date();
+           let in4months = new Date(now.getTime() + 1000*3600*24*120);
+          %>
+        starting date: <input type="text" name="startDate" 
+        value="<%= now.toISOString().slice(0,10) %>">
+        
+         <br>
+         ending date: <input type="text" name="stopDate" 
+         value="<%= in4months.toISOString().slice(0,10) %>">
+         
+         <br>
+         <input type="checkbox" 
+                 name="nonGrading" 
+                 value="true"
+                 checked="checked"
+           >
+         non-Grading mode - student work will be graded externally and uploaded to the course
+         students will not be able to see the problems or the answers. Uncheck the box
+         if you want to grade the students' work in the course using this App.
+         <br>
+         <hr>
+
         <div class="form-check">
           <input class="form-check-input" id="norobot" type="checkbox" name="norobot">
           <label class="form-check-label" for="norobot">I am not a robot </label>

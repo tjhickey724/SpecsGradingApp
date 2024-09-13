@@ -321,6 +321,9 @@ app.post("/createNewCourse", isLoggedIn,
     let newCourse = new Course({
       name: req.body.courseName,
       ownerId: req.user._id,
+      startDate: new Date(req.body.startDate),
+      stopDate: new Date(req.body.stopDate),
+      nonGrading: req.body.nonGrading,
       coursePin: coursePin,
       createdAt: new Date(),
     });

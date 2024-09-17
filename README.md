@@ -85,6 +85,13 @@ button which will determine the set of skills each student in the MGA class has 
 generate a LaTeX file with one exam for each student (and their name/email is at the top of the first page).
 You can turn this into a pdf by downloading it and running the pdflatex command. It requires a few additional files: (preamble.tex, title.tex) which provide information about the policies for the exam that are copied into each student's exam.
 
+If the personalized exam contains markdown questions you need to use the following command to generate the pdf
+``` bash
+latexmk -cd -pdf -shell-escape -silent markdowntest.tex
+```
+You can read more about converting markdown to pdf in latex at
+[Markdown Package Manual](https://mirror.las.iastate.edu/tex-archive/macros/generic/markdown/markdown.html)
+
 This big pdf can be processed by a printing center so that each exam is printed and stapled independently. (MORE DETAILS TO FOLLOW). For a large class the teaching staff can lay out the exams in the exam room ahead of time, in alphabetical order and students can move to their assigned seating to take the exam. After they complete, they upload the exam to the cloud where it can be graded. For this version, we are assuming the instructor has their own method for uploading and grading exams and the results can then be uploaded to the corresponding MGA course. We are currenlty building a version of the MLA that incorporates this uploading/grading component, but it is not fully operational.
 
 #### Creating a Makeup Exam

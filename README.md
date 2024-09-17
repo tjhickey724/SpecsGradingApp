@@ -87,7 +87,7 @@ You can turn this into a pdf by downloading it and running the pdflatex command.
 
 If the personalized exam contains markdown questions you need to use the following command to generate the pdf
 ``` bash
-latexmk -cd -pdf -shell-escape -silent markdowntest.tex
+latexmk -cd -pdf -shell-escape -silent MARKDOWN-TEX-FILENAME.tex
 ```
 You can read more about converting markdown to pdf in latex at
 [Markdown Package Manual](https://mirror.las.iastate.edu/tex-archive/macros/generic/markdown/markdown.html)

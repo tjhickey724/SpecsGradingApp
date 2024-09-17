@@ -11,6 +11,10 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const showdown  = require('showdown');
+const converter = new showdown.Converter();
+
+
 require("dotenv").config();
 
 // TJH -- I don't think we need these any more ...
@@ -541,7 +545,17 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
 
     res.locals.regradeRequests = await RegradeRequest.find({courseId: id, completed: false});
 
-    res.locals.routeName = " showCourse";
+
+    let startDate = res.locals.courseInfo.createdAt
+    let stopDate = new Date(startDate.getTime() + 1000*3600*24*120);
+    if (res.locals.courseInfo.startDate) {
+      startDate = res.locals.courseInfo.startDate;
+    }
+    if (res.locals.courseInfo.stopDate) {
+      stopDate = res.locals.courseInfo.stopDate;
+    }
+    res.locals.startDate = startDate;
+    res.locals.stopDate = stopDate;    
 
     if (res.locals.hasCourseAccess) {
       res.render("showCourse");
@@ -1490,7 +1504,26 @@ app.get("/showProblem/:courseId/:psetId/:probId", authorize, hasCourseAccess,
     const skills = await Skill.find({_id: {$in: problem.skills}});
     const skillsMastered = await getStudentSkills(courseId,userId);
     
-    const routeName = " showProblem";
+    let markdownText = problem.problemText;
+    if (problem.mimeType == 'markdown') {
+      markdownText = converter.makeHtml(markdownText);
+      const mathjaxScript = `
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+`;
+      markdownText = mathjaxScript + markdownText;
+
+    }
+
 
     let status = ""
     if (!problem.visible) {
@@ -1506,10 +1539,11 @@ app.get("/showProblem/:courseId/:psetId/:probId", authorize, hasCourseAccess,
        {...res.locals, 
         status,courseId,psetId,probId,
         problem,course,
+        markdownText,
         answerCount,allAnswers,usersAnswers,theAnswer,
         skills,skillsMastered,
         reviews, reviewCount, averageReview,
-        routeName};
+        };
 
 
     if (false){

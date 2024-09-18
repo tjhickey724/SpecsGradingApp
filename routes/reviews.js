@@ -495,7 +495,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
       const problem = await Problem.findOne({_id: answer.problemId});
       res.locals.problem = problem;
       res.locals.student = await User.findOne({_id: answer.studentId});
-      res.locals.reviews = await Review.find({answerId: answerId}).populate('reviewerId').sort({points: "asc", review: "asc"});
+      res.locals.reviews = await Review.find({answerId: answerId}).populate('reviewerId').populate('skills').sort({points: "asc", review: "asc"});
       const taList = await User.find({taFor: courseId});
       res.locals.taList = taList.map((x) => x._id);
   

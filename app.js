@@ -13,6 +13,20 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const showdown  = require('showdown');
 const converter = new showdown.Converter();
+const multer = require("multer");
+const cors = require("cors")();
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+      cb(null, 'public/answerImages')
+  },
+  filename: function(req, file, cb) {
+      console.log(`file=${JSON.stringify([req.filepath,file])}`);
+      //const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      cb(null, req.filepath+file.originalname)
+  }
+})
+const upload = multer({ storage: storage })
 
 
 require("dotenv").config();
@@ -141,7 +155,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
+app.use(cors);
 /*************************************************************************
      HERE ARE THE AUTHENTICATION ROUTES
 **************************************************************************/
@@ -900,7 +914,12 @@ app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   res.locals.courseInfo = await Course.findOne({_id: courseId}, "ownerId");
   res.locals.myAnswers = await Answer.find({psetId: psetId, studentId: userId});
   res.locals.pids = res.locals.myAnswers.map((x) => {
-    return x.problemId.toString();
+    if (!x.problemId) {
+      res.json(res.locals.myAnswers);
+      return;
+      //console.log(`problemId is undefined for answer ${JSON.stringify(res.locals.myAnswers)}`);
+    }
+    x.problemId.toString(); 
   });
   //const allPsets = await ProblemSet.find({courseId: courseId});
   //res.locals.makeupSets = allPsets.filter((x) => x._id!=psetId).concat({name: "None", _id: null});  
@@ -1825,45 +1844,114 @@ app.get("/editProblem/:courseId/:probId", authorize, isOwner,
   we should send them to a page that says their answer has
   been reviewed and they can't update it. 
 */
-app.post("/saveAnswer/:courseId/:psetId/:probId", authorize, hasCourseAccess,
+app.post("/saveAnswer/:courseId/:psetId/:probId", 
+          authorize, 
+          hasCourseAccess,
   async (req, res, next) => {
-  const probId = req.params.probId;
-  const psetId = req.params.psetId;
-  const courseId = req.params.courseId;
-  res.locals.courseId = courseId;
-  res.locals.probId = probId;
-  res.locals.problem = await Problem.findOne({_id: probId});
-  const problem = res.locals.problem;
+    try{
+      const probId = req.params.probId;
+      const psetId = req.params.psetId;
+      const courseId = req.params.courseId;
 
-  const answers = await Answer.find({studentId: req.user._id, problemId: probId});
+      const answers = await Answer.find({studentId: req.user._id, problemId: probId});
 
-  const answerIds = answers.map((x) => x._id);
-  const reviews = await Review.find({answerId: {$in: answerIds}});
+      const answerIds = answers.map((x) => x._id);
+      const reviews = await Review.find({answerId: {$in: answerIds}});
 
-  if (reviews.length > 0) {
-    res.redirect("/showReviewsOfAnswer/" + courseId +"/" + psetId+"/"+ answerIds[0]);
-  } else {
-    let newAnswer = new Answer({
-      studentId: req.user._id,
-      courseId: courseId,
-      psetId: psetId,
-      problemId: probId,
-      answer: req.body.answer,
-      reviewers: [],
-      numReviews: 0,
-      pendingReviewers: [],
-      createdAt: new Date(),
-    });
+      if (reviews.length > 0) {
+        res.redirect("/showReviewsOfAnswer/" + courseId +"/" + psetId+"/"+ answerIds[0]);
+      } else {
+        let newAnswer = new Answer({
+          studentId: req.user._id,
+          courseId: courseId,
+          psetId: psetId,
+          problemId: probId,
+          answer: req.body.answer,
+          reviewers: [],
+          numReviews: 0,
+          pendingReviewers: [],
+          createdAt: new Date(),
+        });
 
-    // we might want to move old answers to another collection
-    // rather than deleting them... or set a "deleted" flag
-    await Answer.deleteMany({studentId: req.user._id, problemId: probId});
+        // we need to delete any previous answers for this problem
+        // each problem should have at most one answer per student
+        await Answer.deleteMany({studentId: req.user._id, problemId: probId});
 
-    await newAnswer.save();
+        await newAnswer.save();
 
-    res.redirect("/showProblem/" +courseId+"/" + psetId+"/"+probId);
-  }
-});
+        res.redirect("/showProblem/" +courseId+"/" + psetId+"/"+probId);
+
+    }
+  } catch (e) {
+      next(e);
+    }
+  });
+
+
+const addImageFilePath = (req,res,next) => {
+  // this adds a filepath to the request object
+  // and is used to upload images in the storage system
+  const uniqueSuffix = //Date.now() + '_' + 
+      Math.round(Math.random() * 1E9);
+
+      req.filepath=
+        req.params.courseId+"_"
+        +req.params.psetId+"_"
+        +req.params.probId+"_"
+        +req.user._id+"_"
+        +uniqueSuffix+"_";
+
+      next();
+};
+
+app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId", 
+          authorize, hasCourseAccess,
+          addImageFilePath,
+          upload.single('picture'),
+    async (req, res, next) => {
+      try{
+        const probId = req.params.probId;
+        const psetId = req.params.psetId;
+        const courseId = req.params.courseId;
+  
+        const answers = await Answer.find({studentId: req.user._id, problemId: probId});
+  
+        const answerIds = answers.map((x) => x._id);
+        const reviews = await Review.find({answerId: {$in: answerIds}});
+  
+        if (reviews.length > 0) {
+          res.redirect("/showReviewsOfAnswer/" + courseId +"/" + psetId+"/"+ answerIds[0]);
+        } else {
+          let newAnswer = new Answer({
+            studentId: req.user._id,
+            courseId: courseId,
+            psetId: psetId,
+            problemId: probId,
+            imageFilePath: req.filepath + "answer.jpg",
+            reviewers: [],
+            numReviews: 0,
+            pendingReviewers: [],
+            createdAt: new Date(),
+          });
+  
+          // we need to delete any previous answers for this problem
+          // each problem should have at most one answer per student
+          await Answer.deleteMany({studentId: req.user._id, problemId: probId});
+  
+          await newAnswer.save();
+  
+          res.redirect("/showProblem/" +courseId+"/" + psetId+"/"+probId);
+  
+      }
+    }catch (e) {
+        next(e);
+      }
+    }
+);
+  
+
+
+
 
 
 app.post("/requestRegrade/:courseId/:reviewId", authorize, hasCourseAccess,

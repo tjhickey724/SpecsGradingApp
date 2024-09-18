@@ -22,12 +22,17 @@
 
     <b>Their Answer</b>
     <small>Submission time and date:<%= answer.createdAt %> </small>
+    <% if (!answer.imageFilePath) {%>
+        TEXT ANSWER:<br>
     <pre class="bg-warning"
          style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
          ><%= answer.answer %></pre>
-    <br>
+    <% } else { %>
+        <br>
+        IMAGE ANSWER:<br>
+    <img src="/answerImages/<%= answer.imageFilePath %>" width="50%">
+        <% } %>
 
-    <h2>All Reviews of this Answer</h2>
 
     <ul>
     <% let youReviewed = false
@@ -111,10 +116,13 @@
             <% }%>
 
             <% if (yourReview){%>
-                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } else if (isTAreview) {%>
+                <div style="background:rgb(120,220,155);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                    <% } else if (isTAreview) {%>
                 <b>TA Review</b>
-                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } else {%>
-                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px"><% } %><%= reviews[i].review %></div>
+                <div style="background:rgb(255,200,200);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                    <% } else {%>
+                <div style="background:rgb(120,220,255);border:2px solid blue; white-space: pre-wrap; font-family:monospace; padding:1px">
+                    <% } %><%= reviews[i].review %></div>
             <!-- allow user to request regrades of their answers -->
             <% if (answer.studentId==user.id) {%>
                 <form method="post" action="/requestRegrade/<%= answer.courseId%>/<%= reviews[i].id %>">
@@ -168,7 +176,8 @@
             <div class="col-md-6">
                 <b>Rubric</b>
                 <hr>
-                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd"><%= problem.rubric %>
+                <div class="bg-default" style="border:thin solid blue; white-space: pre-wrap; font-family:monospace; padding:10px; background-color:#dddddd">
+                    <%= problem.rubric %>
                 </div>
 
             </div>

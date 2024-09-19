@@ -459,7 +459,12 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
       await answer.save();
       await Review.deleteMany({_id: {$in: deletes}});
       //res.send("just updating answer ...")
-      res.redirect("/showReviewsOfAnswer/" + answerId);
+      res.redirect(
+        "/showReviewsOfAnswer/"
+        +"<%= answer.courseId %>/"
+        +"<%= answer.psetId %>/"
+        +"<%= answerId%>");
+  
     } catch (e) {
       next(e);
     }

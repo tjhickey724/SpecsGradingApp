@@ -28,6 +28,14 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
+/*
+ here is code we can use to delete an uploaded file
+   await unlinkAsync(file_path)
+   https://stackoverflow.com/questions/49099744
+*/
+const fs = require('fs')
+const { promisify } = require('util')
+const unlinkAsync = promisify(fs.unlink)
 
 require("dotenv").config();
 
@@ -1891,13 +1899,16 @@ app.post("/saveAnswer/:courseId/:psetId/:probId",
 const addImageFilePath = (req,res,next) => {
   // this adds a filepath to the request object
   // and is used to upload images in the storage system
+  // we append a random number so that a bad actor
+  // couldn't find a students answer by getting their
+  // user_id and the course,pset, and problem Ids
+  // this is a kind of salt.. 
+
   const uniqueSuffix = //Date.now() + '_' + 
       Math.round(Math.random() * 1E9);
 
       req.filepath=
-        req.params.courseId+"_"
-        +req.params.psetId+"_"
-        +req.params.probId+"_"
+        req.params.probId+"_"
         +req.user._id+"_"
         +uniqueSuffix+"_";
 
@@ -1909,7 +1920,7 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           addImageFilePath,
           upload.single('picture'),
     async (req, res, next) => {
-      try{
+      try {
         const probId = req.params.probId;
         const psetId = req.params.psetId;
         const courseId = req.params.courseId;
@@ -1922,12 +1933,31 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
         if (reviews.length > 0) {
           res.redirect("/showReviewsOfAnswer/" + courseId +"/" + psetId+"/"+ answerIds[0]);
         } else {
+
+          // before uploading a new answer
+          // first look for an old answer 
+          // and delete the image file if it exists
+          if (answers.length > 0) {
+            let imageFilePath = 
+              __dirname+"/public/answerImages/"+answers[0].imageFilePath;
+            console.log(`deleting file: ${imageFilePath}`);
+            console.log(`answers[0].imageFilePath: ${answers[0].imageFilePath}`);
+            if (imageFilePath) {
+              try {
+                await unlinkAsync(imageFilePath);
+              } catch (e){
+                console.log('error ulinking file: ' + e);
+              }
+            }
+          }
+          // now create a new answer with the new photo
+          // and store in the database
           let newAnswer = new Answer({
             studentId: req.user._id,
             courseId: courseId,
             psetId: psetId,
             problemId: probId,
-            imageFilePath: req.filepath + "answer.jpg",
+            imageFilePath: req.filepath + req.file.originalname,
             reviewers: [],
             numReviews: 0,
             pendingReviewers: [],
@@ -1941,12 +1971,15 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           await newAnswer.save();
   
           res.redirect("/showProblem/" +courseId+"/" + psetId+"/"+probId);
-  
-      }
-    }catch (e) {
+        }
+      
+      } catch (e) {
+        console.log("error in uploadAnswerPhoto: " + e);
         next(e);
       }
+
     }
+
 );
   
 

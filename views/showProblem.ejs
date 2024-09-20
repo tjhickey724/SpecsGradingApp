@@ -2,6 +2,7 @@
 <%- include('menubar') -%>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
+
     <h3 class="pb-2 border-bottom">
       <%= problem.description %>
     </h3>
@@ -20,8 +21,10 @@
             <hr>
             <div class="row">
               <div class="col-md">
-                MimeType |<%= problem.mimeType %>|
+                mimeType=|<%= problem.mimeType %>|
+                answerMimeType=|<%= problem.answerMimeType %>|
               </div>
+
               <div class="col-md">
                 Answers: <%= answerCount %>
               </div>
@@ -78,7 +81,19 @@
             <h2>Your Answer</h2>
             <small>Submission time and date:<%= problem.createdAt %>
             </small>
-            <pre class="bg-success"><%=  usersAnswers[0].answer %></pre>
+            <% if (problem.answerMimeType!='image') { %>
+                <h3>Text answer</h3>
+                <pre class="bg-warning"><%=  usersAnswers[0].answer %></pre>
+            <% } else { %>
+                <h3>Image answer</h3>
+                <img src="/answerImages/<%= usersAnswers[0].imageFilePath %>" 
+                alt="answer picture" 
+                class="img-fluid">
+              <% } %>
+            
+            <br>
+            
+
         
       <% } %>
 
@@ -151,31 +166,63 @@
         // or if it is in save mode not submit mode
         // but staff don't ever answer questions, so they don't see this
         %>
-      <form method="post" action="/saveAnswer/<%= courseId%>/<%= psetId%>/<%= problem._id %>">
-        <div class="form-group">
-          <label for="answer">Enter your answer below:</label>
-          <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
+        <hr>
+        <% if (problem.answerMimeType != 'image'){ %>
+                <h3>Submit your answer as text below</h3>
+
+                <form method="post" action="/saveAnswer/<%= courseId%>/<%= psetId%>/<%= problem._id %>">
+                  <div class="form-group">
+                    <label for="answer">Enter your answer below:</label>
+                    <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
 <%=theAnswer.answer%></textarea>
-        </div>
-        <br>
+                  </div>
+                  <br>
+                 
+                    <% // draw a save or submit button
+                     if(status=='submitable'){%>
+                    <input class="btn btn-lg btn-danger" type="submit" value="submit answer text">
+                    <% } else{%>
+                    <input class="btn btn-lg btn-warning" type="submit" value="save answer text">
+                    <% }%>
+                    <a class="btn btn-primary" 
+                    href="/showProblemSet/<%= problem.courseId %>/<%= problem.psetId %>">
+                   Return to Problem Set without Saving</a>
+          
+          
+                  <% // if there was an answer
+                     if(theAnswer.createdAt){%>
+                  <br>Last save at <%= theAnswer.createdAt
+                                                                                  %>
+                  
+                  <% } %>
+                </form>
+                <% } else { %>
+ 
+                <h3> Submit a photo of your answer</h3>
 
-          <% // draw a save or submit button
-           if(status=='submitable'){%>
-          <input class="btn btn-lg btn-danger" type="submit" value="submit">
-          <% } else{%>
-          <input class="btn btn-lg btn-warning" type="submit" value="save">
-          <% }%>
+                <form method="post" action="/uploadAnswerPhoto/<%= courseId%>/<%= psetId%>/<%= problem._id %>" enctype="multipart/form-data">
+                  <input type="file" id="picture" name="picture" accept="image/*" capture="environment" />
+          
+                  <% // draw a save or submit button
+                  if(status=='submitable'){%>
+                 <input class="btn btn-lg btn-danger" type="submit" value="submit answer photo">
+                 <% } else{%>
+                 <input class="btn btn-lg btn-warning" type="submit" value="save answer photo">
+                 <% }%>
+                 <% if (theAnswer.imageFilePath){%>
+                 <img src="/answerImages/<%= theAnswer.imageFilePath %>" 
+                      alt="answer picture" 
+                      width="100%"
+                      >
+                      <% } %>
+                </form>
 
-
-        <% // if there was an answer
-           if(theAnswer.createdAt){%>
-        <br>Last save at <%= theAnswer.createdAt
-																																				%>
-        <a class="btn btn-primary" 
-           href="/showProblemSet/<%= problem.courseId %>/<%= problem.psetId %>">
-          Return to Problem Set without Saving</a>
-        <% } %>
-      </form>
+              <% } %>
+          </div>
+       
+      <hr>
+     
+      <hr>
       <% }%>
       <hr>
       <%= skills.length	%>
@@ -197,6 +244,8 @@
 
         <% }%>
       </ul>
+
+
     </div>
   </div>
 </div>

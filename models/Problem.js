@@ -9,7 +9,7 @@ var problemSchema = Schema( {
   description: String,
   problemText: String,
   mimeType: String, // type of the problem text (plain, markdown, tex, etc.)
-
+  answerMimeType: String, // one of (text, image), default is text 
   rubric: String,
   pendingReviews: mongoose.Schema.Types.Mixed, // deprecated ... this needs to be in PsetProblem
   createdAt: Date, // original creation date

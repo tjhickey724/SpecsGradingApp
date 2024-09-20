@@ -46,7 +46,6 @@ const isLoggedIn = (req, res, next) => {
     res.locals.loggedIn = true;
     req.isAdmin = admins.includes(req.user.googleemail);
     req.isInstructor = instructors.includes(req.user.googleemail);
-    console.log(`isAdmin:${req.isAdmin} isInstructor:${req.isInstructor}`);
     return next();
   } else {
     res.redirect("/login");
@@ -83,7 +82,6 @@ router.get("/", isLoggedIn,
     courses = await MathCourse.find({});
   } else {
     studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
-    console.log(`studentCourses:${studentCourses}`);
     courses = await MathCourse.find({_id:{$in:studentCourses}});
   }
   res.locals.courses = courses;
@@ -107,18 +105,14 @@ router.get("/showCourse/:courseId",isLoggedIn,
     res.locals.mlaCourse = mlaCourse;
     res.locals.course = course;
     res.locals.results = [];
-    console.log(`courseId:${courseId} course:${course}`)
-    console.log(`isAdmin:${req.isAdmin} isInstructor:${req.isInstructor}`);
+
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
     res.locals.isAdmin = req.isAdmin;
     if (course.coursePinMLA) {
-      console.log(`coursePinMLA:${course.coursePinMLA}`);
       const mlaCourse = await Course.findOne({coursePin:course.coursePinMLA});
-      console.log(`mlaCourse:${JSON.stringify(mlaCourse)}`);
       res.locals.mlaCourse = mlaCourse;
     }
-    //console.log(exams);
     //res.json(course);
     res.render('mathgrades/showCourse');
   }
@@ -134,11 +128,9 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
   const course = await MathCourse.findOne({_id:courseId})
   res.locals.course = course;
   res.locals.results = [];
-  //console.log(`courseId:${courseId} course:${course}`)
   const exams = await MathExam.find({courseId:courseId});
   res.locals.exams = exams;
   res.locals.isAdmin = req.isAdmin;
-  //console.log(exams);
   if (exams.length == 0) {
     res.json({message:"no exams for this course yet"});
   } else {
@@ -166,14 +158,12 @@ mastered that skill. It also creates res.locals.studentCount, which is
 the number of students who have been graded for the course.
 */
 const getClassGrades = async (req,res,next) => {
-  //console.log('in getClassGrades');
   const courseId = req.params.courseId;
   // const examId = req.params.examId;
   const grades = await MathGrades.find({courseId:courseId});
   const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
   const enrolledStudents = sections.map(section => section.email);
-  console.log(`num enrolledStudents:${enrolledStudents.length}`);
-  console.log(`enrolledStudents:${JSON.stringify(enrolledStudents)}`);
+
   /*
     create a dictionary which gives the number of students
     who have mastered each skill, indexed by skill name
@@ -183,9 +173,7 @@ const getClassGrades = async (req,res,next) => {
   let studentCount = 0;
   let studentEmails = [];
   for (let grade of grades) {
-    console.log(`grade:${JSON.stringify(grade.email)}`);
     if (!enrolledStudents.includes(grade.email)) {
-      console.log('skipping');
       continue;}
     // count all students who have been graded for this course
     if (!studentEmails.includes(grade.email)) {
@@ -209,10 +197,7 @@ const getClassGrades = async (req,res,next) => {
   }
   res.locals.skillCounts = skillCounts;
   res.locals.studentCount = studentCount;
-  console.dir(`skillCounts:${JSON.stringify(skillCounts,null,2)}`);
-  console.dir(`skillCounts.keys:${Object.keys(skillCounts)}`);
-  console.dir(`skillCounts.values:${Object.values(skillCounts)}`);
-  console.log(`studentCount:${studentCount}`);
+
 
 
   next()
@@ -259,14 +244,12 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
       let numFskills = 0;
       let numGskills = 0;
       for (let grade of grades) {
-        //console.log(grade.skillsMastered);
         skillsMastered = skillsMastered.concat(grade.skillsMastered);
         allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped);       
       }
       allSkills = [...new Set(allSkills)].sort(compareExams);
       res.locals.allSkills = allSkills;
-      //console.log(`grades:${grades}`);
-      //console.log(`skillsMastered:${skillsMastered}`);
+
       res.locals.skillsMastered = 
         [...new Set(skillsMastered)].sort(compareExams);
       res.locals.numFskills = res.locals.skillsMastered.filter(skill => skill[0] == "F").length;
@@ -292,10 +275,8 @@ router.get("/showCourse/:courseId", hasAdminAccess,
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
     res.locals.results = [];
-    //console.log(`courseId:${courseId} course:${course}`)
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
-    //console.log(exams);
     //res.json(course);
     res.render('mathgrades/showCourse');
 });
@@ -404,9 +385,8 @@ router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
   }
   res.locals.sectionDict = sectionDict;
   [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
-  console.log(res.locals.skillSet);
 
-  if (csv){
+  if (csv){ 
     res.set('Content-Type', 'text/csv');
     res.send(ejs.render(masteryCSVtemplate,res.locals));
   } else {
@@ -414,6 +394,43 @@ router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
   }
 })
 
+/*
+this shows the mastery table but restricted to those students who didn't
+take the specified exam.
+*/
+router.get("/showMakeupMastery/:courseId/:examId", hasStaffAccess, getClassGrades,
+  async (req,res,next) => {
+    const courseId = req.params.courseId;
+    const examId = req.params.examId;
+    const csv = req.query.csv;
+
+    const grades = 
+      await MathGrades
+          .find({examId:examId,skillsMastered:[],skillsSkipped:[]}); 
+    const course = await MathCourse.findOne({_id:courseId});
+    const exam = await MathExam.findOne({_id:examId});
+      
+    const sections = await MathSection.find({courseId:courseId});
+    const sectionDict = {};
+    for (let section of sections) {
+      sectionDict[section.email] = section.section;
+    }
+    res.locals.course = course;
+    res.locals.exam = exam;
+    res.locals.grades = grades;
+    res.locals.sectionDict = sectionDict;
+    [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
+    
+    if (csv){ 
+      res.set('Content-Type', 'text/csv');
+      res.send(ejs.render(masteryCSVtemplate,res.locals));
+    } else {
+      //res.json(grades);
+      res.render('mathgrades/showMastery');
+    }
+ })
+
+ 
 router.get("/showExam/:courseId/:examId", hasStaffAccess,
  async (req,res,next) => {
     const courseId = req.params.courseId;
@@ -504,8 +521,7 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
-    //console.log(`courseId:${courseId} course:${course}`)
-    //console.log(req.file);
+
 
     const examname = req.body.examname;
     /*
@@ -534,15 +550,12 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
         const exam = new MathExam(examJSON);
         await exam.save();
         const examId = exam._id;
-        //console.log(`examId:${examId}`);
 
         let documents = []
         dataFromRows.forEach(async (row) => {
             const email = row.Email;
             const name = row.Name;
-            //console.log(`email:${email} name:${name}`)
             const {skillsMastered,skillsSkipped} = processSkills(row);
-            //console.log(`skillsMastered:${skillsMastered} skillsSkipped:${skillsSkipped}`);
 
             // create new MathGrades object
             const gradeJSON = {              
@@ -556,10 +569,7 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
                 grades: row
             }
             documents.push(gradeJSON);
-            //const grade = new MathGrades(gradeJSON);
-            //console.log(gradeJSON);
-            //const grade = new MathGrades(gradeJSON);
-            //await grade.save();
+ 
 
         });
         await MathGrades.insertMany(documents); 
@@ -596,8 +606,7 @@ router.post("/uploadSectionData/:courseId", hasStaffAccess,
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})
     res.locals.course = course;
-    //console.log(`courseId:${courseId} course:${course}`)
-    //console.log(req.file);
+
 
     /*
     read the uploaded csv file and update the grades
@@ -635,7 +644,6 @@ router.post("/uploadSectionData/:courseId", hasStaffAccess,
 
 
         });
-        console.dir(documents);
         await MathSection.deleteMany({courseId:courseId});
         await MathSection.insertMany(documents); 
         //res.json({ rowCount, dataFromRows });

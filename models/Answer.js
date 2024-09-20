@@ -10,6 +10,7 @@ var answerSchema = Schema( {
   //psetProbId:{type:ObjectId,index:true}, // need to update this when
   problemId: {type:ObjectId,index:true,ref:'Problem'},
   answer: String,
+  imageFilePath: String,
   reviewers: [Schema.Types.ObjectId],
   numReviews: Number,
   pendingReviewers: [Schema.Types.ObjectId],

@@ -13,7 +13,7 @@ var reviewSchema = Schema( {
   studentId: {type:ObjectId,index:true},
   review: String,
   points: Number,
-  skills:[ObjectId],
+  skills:[{type:ObjectId,ref:'Skill'}],
   upvoters: [Schema.Types.ObjectId],
   downvoters: [Schema.Types.ObjectId],
   createdAt: Date,

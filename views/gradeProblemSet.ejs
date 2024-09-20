@@ -79,7 +79,7 @@
               </a>
               <% } else { %>
 
-              <a href="/showReviewsOfAnswer/<%= courseId %>/<%= answerId %>">
+              <a href="/showReviewsOfAnswer/<%= courseId %>/<%= psetId%>/<%= answerId %>">
                 <% let scores = grades.map((r) => r.points)
                                        let avgScore =
                                             Math.ceil(

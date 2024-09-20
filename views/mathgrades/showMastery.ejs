@@ -5,7 +5,11 @@
   th,
   td {
     border: 1px solid black
-  }
+  },
+  .header{
+        position:sticky;
+        top: 0 ;
+    }
 </style>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
@@ -18,16 +22,16 @@
     </div>
       <h1>Mastery Summary</h1>
       <table class="table table-bordered table-striped js-sort-table">
-        <thead>
+        <thead style="position: sticky;top: 0" >
             <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Section</th>
-                <th>Fskills</th>
-                <th>Gskills</th>
+                <th  class="header" scope="col">Name</th>
+                <th class="header" scope="col">Email</th>
+                <th class="header" scope="col">Section</th>
+                <th class="header" scope="col">Fskills</th>
+                <th class="header" scope="col">Gskills</th>
                 <% for (let skill of skillSet) { 
                      if (!skillCounts[skill]) skillCounts[skill]=0; %>
-                    <th 
+                    <th  class="header" scope="col"
                        <% if (skillCounts[skill]==studentCount){ %> 
                             class="bg-warning"
                        <% } else { 

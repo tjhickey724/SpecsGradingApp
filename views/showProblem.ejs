@@ -2,6 +2,7 @@
 <%- include('menubar') -%>
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
+
     <h3 class="pb-2 border-bottom">
       <%= problem.description %>
     </h3>
@@ -20,8 +21,10 @@
             <hr>
             <div class="row">
               <div class="col-md">
-                MimeType |<%= problem.mimeType %>|
+                mimeType=|<%= problem.mimeType %>|
+                answerMimeType=|<%= problem.answerMimeType %>|
               </div>
+
               <div class="col-md">
                 Answers: <%= answerCount %>
               </div>
@@ -78,18 +81,15 @@
             <h2>Your Answer</h2>
             <small>Submission time and date:<%= problem.createdAt %>
             </small>
-            <div class="row">
-              <div class="col w-50">
-                <h3>Text answer, if any</h3>
-                <pre class="bg-success"><%=  usersAnswers[0].answer %></pre>
-              </div>
-              <div class="col w-50">
-                <h3>Image answer, if any</h3>
+            <% if (problem.answerMimeType!='image') { %>
+                <h3>Text answer</h3>
+                <pre class="bg-warning"><%=  usersAnswers[0].answer %></pre>
+            <% } else { %>
+                <h3>Image answer</h3>
                 <img src="/answerImages/<%= usersAnswers[0].imageFilePath %>" 
                 alt="answer picture" 
                 class="img-fluid">
-              </div>
-            </div>
+              <% } %>
             
             <br>
             
@@ -167,15 +167,14 @@
         // but staff don't ever answer questions, so they don't see this
         %>
         <hr>
-        <div class="row">
-           <div class="col w-50">
-                <h3>Either Submit a Text Answer</h3>
+        <% if (problem.answerMimeType != 'image'){ %>
+                <h3>Submit your answer as text below</h3>
 
                 <form method="post" action="/saveAnswer/<%= courseId%>/<%= psetId%>/<%= problem._id %>">
                   <div class="form-group">
                     <label for="answer">Enter your answer below:</label>
                     <textarea class="form-control rounded-0" id="answer" name="answer" rows="10" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px">
-          <%=theAnswer.answer%></textarea>
+<%=theAnswer.answer%></textarea>
                   </div>
                   <br>
                  
@@ -197,10 +196,9 @@
                   
                   <% } %>
                 </form>
-
-              </div>
-              <div class="col w-50">
-                <h3> Or submit a photo of your answer</h3>
+                <% } else { %>
+ 
+                <h3> Submit a photo of your answer</h3>
 
                 <form method="post" action="/uploadAnswerPhoto/<%= courseId%>/<%= psetId%>/<%= problem._id %>" enctype="multipart/form-data">
                   <input type="file" id="picture" name="picture" accept="image/*" capture="environment" />
@@ -219,7 +217,7 @@
                       <% } %>
                 </form>
 
-             </div>
+              <% } %>
           </div>
        
       <hr>

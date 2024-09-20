@@ -1447,6 +1447,7 @@ app.post("/saveProblem/:courseId/:psetId", authorize, isOwner,
       description: req.body.description,
       problemText: req.body.problemText,
       mimeType: req.body.mimeType,
+      answerMimeType: req.body.answerMimeType,
       rubric: req.body.rubric,
       skills: skills,
       pendingReviews: [],
@@ -1476,6 +1477,7 @@ app.post("/updateProblem/:courseId/:probId", authorize, isOwner,
     problem.description = req.body.description;
     problem.problemText = req.body.problemText;
     problem.mimeType = req.body.mimeType;
+    problem.answerMimeType = req.body.answerMimeType;
     problem.rubric = req.body.rubric;
     problem.createdAt = new Date();
 

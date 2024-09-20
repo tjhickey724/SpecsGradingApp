@@ -23,11 +23,8 @@
       <div class="p-2">
         <a href="/mathgrades/deleteCourse/<%= course._id %>">Delete Course</a>
       </div>
-      <div class="p-2">
-        Summary of Mastery
-        <a href="/mathgrades/showMastery/<%= course._id %>">as html</a> or
-        <a href="/mathgrades/showMastery/<%= course._id %>?csv=1">as CSV</a>
-      </div>
+
+      
       <h1>Exams</h1>
       <ul>
         <% for (let i = 0; i < exams.length; i++) { %>
@@ -43,6 +40,34 @@
       </ul>
       </div>
       <hr>
+
+      <div class="p-2">
+        <h2>Summary of Mastery</h2>
+        Show mastery of all students in the class: 
+        <a href="/mathgrades/showMastery/<%= course._id %>">as html</a> or
+        <a href="/mathgrades/showMastery/<%= course._id %>?csv=1">as CSV</a>
+      </div>
+
+      <div class="p-2">
+        <h2>Summary of Makeup Mastery</h2>
+        Shows the mastery for those students who missed the specified exam.
+        <ul>
+            <% for (let i = 0; i < exams.length; i++) { %>
+               <li> <%= exams[i].name %>
+                 <a href="/mathgrades/showMakeupMastery/<%= course._id %>/<%= exams[i]._id %>">
+                    as HTML
+                </a>
+                or
+                <a href="/mathgrades/showMakeupMastery/<%= course._id %>/<%= exams[i]._id %>?csv=1">
+                  as CSV
+              </a>
+
+
+              </li>
+            <% } %>
+        </ul>
+      </div>
+
       <div>
       <table class="table table-striped table-bordered">
         <thead>
@@ -130,6 +155,8 @@
         
         
       </div>
+
+
 
   </div>
 </div>

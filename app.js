@@ -22,13 +22,14 @@ const cors = require("cors")();
 require("dotenv").config();
 
 // TJH -- I don't think we need these any more ...
-if (process.env.UPLOAD_TO == "AWS") {
-  // SKIP
-  aws.config.update({
+if (process.env.AWS_REGION) {
+  const aws_config = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    accessKeyId: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
     region: process.env.AWS_REGION,
-});
+  };
+  console.dir(aws_config);
+  aws.config.update(aws_config);
 }
 const s3 = new aws.S3();
 const storageAWS = multerS3({
@@ -36,8 +37,10 @@ const storageAWS = multerS3({
   //acl: 'public-read',
   bucket: process.env.AWS_BUCKET_NAME,
   key: function (req, file, cb) {
-      console.log(file);
-      cb(null, req.filepath); //use Date.now() for unique file keys
+      req.suffix = file.originalname.slice(file.originalname.lastIndexOf('.'));
+
+      
+      cb(null, req.filepath+req.suffix); //use Date.now() for unique file keys
 
       //cb(null, file.originalname); //use Date.now() for unique file keys
   }
@@ -45,15 +48,24 @@ const storageAWS = multerS3({
 
 const storageLocal = multer.diskStorage({
   destination: function(req, file, cb) {
+      console.log('in storageLocal.destination');
       cb(null, 'public')
   },
   filename: function(req, file, cb) {
+      req.suffix = file.originalname.slice(file.originalname.lastIndexOf('.'));
+
+      console.log('in storageLocal.filename');
       console.log(`file=${JSON.stringify([req.filepath,file])}`);
       //const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      cb(null, req.filepath)//+file.originalname)
+      cb(null, req.filepath+req.suffix)//+file.originalname)
   }
 })
-const upload = multer({ storage: storageLocal })
+
+const upload = 
+  (process.env.UPLOAD_TO=='AWS')?
+    multer({ storage: storageAWS })
+    :
+    multer({storage: storageLocal});
 
 /*
  here is code we can use to delete an uploaded file
@@ -1923,26 +1935,32 @@ const addImageFilePath = (req,res,next) => {
   // couldn't find a students answer by getting their
   // user_id and the course,pset, and problem Ids
   // this is a kind of salt.. 
-
+  console.log('in addImageFilePath');
   const uniqueSuffix = //Date.now() + '_' + 
       Math.round(Math.random() * 1E9);
+      console.log('...');
+      console.dir(process.env);
       if (process.env.UPLOAD_TO=='AWS'){
+        console.log(`bucketname: "${process.env.AWS_BUCKET_NAME}"`);
         req.filepath =
-        "https://" + 
-        process.env.AWS_BUCKET_NAME +
-        ".s3.us-east-2.amazonaws.com/"+
-        req.params.probId+"_"
-        +req.user._id+"_"
-        +uniqueSuffix+"_";
+          req.params.probId+"_"
+          +req.user._id+"_"
+          +uniqueSuffix+"_";
+        req.urlpath = 
+          "https://" + 
+          process.env.AWS_BUCKET_NAME +
+          ".s3.us-east-2.amazonaws.com/"+
+          req.filepath;
       } else {
         req.filepath=
           "/answerImages/" +
           req.params.probId+"_"
           +req.user._id+"_"
           +uniqueSuffix+"_";
+        req.urlpath = req.filepath;
       }
       console.log(`filepath: ${req.filepath}`);
-
+      console.log(`urlpath: ${req.urlpath}`);
       next();
 };
 
@@ -1952,6 +1970,7 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           upload.single('picture'),
     async (req, res, next) => {
       try {
+        console.log("in uploadAnswerPhoto");
         const probId = req.params.probId;
         const psetId = req.params.psetId;
         const courseId = req.params.courseId;
@@ -1968,34 +1987,48 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           // before uploading a new answer
           // first look for an old answer 
           // and delete the image file if it exists
+          // if the imageFilePath starts with https://
+          // then we have to delete it from AWS S3
+          // otherwise we delete it from the local filesystem
           if ( answers.length > 0) {
+            console.log(`deleting old answer: ${answers[0]._id}`);
+            //if (process.env.UPLOAD_TO=='AWS'){
             if (process.env.UPLOAD_TO=='AWS'){
-              let imageFilePath =
-                answers.length > 0 ? answers[0].imageFilePath : null;
-              console.log(`deleting file: ${imageFilePath}`); 
-              if (imageFilePath) {
-                let key = imageFilePath.split('/').slice(-1)[0];
-                console.log(`deleting file with key: ${key}`);
-                await s3.deleteObject({
-                  Bucket: process.env.AWS_BUCKET_NAME,
-                  Key: key
-                }).promise();
+              console.log(`deleting AWS file: ${answers[0].imageFilePath}`);
+              try {
+                let imageFilePath = answers[0].imageFilePath;
+                console.log(`deleting file: ${imageFilePath}`); 
+                if (imageFilePath) {
+                  let key = imageFilePath.split('/').slice(-1)[0];
+                  console.log(`deleting file with key: ${key}`);
+                  await s3.deleteObject({
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: key
+                  }).promise();
+                 }
+              } catch(e){
+                console.log('error deleting AWS file: ' + e);
               }
             } else {
-          
-              let imageFilePath = 
-                __dirname+"/public/answerImages/"+answers[0].imageFilePath;
-              console.log(`deleting file: ${imageFilePath}`);
-              console.log(`answers[0].imageFilePath: ${answers[0].imageFilePath}`);
-              if (imageFilePath) {
-                try {
-                  await unlinkAsync(imageFilePath);
-                } catch (e){
-                  console.log('error ulinking file: ' + e);
+              console.log(`deleting local file: ${answers[0].imageFilePath}`);
+              try {
+                  let imageFilePath = 
+                    __dirname+"/public/"+answers[0].imageFilePath;
+                  console.log(`deleting file: ${imageFilePath}`);
+                  console.log(`answers[0].imageFilePath: ${answers[0].imageFilePath}`);
+                  if (imageFilePath) {
+                    try {
+                      await unlinkAsync(imageFilePath);
+                    } catch (e){
+                      console.log('error ulinking file: ' + e);
+                    }
+                  }
+                } catch (e) {
+                  console.log('error deleting LOCAL file: ' + e);
                 }
-              }
             }
           }
+          console.log('creating a new answer');
           // now create a new answer with the new photo
           // and store in the database
           let newAnswerJSON = {
@@ -2003,7 +2036,7 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
             courseId: courseId,
             psetId: psetId,
             problemId: probId,
-            imageFilePath: req.filepath,
+            imageFilePath: req.urlpath+req.suffix,
             reviewers: [],
             numReviews: 0,
             pendingReviewers: [],

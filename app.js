@@ -14,11 +14,36 @@ const logger = require("morgan");
 const showdown  = require('showdown');
 const converter = new showdown.Converter();
 const multer = require("multer");
+
+const aws = require('aws-sdk'); //"^2.2.41"
+const multerS3 = require("multer-s3");
 const cors = require("cors")();
 
-const storage = multer.diskStorage({
+require("dotenv").config();
+
+// TJH -- I don't think we need these any more ...
+if (process.env.UPLOAD_TO == "AWS") {
+  // SKIP
+  aws.config.update({
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+});
+}
+const s3 = new aws.S3();
+const storageAWS = multerS3({
+  s3: s3,
+  //acl: 'public-read',
+  bucket: process.env.AWS_BUCKET_NAME,
+  key: function (req, file, cb) {
+      console.log(file);
+      cb(null, file.originalname); //use Date.now() for unique file keys
+  }
+})
+
+const storageLocal = multer.diskStorage({
   destination: function(req, file, cb) {
-      cb(null, 'public/answerImages')
+      cb(null, 'public')
   },
   filename: function(req, file, cb) {
       console.log(`file=${JSON.stringify([req.filepath,file])}`);
@@ -26,7 +51,7 @@ const storage = multer.diskStorage({
       cb(null, req.filepath+file.originalname)
   }
 })
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storageLocal })
 
 /*
  here is code we can use to delete an uploaded file
@@ -37,14 +62,8 @@ const fs = require('fs')
 const { promisify } = require('util')
 const unlinkAsync = promisify(fs.unlink)
 
-require("dotenv").config();
 
-// TJH -- I don't think we need these any more ...
-if (process.env.IS_ON_WEB == "False") {
-  var livereload = require("livereload");
-  var connectLiveReload = require("connect-livereload");
-  // require the socket.io module
-}
+
 
 // Routes
 const reviews = require('./routes/reviews');
@@ -71,14 +90,11 @@ const MathGrades = require("./models/MathGrades");
 const MathSection = require("./models/MathSection");
 const ejsLint = require("ejs-lint");
 
-// TJH - I don't think we need this any more
-if (process.env.IS_ON_WEB == "False") {
-  const liveReloadServer = livereload.createServer();
-  liveReloadServer.server.once("connection", () => {
-    setTimeout(() => {
-      liveReloadServer.refresh("/");
-    }, 100);
-  });
+
+const upload_to = process.env.UPLOAD_TO; // AWS or LOCAL
+
+if (process.env.UPLOAD_TO == "AWS") {
+  // ...
 }
 
 
@@ -121,7 +137,7 @@ var app = express();
 
 // TJH - I don't think we need this any more
 if (process.env.IS_ON_WEB == "False") {
-  app.use(connectLiveReload());
+  // skip
 }
 
 var http = require("http").Server(app);
@@ -1910,6 +1926,7 @@ const addImageFilePath = (req,res,next) => {
       Math.round(Math.random() * 1E9);
 
       req.filepath=
+        "/answerImages/" +
         req.params.probId+"_"
         +req.user._id+"_"
         +uniqueSuffix+"_";
@@ -1954,7 +1971,7 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           }
           // now create a new answer with the new photo
           // and store in the database
-          let newAnswer = new Answer({
+          let newAnswerJSON = {
             studentId: req.user._id,
             courseId: courseId,
             psetId: psetId,
@@ -1964,7 +1981,9 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
             numReviews: 0,
             pendingReviewers: [],
             createdAt: new Date(),
-          });
+          };
+          console.dir(newAnswerJSON);
+          let newAnswer = new Answer(newAnswerJSON);
   
           // we need to delete any previous answers for this problem
           // each problem should have at most one answer per student

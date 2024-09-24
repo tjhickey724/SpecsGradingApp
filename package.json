@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@fast-csv/parse": "^5.0.0",
+    "aws-sdk": "^2.1691.0",
     "axios": "^0.21.1",
     "bcrypt": "^5.0.1",
     "bootstrap-icons": "^1.0.0-alpha2",
@@ -28,6 +29,7 @@
     "mongoose": "^6.13.2",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
+    "multer-s3": "^3.0.1",
     "passport": "^0.4.0",
     "passport-google-oauth": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",

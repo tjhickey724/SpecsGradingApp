@@ -37,7 +37,9 @@ const storageAWS = multerS3({
   bucket: process.env.AWS_BUCKET_NAME,
   key: function (req, file, cb) {
       console.log(file);
-      cb(null, file.originalname); //use Date.now() for unique file keys
+      cb(null, req.filepath); //use Date.now() for unique file keys
+
+      //cb(null, file.originalname); //use Date.now() for unique file keys
   }
 })
 
@@ -48,7 +50,7 @@ const storageLocal = multer.diskStorage({
   filename: function(req, file, cb) {
       console.log(`file=${JSON.stringify([req.filepath,file])}`);
       //const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      cb(null, req.filepath+file.originalname)
+      cb(null, req.filepath)//+file.originalname)
   }
 })
 const upload = multer({ storage: storageLocal })
@@ -1924,12 +1926,22 @@ const addImageFilePath = (req,res,next) => {
 
   const uniqueSuffix = //Date.now() + '_' + 
       Math.round(Math.random() * 1E9);
-
-      req.filepath=
-        "/answerImages/" +
+      if (process.env.UPLOAD_TO=='AWS'){
+        req.filepath =
+        "https://" + 
+        process.env.AWS_BUCKET_NAME +
+        ".s3.us-east-2.amazonaws.com/"+
         req.params.probId+"_"
         +req.user._id+"_"
         +uniqueSuffix+"_";
+      } else {
+        req.filepath=
+          "/answerImages/" +
+          req.params.probId+"_"
+          +req.user._id+"_"
+          +uniqueSuffix+"_";
+      }
+      console.log(`filepath: ${req.filepath}`);
 
       next();
 };
@@ -1956,16 +1968,31 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
           // before uploading a new answer
           // first look for an old answer 
           // and delete the image file if it exists
-          if (answers.length > 0) {
-            let imageFilePath = 
-              __dirname+"/public/answerImages/"+answers[0].imageFilePath;
-            console.log(`deleting file: ${imageFilePath}`);
-            console.log(`answers[0].imageFilePath: ${answers[0].imageFilePath}`);
-            if (imageFilePath) {
-              try {
-                await unlinkAsync(imageFilePath);
-              } catch (e){
-                console.log('error ulinking file: ' + e);
+          if ( answers.length > 0) {
+            if (process.env.UPLOAD_TO=='AWS'){
+              let imageFilePath =
+                answers.length > 0 ? answers[0].imageFilePath : null;
+              console.log(`deleting file: ${imageFilePath}`); 
+              if (imageFilePath) {
+                let key = imageFilePath.split('/').slice(-1)[0];
+                console.log(`deleting file with key: ${key}`);
+                await s3.deleteObject({
+                  Bucket: process.env.AWS_BUCKET_NAME,
+                  Key: key
+                }).promise();
+              }
+            } else {
+          
+              let imageFilePath = 
+                __dirname+"/public/answerImages/"+answers[0].imageFilePath;
+              console.log(`deleting file: ${imageFilePath}`);
+              console.log(`answers[0].imageFilePath: ${answers[0].imageFilePath}`);
+              if (imageFilePath) {
+                try {
+                  await unlinkAsync(imageFilePath);
+                } catch (e){
+                  console.log('error ulinking file: ' + e);
+                }
               }
             }
           }
@@ -1976,7 +2003,7 @@ app.post("/uploadAnswerPhoto/:courseId/:psetId/:probId",
             courseId: courseId,
             psetId: psetId,
             problemId: probId,
-            imageFilePath: req.filepath + req.file.originalname,
+            imageFilePath: req.filepath,
             reviewers: [],
             numReviews: 0,
             pendingReviewers: [],

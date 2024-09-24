@@ -11,7 +11,7 @@ This is pretty easy.
 5. run nodemon
 
 Same .env file
-``` json
+``` bash
 CLIENT_ID=GOOGLE_CLIENT_ID_GOES_HERE
 CLIENT_SECRET=GOOGLE_SECRET_GOES_HERE
 CALLBACK_URL=http://127.0.0.1:5500/login/authorized

@@ -11,6 +11,7 @@ var answerSchema = Schema( {
   problemId: {type:ObjectId,index:true,ref:'Problem'},
   answer: String,
   imageFilePath: String,
+  uploadTarget: String, // "AWS" or "local"/undefined
   reviewers: [Schema.Types.ObjectId],
   numReviews: Number,
   pendingReviewers: [Schema.Types.ObjectId],

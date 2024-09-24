@@ -86,7 +86,7 @@
                 <pre class="bg-warning"><%=  usersAnswers[0].answer %></pre>
             <% } else { %>
                 <h3>Image answer</h3>
-                <img src="/answerImages/<%= usersAnswers[0].imageFilePath %>" 
+                <img src="<%= usersAnswers[0].imageFilePath %>" 
                 alt="answer picture" 
                 class="img-fluid">
               <% } %>
@@ -210,7 +210,7 @@
                  <input class="btn btn-lg btn-warning" type="submit" value="save answer photo">
                  <% }%>
                  <% if (theAnswer.imageFilePath){%>
-                 <img src="/answerImages/<%= theAnswer.imageFilePath %>" 
+                 <img src="<%= theAnswer.imageFilePath %>" 
                       alt="answer picture" 
                       width="100%"
                       >

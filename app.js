@@ -142,6 +142,7 @@ db.once("open", function () {
 const instructors = [
   "tjhickey@brandeis.edu",
   "tjhickey724@gmail.com",
+  "timhickey@me.com",
   "jamespetullo@brandeis.edu",
   "rtorrey@brandeis.edu",
   "merrill2@brandeis.edu",
@@ -149,10 +150,7 @@ const instructors = [
 
 var app = express();
 
-// TJH - I don't think we need this any more
-if (process.env.IS_ON_WEB == "False") {
-  // skip
-}
+
 
 var http = require("http").Server(app);
 

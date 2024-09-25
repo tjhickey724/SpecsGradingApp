@@ -516,7 +516,6 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
     res.locals.isEnrolled = memberList.length > 0;
 
     res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
-
     // next we create maps to find the number of problems and user's answers
     // in each problem set so the user will know if they have finished a problemset
     let problems = await Problem.find({courseId: res.locals.courseInfo._id});
@@ -607,7 +606,8 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
       stopDate = res.locals.courseInfo.stopDate;
     }
     res.locals.startDate = startDate;
-    res.locals.stopDate = stopDate;    
+    res.locals.stopDate = stopDate;  
+    
 
     if (res.locals.hasCourseAccess) {
       res.render("showCourse");
@@ -1572,12 +1572,13 @@ app.get("/showProblem/:courseId/:psetId/:probId", authorize, hasCourseAccess,
     tex2jax: {
       inlineMath: [ ['$','$'], ["\\(","\\)"] ],
       processEscapes: true
-    }
+    },
   });
 </script>
 <script type="text/javascript"
-  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
+
 `;
       markdownText = mathjaxScript + markdownText;
 

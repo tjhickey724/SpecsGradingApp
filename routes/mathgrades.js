@@ -106,7 +106,7 @@ router.get("/showCourse/:courseId",isLoggedIn,
     res.locals.course = course;
     res.locals.results = [];
 
-    const exams = await MathExam.find({courseId:courseId});
+    const exams = await MathExam.find({courseId:courseId}).sort({name:1});
     res.locals.exams = exams;
     res.locals.isAdmin = req.isAdmin;
     if (course.coursePinMLA) {
@@ -546,6 +546,7 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
             filename:originalname,
             courseId: courseId,
             createdAt: new Date(),
+
         }
         const exam = new MathExam(examJSON);
         await exam.save();

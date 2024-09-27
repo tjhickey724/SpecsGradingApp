@@ -32,6 +32,7 @@
             <a href="/mathgrades/showExam/<%= course._id %>/<%= exams[i]._id %>">
               <%= exams[i].name %>
             </a>
+            <%= (exams[i].createdAt).toISOString().slice(0,10) %>
             <a href="/mathgrades/deleteExam/<%= course._id %>/<%= exams[i]._id %>">
               <span style="color:red">(Delete)</span>
             </a>

@@ -48,7 +48,7 @@
     <% } %>
 
 
-      <% if (problem.mimeType!='tex') {
+      <% if (problem.mimeType!='tex' || isOwner) {
                 // show the problem text 
                 if (problem.mimeType=='markdown') { 
             %><div class="bg-default border border-dark rounded border-2 p-3"><%- 

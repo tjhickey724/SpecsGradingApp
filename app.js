@@ -21,8 +21,8 @@ const cors = require("cors")();
 
 require("dotenv").config();
 
-// TJH -- I don't think we need these any more ...
-if (process.env.AWS_REGION) {
+
+if (process.env.UPLOAD_TO == "AWS") {
   const aws_config = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -30,21 +30,22 @@ if (process.env.AWS_REGION) {
   };
   console.dir(aws_config);
   aws.config.update(aws_config);
+
+  const s3 = new aws.S3();
+  const storageAWS = multerS3({
+    s3: s3,
+    //acl: 'public-read',
+    bucket: process.env.AWS_BUCKET_NAME,
+    key: function (req, file, cb) {
+        req.suffix = file.originalname.slice(file.originalname.lastIndexOf('.'));
+
+        
+        cb(null, req.filepath+req.suffix); //use Date.now() for unique file keys
+
+        //cb(null, file.originalname); //use Date.now() for unique file keys
+    }
+  })
 }
-const s3 = new aws.S3();
-const storageAWS = multerS3({
-  s3: s3,
-  //acl: 'public-read',
-  bucket: process.env.AWS_BUCKET_NAME,
-  key: function (req, file, cb) {
-      req.suffix = file.originalname.slice(file.originalname.lastIndexOf('.'));
-
-      
-      cb(null, req.filepath+req.suffix); //use Date.now() for unique file keys
-
-      //cb(null, file.originalname); //use Date.now() for unique file keys
-  }
-})
 
 const storageLocal = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -66,6 +67,9 @@ const upload =
     multer({ storage: storageAWS })
     :
     multer({storage: storageLocal});
+
+const memoryStorage = multer.memoryStorage()
+const memoryUpload = multer({ storage: memoryStorage })
 
 /*
  here is code we can use to delete an uploaded file
@@ -923,6 +927,54 @@ app.post("/updateProblemSet/:courseId/:psetId", authorize, isOwner,
   }
 });
 
+app.post("/uploadProblems/:courseId/:psetId",
+  authorize, isOwner,
+  memoryUpload.fields(
+    [{name:"problems",maxCount:100},
+     {name:"skill",maxCount:1},
+    ]),
+  async (req, res, next) => {
+  try {
+    const psetId = req.params.psetId;
+    const courseId = req.params.courseId;
+
+    const skillId = req.body.skill;
+    // get the text of the probems uploaded from the server
+    const problemStrings = req.files.problems.map(x=>x.buffer.toString());
+    // create a list of Problem objects from the text of the problems
+    // with the specified skill
+    // and the name is the file name.
+    let problemList = [];
+    for (problem of req.files.problems) {
+      let p = new Problem({
+        courseId: courseId,
+        psetId: psetId,
+        description: problem.originalname,
+        problemText: problem.buffer.toString(),
+        mimeType: req.body.mimeType,
+        answerMimeType: req.body.answerMimeType,
+        rubric:"no rubric",
+        pendingReviews:[],
+        createdAt: new Date(),
+        skills: [skillId],
+        allowAnswers: false,
+        submitable: false,
+        answerable: false,
+        peerReviewable: false,
+        parentProblemId:null,
+        variant:false,
+      });
+      problemList.push(p);
+    }
+
+    await Problem.insertMany(problemList);
+
+    res.redirect("/showProblemSet/"+courseId+"/"+psetId);
+  } catch (e) {
+    next(e);
+  }
+});
+
 const getStudentSkills = async (courseId,studentId) => {
   try {
     const skills = await Answer.find({courseId:courseId,studentId: studentId}).distinct("skills");
@@ -945,7 +997,7 @@ app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   res.locals.courseId = courseId;
   
   res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
-  res.locals.problems = await Problem.find({psetId: psetId});
+  res.locals.problems = await Problem.find({psetId: psetId}).sort({description:1});
 
   res.locals.courseInfo = await Course.findOne({_id: courseId}, "ownerId");
   res.locals.myAnswers = await Answer.find({psetId: psetId, studentId: userId});
@@ -976,7 +1028,8 @@ app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   }
   res.locals.skillsMastered = await getStudentSkills(courseId,req.user._id);
 
-
+  res.locals.skills = await Skill.find({courseId: courseId});
+  console.dir(JSON.stringify(res.locals.skills));
   
   res.render("showProblemSet");
 });

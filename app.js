@@ -214,11 +214,15 @@ app.use(session(
 // TJH - I don't think we are sending flash messages  
 app.use(flash());
 
+app.use('/fontawesome', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(auth);
 app.use(similarity);
 app.use(updates);
+
+
 
 
 
@@ -229,6 +233,8 @@ we have access to
   - the Math Grades App
   - the Mastery Learning App 
 */
+
+
 
 app.get('/', (req, res) => {
   res.render('newmain');
@@ -419,6 +425,15 @@ All routes below here must start with a courseId parameter
 
 app.use(reviews);
 
+app.post('/switchRole', isLoggedIn,
+  async (req, res, next) => {
+    let newRole = req.body.newRole;
+    if (['student', 'ta', 'owner'].includes(newRole)) {
+      req.session.role = newRole;
+    }
+    res.redirect(req.get('referer'));
+  }
+)
 
 app.post("/changeCourseName/:courseId", authorize, isOwner,
   async (req, res) => {
@@ -611,7 +626,7 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
     res.locals.startDate = startDate;
     res.locals.stopDate = stopDate;  
     
-
+    console.dir(res.locals);
     if (res.locals.hasCourseAccess) {
       res.render("showCourse");
     } else if (res.locals.isMgaStudent) {
@@ -709,6 +724,8 @@ app.post("/addSkill/:courseId",  authorize, isOwner,
       const newSkill = new Skill({
         name: req.body.name,
         description: req.body.description,
+        shortName:req.body.shortName,
+        level: req.body.level,
         createdAt: new Date(),
         courseId: courseId,
       });
@@ -784,6 +801,8 @@ app.post("/editSkill/:courseId/:skillId", authorize, isOwner,
     const skill = await Skill.findOne({_id: req.params.skillId});
     const courseId = req.params.courseId;
     skill.name = req.body.name;
+    skill.shortName = req.body.shortName;
+    skill.level = req.body.level;
     skill.description = req.body.description;
     skill.createdAt = new Date();
 
@@ -986,6 +1005,26 @@ const getStudentSkills = async (courseId,studentId) => {
     throw e;
   }
 };
+
+
+app.get("/uploadProblems/:courseId/:psetId", authorize, hasCourseAccess,
+  async (req, res, next) => {
+
+  const psetId = req.params.psetId;
+  const courseId = req.params.courseId;
+  const userId = req.user._id;
+
+  res.locals.psetId = psetId;
+  res.locals.courseId = courseId;
+  
+  res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
+  res.locals.problems = await Problem.find({psetId: psetId}).sort({description:1});
+  res.locals.skills = await Skill.find({courseId: courseId});
+
+  res.render("uploadProblems");
+  }
+);
+
 
 app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   async (req, res, next) => {

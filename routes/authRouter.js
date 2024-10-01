@@ -21,6 +21,7 @@ app.use(passport.session());
 app.use((req, res, next) => {
     res.locals.title = "Peer Review App";
     res.locals.loggedIn = false;
+    res.locals.isRealOwner = false; // default value, reset in authorize middleware
     if (req.isAuthenticated()) {
       res.locals.user = req.user;
       res.locals.loggedIn = true;

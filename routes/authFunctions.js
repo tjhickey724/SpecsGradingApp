@@ -48,18 +48,40 @@ const isLoggedIn = (req, res, next) => {
           await CourseMember.find(
               {studentId: req.user._id, 
                 courseId: res.locals.courseInfo._id});
-        res.locals.isMgaStudent = memberList.length>0 && res.locals.courseInfo.nonGrading
-        res.locals.isEnrolled = memberList.length > 0 && !res.locals.courseInfo.nonGrading;
-        res.locals.isTA = 
-            req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);  
+                
         res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+        // if the user is the owner, they are also the real owner
+        // even if they are assuming a role!
+        res.locals.isRealOwner = res.locals.isOwner;
+        res.locals.role = res.locals.isOwner && req.session.role;
         res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
+
+        if (res.locals.role != 'owner') {
+          // if the owner has assumed another role
+          // then they do not have the owner role for a while
+          res.locals.isOwner = false;
+        }
+
+        res.locals.isMgaStudent = 
+            (memberList.length>0 && res.locals.courseInfo.nonGrading)
+            || res.locals.role=='student';
+        
+        res.locals.isEnrolled = 
+            (memberList.length > 0 && !res.locals.courseInfo.nonGrading)
+            || res.locals.role=='student';
+        
+        res.locals.isTA = 
+            (req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id))
+            || res.locals.role=='ta';
+
+
+
         res.locals.hasCourseAccess = res.locals.isEnrolled || res.locals.isTA || res.locals.isOwner;
         res.locals.isStaff = res.locals.isTA || res.locals.isOwner;
         
 
         // give Admin access to all courses ...
-        res.locals.isOwner ||= res.locals.isAdmin;
+        //res.locals.isOwner ||= res.locals.isAdmin;
         next()
       }
     } catch (e) {

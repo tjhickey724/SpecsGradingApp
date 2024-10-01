@@ -73,6 +73,10 @@
          href="/showProblemLibrary/<%= courseId%>/<%= psetId %>">
            View Problem Library
       </a>
+
+      <a class="btn btn-sm btn-success" 
+      href="/uploadProblems/<%= courseId%>/<%= psetId %>">Upload Problems</a>
+
       
 
 
@@ -103,35 +107,6 @@
 </form>
 <br>
 
-<div class="p-2 mb-4 bg-warning">
-  <h3> Uploading multiple problems for a particular skill</h3>
-  <form method="post" 
-        enctype="multipart/form-data"
-        action="/uploadProblems/<%=courseId%>/<%= psetId %>">
-    Select the files containing the problems for this problem set:<br>
-    <input type="file" multiple name="problems"><br>
-    Select the skill for these problems: 
-    <select name="skill">
-      <% for (let i=0; i<skills.length; i++){ %>
-        <option value="<%= skills[i]._id %>">
-          <%= skills[i].name %>
-        </option>
-      <% } %>
-    </select>
-    <br> Problem MimeType:
-    <select name="mimeType">
-      <option>plain</option>
-      <option>markdown</option>
-      <option>tex</option>
-    </select>
-    <br> Answer MimeType
-    <select name="answerMimeType">
-      <option>text</option>
-      <option>image</option>
-    </select>
-    <input type="submit" value="Upload" class="btn btn-sm btn-info">
-  </form>
-</div>
 <br>
       <% }  // close if(is_owner) ...%>
 

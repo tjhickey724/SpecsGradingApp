@@ -10,6 +10,7 @@ var courseSchema = Schema( {
   createdAt: Date,
   startDate: Date,
   stopDate: Date,
+  courseType: String, // exam_reporting, exam_generation, exam_grading, online_quizzes
   nonGrading: Boolean, // if true, grading will be done in an external app 
   mathCourseId: {type:ObjectId,index:true,ref:"MathCourse"},
 } );

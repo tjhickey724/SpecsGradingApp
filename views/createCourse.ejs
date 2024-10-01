@@ -3,8 +3,12 @@
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="">Create a Course</h1>
-    <p class="border-bottom pb-2"> Enter a new course name, starting and ending dates,
-      and whether the course is in non-grading mode.
+    <p class="border-bottom pb-2"> Enter a new course name, 
+      starting and ending dates,
+      and the type of assessment you want this app to support.
+
+     
+
     </p>
     <div class="p-2">
 
@@ -27,14 +31,47 @@
          value="<%= in4months.toISOString().slice(0,10) %>">
          
          <br>
-         <input type="checkbox" 
-                 name="nonGrading" 
-                 value="false"
-           >
-         non-Grading mode - student work will be graded externally and uploaded to the course
-         students will not be able to see the problems or the answers. Uncheck the box
-         if you want to grade the students' work in the course using this App.
          <br>
+        <h3>Type of Course</h3>
+        <h4>Proctored Paper Exam Assessment</h4>
+          <input type="radio" name="courseType" value="exam_reporting">
+          <b>Grade Reporting only</b>
+            You will give exams in class and grade them yourself.
+            Each exam question will test a particular skill or concept.
+            You will grade the exams and upload the grades to the app.
+            with a 1 for a correct answer and a 0 for an incorrect answer
+            The app will calculate the student's grade and report it to you 
+            and to the students.
+            <br>
+            <input type="radio"  checked
+                  name="courseType" value="exam_generation">
+            <b>and Exam Generation</b>
+            In addition to reporting the grades, the app will give you allow you
+            to import skills from a "Master Course" and let you generate exams for 
+            selected sets of skills using a large library of skill-based problems.
+            We currently have master courses for PreCalculus, Differential Calculus,
+            and Integral Calculus.  
+            <br>
+            <input type="radio" name="courseType" value="exam_grading">
+            <b>and also Exam Grading</b>
+            In addition to generating exams, the app will provide an interface to allow
+            students to upload photos of their exams to the app, and an interface for 
+            graders to grade the exams with binary grading. 
+            <br>
+            <h4>Online Assessment</h4>
+            <input type="radio" name="courseType" value="online_quizzes">
+            <b>Online Quizzes</b>
+            The app will allow you to create questions 
+            on the fly (or in advance) using markdown (or plain text)
+            and display them to the students in class. 
+            The students will be able to answer the questions using the app
+            and to anonymously peer grade the answers of their classmates.
+            The grading is by "Good Faith Effort" and the students will be able to
+            see the answers and the grades of their classmates after the grading is done.
+            <br>
+            <input type="radio" name="courseType" value="unrestricted">
+            <b>Unrestricted</b> full access to all STEMMLA features
+<br>
          <hr>
 
         <div class="form-check">

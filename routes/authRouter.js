@@ -64,7 +64,7 @@ app.get("/loginerror", function (req, res) {
   app.get(
     "/login/authorized",
     passport.authenticate("google", {
-      successRedirect: "/lrec",
+      successRedirect: "/",
       failureRedirect: "/loginerror",
     })
   );
@@ -95,7 +95,7 @@ app.get("/loginerror", function (req, res) {
   });
   
   app.post("/auth/local/login", passport.authenticate("local", {failureRedirect: "/loginerror"}), function (req, res) {
-    res.redirect("/lrec");
+    res.redirect("/");
   });
 
 module.exports = app;

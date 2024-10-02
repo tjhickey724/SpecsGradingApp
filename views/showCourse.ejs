@@ -11,12 +11,12 @@
       <% if (courseInfo.mathCourseId) { %>
         Linked to 
                 <a href="/mathgrades/showCourse/<%= courseInfo.mathCourseId %>">
-                  an MGA courses
+                  an MGA course
                 </a>
       <% } %>
       <hr>
       <h2>Problem Sets
-        <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <% if (isOwner) { %>
       <a href="/addProblemSet/<%= courseInfo._id %>">
         <i class='fas fa-plus' style='font-size:24px'></i> 
       </a>
@@ -57,7 +57,7 @@
 
       <hr>
       <h2>Skills
-        <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+        <% if (isOwner) { %>
           <a href="/addSkill/<%= courseInfo._id %>">
             <i class='fas fa-plus' style='font-size:24px'></i> 
           </a>
@@ -90,21 +90,19 @@
         </li>
         <% } %>
       </ul>
-      <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Edit Skills
-      </a>
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+ 
+      <% if (isOwner) { %>
+        <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+          Edit Skills
+        </a>
       <a href="/importSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
         Import Skills from another course
       </a>
       <% } %>
       <hr>
+
+      <% if (isTA || isOwner) { %>
       <h2>Students</h2>
-
-
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-
-
 
 
       <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-info">
@@ -119,30 +117,36 @@
         Show Mastery
       </a>
       <% } else { %>
+        <h3>My Activity</h3>
         <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
           show all problems and responses
         </a>
-  
-        <%} %>
-     
-<br>
+        <br>
       
       Number of reviews I've made: <%= myReviews.length %>
       with <%= thumbsUp %> thumbs up and
       <%= thumbsDown %> thumb downs
+  
+        <%} %>
+     
+
+      
       <hr>
-      <h2>Grading</h2>
+      <h2>Teaching Assistants</h2>
       <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-info">
         Show TAs
       </a>
       
 
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
+      <% if (isTA || isOwner) { %>
+        <hr>
+        <h2>Grading</h2>
       <a 
          href="/showRegradeRequests/<%= courseInfo.id %>"
          class="btn btn-sm btn-info">
          Show Regrade requests (<%= regradeRequests.length %> outstanding)
       </a>
+
       <% } %>
       <hr>
       <% if ( user._id.equals(courseInfo.ownerId)) { %>
@@ -210,6 +214,7 @@
 
     </div>
   </div>
+<pre><%= JSON.stringify(courseInfo,null,5) %></pre>
 </div>
 
 <%- include('bootfooter') -%>

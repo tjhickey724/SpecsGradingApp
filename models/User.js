@@ -13,10 +13,10 @@ var userSchema = Schema({
   googletoken: String,
   googlename: String,
   googleemail: String,
-  password: String,
+  // password: String,
   // localpw: String,
   taFor: [Schema.Types.ObjectId],
-  logintime: [Date]
+  // logintime: [Date]
 });
 
 userSchema.plugin(passportLocalMongoose, {usernameField: "googleemail"});

@@ -9,19 +9,30 @@
          Exam: <%= exam.name %></h1>
     <div class="p-2">
         Last updated at <%= exam.createdAt %>
-        <ul>
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Email</th>
+              <th>Skills Mastered</th>
+              <th>Skills Skipped</th>
+            </tr>
+          </thead>
+          <tbody>
             <% for (let i = 0; i < grades.length; i++) { %>
-                <li>
-                    <a href="/mathgrades/showStudent/<%= course._id %>/<%= exam._id %>/<%= grades[i]._id %>">
-                      <%= grades[i].name %>
-                    </a>  
-
-                    <%= grades[i].email %> <br>
-                    Skills Mastered: <%= grades[i].skillsMastered %> <br>
-                    Skills Skipped:  <%= grades[i].skillsSkipped %> : <br>
-                </li>
+              <tr>
+                <td>
+                  <a href="/mathgrades/showStudent/<%= course._id %>/<%= exam._id %>/<%= grades[i]._id %>">
+                    <%= grades[i].name %>
+                  </a>
+                </td>
+                <td><%= grades[i].email %></td>
+                <td><%= grades[i].skillsMastered %></td>
+                <td><%= grades[i].skillsSkipped %></td>
+              </tr>
             <% } %>
-        </ul>
+          </tbody>
+        </table>
     </div>
 
   </div>

@@ -10,7 +10,7 @@
     </a>
     <hr>
     <% if (skill) { %>
-      <h2>Selected Skill: <%= skill.name %></h2>
+      <h2>Selected Skill: <b><%= skill.shortName %></b>::<%= skill.name %></h2>
       <i><%= skill.description%> </i>
     <h2>Problems for selected skill</h2>
     <table class="table table-bordered table-striped">
@@ -49,7 +49,7 @@
         skills.forEach(skill => { %>
         <li>
             <a href="/showProblemsBySkill/<%= courseId %>/<%= psetId %>/<%= skill._id %>">
-              <%= skill.name %> | <%= skill._id%> </a>
+              <b><%= skill.shortName %>::</b><%= skill.name %> | <%= skill._id%> </a>
         </li>
       <% })}; %>
     <ul>

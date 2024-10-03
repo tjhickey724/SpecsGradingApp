@@ -529,7 +529,7 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
   try {
     const id = req.params.courseId;
     const course = await Course.findOne({_id: id});
-    if (course.nonGrading) {
+    if (course.nonGrading && !res.locals.isStaff) {
       res.redirect("/mathgrades/showCourse/" + course.mathCourseId);
     } else {
       res.redirect("/showMLACourse/" + id);
@@ -923,6 +923,7 @@ app.post("/saveProblemSet/:courseId", authorize, isOwner,
       name: req.body.name,
       courseId: id,
       createdAt: new Date(),
+      visible: true,
       pendingReviews: [],
     });
 
@@ -1424,8 +1425,8 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
         // }
         let skillIdMap = {}
         for (let skillName in skillCounts) {
-          let skill = await Skill.findOne({courseId:courseId,name: skillName});
-          skillIdMap[skillName] = skill._id+"";
+          let skill = await Skill.findOne({courseId:courseId,shortName: skillName});
+          if (skill) skillIdMap[skillName] = skill._id+"";
         }
 
         let skillIdsMastered = {}
@@ -1467,13 +1468,15 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
        */
 
        let studentsWhoCanTakeExam = enrolledStudents;
+       let tookExamEmails=[];
        if (pset.makeupOf) { 
          const makeupOf = pset.makeupOf; // the id of the MathExam that this exam is a makeup for
-         const skippedExamEmails
+         tookExamEmails
              = (await MathGrades
-                      .find({examId: makeupOf,'grades.Status':'Missing'}))
-                .map((x) => x.email);
-         studentsWhoCanTakeExam = skippedExamEmails;
+                      .find({examId: makeupOf}))
+                      .map((x) => x.email);
+         studentsWhoCanTakeExam 
+            = enrolledStudents.filter(x => !(tookExamEmails.includes(x)));
         }
       
         /*
@@ -1489,7 +1492,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
              the problems for skills that s has not yet mastered,
              as determined by the skillList.
           */
-         console.log(`\n*** studentEmail=${studentEmail}\n`);
          
          let studentSkills = 
              skillIdsMastered[studentEmail];

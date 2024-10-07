@@ -6,7 +6,13 @@
       <%= problemSet.name.trim() || "Problem Set" %>
     </h1>
     <div class="p-2">
-
+      <h2>Problems
+        <% if (isOwner){%> 
+        <a href="/addProblem/<%= courseId%>/<%= psetId %>">
+          <i class='fas fa-plus' style='font-size:24px'></i> 
+        </a>
+        <% } %>
+      </h2>
       <ul>
         <% for(i=0; i<problems.length; i++){ 
           if (!problems[i].visible && !isOwner ) { %>
@@ -68,11 +74,15 @@
      </a>
      
       <a class="btn btn-sm btn-success" 
-         href="/addProblem/<%= courseId%>/<%= psetId %>">Add Problem</a>
+         href="/addProblem/<%= courseId%>/<%= psetId %>">Create New Problem</a>
       <a class="btn btn-sm btn-success" 
          href="/showProblemLibrary/<%= courseId%>/<%= psetId %>">
-           View Problem Library
+           Add Problem from Library
       </a>
+
+      <a class="btn btn-sm btn-success" 
+      href="/uploadProblems/<%= courseId%>/<%= psetId %>">Upload Problems from a Folder</a>
+
       
 
 
@@ -103,35 +113,6 @@
 </form>
 <br>
 
-<div class="p-2 mb-4 bg-warning">
-  <h3> Uploading multiple problems for a particular skill</h3>
-  <form method="post" 
-        enctype="multipart/form-data"
-        action="/uploadProblems/<%=courseId%>/<%= psetId %>">
-    Select the files containing the problems for this problem set:<br>
-    <input type="file" multiple name="problems"><br>
-    Select the skill for these problems: 
-    <select name="skill">
-      <% for (let i=0; i<skills.length; i++){ %>
-        <option value="<%= skills[i]._id %>">
-          <%= skills[i].name %>
-        </option>
-      <% } %>
-    </select>
-    <br> Problem MimeType:
-    <select name="mimeType">
-      <option>plain</option>
-      <option>markdown</option>
-      <option>tex</option>
-    </select>
-    <br> Answer MimeType
-    <select name="answerMimeType">
-      <option>text</option>
-      <option>image</option>
-    </select>
-    <input type="submit" value="Upload" class="btn btn-sm btn-info">
-  </form>
-</div>
 <br>
       <% }  // close if(is_owner) ...%>
 

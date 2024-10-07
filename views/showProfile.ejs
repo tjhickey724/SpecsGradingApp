@@ -6,40 +6,7 @@
     </h1>
     <hr>
     <p class="mb-0"> Welcome, <%= user.googlename %>!</p>
-    <div class="row align-items-end">
-      <div class="col-2">
-        <span class="badge ms-lg-5 ms-0 mt-auto mb-0 border border-grey border-2 border-bottom-0 rounded-0 rounded-top text-dark bg-white">Last logins</span>
-      </div>
-      <div class="col justify-content-end">
-        <form method="post" class="px-lg-5 px-0 text-end small">
-          Show <select id="enNum" name="enNum" onchange="this.form.submit()" class="form-select form-select-sm d-inline-block
-         w-auto">
-            <option <% if (entryNum == "all"){ %> selected <% } %> value="all">all</option>
-            <% for(let i=2; i < user.logintime.length + 1; i++) {%>
-            <option <% if (entryNum == i){ %> selected <% } %> value="<%= i %> ">
-              last <%= user.logintime.length - i + 1%>
-            </option>
-            <% } %>
-          </select><span class="d-lg-inline d-none"> login time</span><span class="d-lg-none d-inline"> login</span><% if (entryNum != 1 && user.logintime.length != 1) {%>s<% } %> <span class="small text-muted">(<%= user.logintime.length %> total)</span>
-        </form>
-      </div>
-    </div>
-    <ul class="pb-3 px-lg-5 px-0 list-group list-group-flush">
-      <% if (entryNum == "all") {sentryNum = 1 } else  {sentryNum = entryNum }; for(let i= user.logintime.length-1; i >= sentryNum - 1; i--){ %><% if (i == user.logintime.length - 1) { %>
-      <li class="list-group-item list-group-item-light border <% if (sentryNum-1 == i ) { %>
-       rounded-bottom 
-      <% } %> border-2 border-top border-grey" style="border-top-right-radius: var(--bs-border-radius)!important;">
-
-        <% } else { %>
-      <li class="list-group-item list-group-item-light <% if (sentryNum-1 == i ) { %>
-       rounded-bottom 
-      <% } %> border border-top-0 border-2 border-grey"><% } %>
-        <%= user.logintime[i].toLocaleString() %>
-      </li>
-      <% } %>
-    </ul>
-
-  </div>
+    <p class="mb-0"> You are logged in as <%= user.googleemail %></p>
 </div>
 
 <%- include('bootfooter') -%>

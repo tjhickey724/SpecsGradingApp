@@ -20,21 +20,31 @@
           <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Role</th>
+            <th>LastUpdate</th>
           </tr>
         </thead>
         <tbody>
-          <% for(i=0; i< members.length; i++){ %>
+          <% for(i=0; i< memberList.length; i++){ %>
           <tr>
             <td>
-              <%= members[i].googlename %>
+              <%= memberList[i].studentId.googlename %>
             </td>
             <td>
-              <%= members[i].googleemail %>
+              <%= memberList[i].studentId.googleemail %>
+            </td>
+            
+            <td>
+              <%= memberList[i].role %>
+            </td>
+            <td>
+              <%= memberList[i].createdAt.toISOString().slice(0,10) %>
             </td>
           </tr>
         </tbody>
         <% } %>
       </table>
+
 
       <hr>
       <% if (user._id.equals(courseInfo.ownerId)) { %>

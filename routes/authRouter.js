@@ -21,6 +21,7 @@ app.use(passport.session());
 app.use((req, res, next) => {
     res.locals.title = "Peer Review App";
     res.locals.loggedIn = false;
+    res.locals.isRealOwner = false; // default value, reset in authorize middleware
     if (req.isAuthenticated()) {
       res.locals.user = req.user;
       res.locals.loggedIn = true;
@@ -63,7 +64,7 @@ app.get("/loginerror", function (req, res) {
   app.get(
     "/login/authorized",
     passport.authenticate("google", {
-      successRedirect: "/lrec",
+      successRedirect: "/",
       failureRedirect: "/loginerror",
     })
   );
@@ -94,7 +95,7 @@ app.get("/loginerror", function (req, res) {
   });
   
   app.post("/auth/local/login", passport.authenticate("local", {failureRedirect: "/loginerror"}), function (req, res) {
-    res.redirect("/lrec");
+    res.redirect("/");
   });
 
 module.exports = app;

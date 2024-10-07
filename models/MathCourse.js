@@ -8,6 +8,7 @@ var courseSchema = Schema( {
   description:String,
   ownerId: {type:ObjectId,index:true},
   coursePinMLA: {type:Number,index:true},
+  courseId:{type:ObjectId,index:true,ref:'Course'},
   createdAt: Date,
 
 } );

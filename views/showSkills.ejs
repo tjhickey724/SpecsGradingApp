@@ -11,15 +11,20 @@
       <ul>
         <% for(i=0; i<=courseSkills.length-1; i++){ %>
         <li>
-          <% if (isOwner) { %>
-          <a href="/removeSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>" class="btn btn-sm btn-info">
-            X
-          </a>
-          <% } %>
 
-          <a href="/showSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>">
+
+          <%= courseSkills[i].skillId.shortName %>:
+          <a href="/editSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>">
             <%= courseSkills[i].skillId.name %>
           </a>
+          <% if (isOwner) { %>
+            <a href="/removeSkill/<%= courseId %>/<%= courseSkills[i].skillId._id %>">
+              <i class='fas fa-trash-can' style='font-size:12px'></i> 
+            </a>
+            <% } %>
+          <br>
+          <%= courseSkills[i].skillId.description %>
+          <hr>
           
 
         </li>

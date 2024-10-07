@@ -197,7 +197,7 @@ const getClassGrades = async (req,res,next) => {
   }
   res.locals.skillCounts = skillCounts;
   res.locals.studentCount = studentCount;
-
+  console.dir(['in getClassGrades',skillCounts,studentCount,skillMastery])
 
 
   next()
@@ -373,6 +373,7 @@ const masteryCSVtemplate =
 
 router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
  async (req,res,next) => {
+  console.log('in showMastery');
   const courseId = req.params.courseId;
   const course = await MathCourse.findOne({_id:courseId});
   const csv = req.query.csv;
@@ -384,13 +385,15 @@ router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
     sectionDict[section.email] = section.section;
   }
   res.locals.sectionDict = sectionDict;
+  res.locals.grades = grades;
   [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
-
+  console.dir(['showMastery',res.locals.skillSet,res.locals.mastery]);
   if (csv){ 
     res.set('Content-Type', 'text/csv');
     res.send(ejs.render(masteryCSVtemplate,res.locals));
   } else {
-    res.render('mathgrades/showMastery');
+    //res.json([res.locals.skillSet,res.locals.mastery])
+    res.render('mathgrades/showMastery'); 
   }
 })
 
@@ -488,8 +491,10 @@ const trimSkillString = (skill) => {
  so we can extrat the string from the first ":" to the first "("
  and then trim it to get	the skill name.
 */
-  const firstColon = skill.indexOf(":");
-  const firstParen = skill.indexOf("(");
+  let firstColon = skill.indexOf(":");
+  let firstParen = skill.indexOf("(");
+  if (firstParen == -1) firstParen=skill.length;
+
   const skillName = skill.substring(firstColon+1,firstParen).trim();
   if (skillName == ''){
     console.log(`empty skill name for skill:${skill}`);
@@ -501,7 +506,14 @@ const processSkills = (grades) => {
     const skillsMastered = [];
     const skillsSkipped = [];
     for (let key in grades) {
-        if ((grades[key] === "1.0") && (key.includes(": "))) {
+        if (
+                 (grades[key] === "1.0")  
+              && (!key.includes("points"))
+              && (!key.includes("Honor Pledge"))
+              && (!key.includes("Total Score"))
+              && (!key.includes("Max Points"))
+              && (!key.includes("Count"))
+            ) {
             skillsMastered.push(trimSkillString(key));
         } else if ((grades[key] === "0.0") 
                   && trimSkillString(key) != "" 
@@ -554,8 +566,12 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
 
         let documents = []
         dataFromRows.forEach(async (row) => {
+            if (!row.Name) return; // skip empty rows
+
             const email = row.Email;
             const name = row.Name;
+
+
             const {skillsMastered,skillsSkipped} = processSkills(row);
 
             // create new MathGrades object

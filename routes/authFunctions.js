@@ -37,7 +37,7 @@ const isLoggedIn = (req, res, next) => {
   isStaff: true if the user is a TA or the owner of the course
 
   */
-  const authorize = async (req, res, next) => {
+  const authorizeOLD = async (req, res, next) => {
     try {
       if (!req.isAuthenticated()) {
         res.redirect("/login");
@@ -48,18 +48,83 @@ const isLoggedIn = (req, res, next) => {
           await CourseMember.find(
               {studentId: req.user._id, 
                 courseId: res.locals.courseInfo._id});
-        res.locals.isMgaStudent = memberList.length>0 && res.locals.courseInfo.nonGrading
-        res.locals.isEnrolled = memberList.length > 0 && !res.locals.courseInfo.nonGrading;
-        res.locals.isTA = 
-            req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);  
+                
         res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+    
         res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
+
+
+        res.locals.isMgaStudent = 
+            (memberList.length>0 && res.locals.courseInfo.nonGrading);
+        
+        res.locals.isEnrolled = 
+            (memberList.length > 0 && !res.locals.courseInfo.nonGrading);
+        
+        res.locals.isTA = 
+            (req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id));
+
+
+
+
         res.locals.hasCourseAccess = res.locals.isEnrolled || res.locals.isTA || res.locals.isOwner;
         res.locals.isStaff = res.locals.isTA || res.locals.isOwner;
         
 
         // give Admin access to all courses ...
-        res.locals.isOwner ||= res.locals.isAdmin;
+        //res.locals.isOwner ||= res.locals.isAdmin;
+        next()
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+
+
+  const authorize = async (req, res, next) => {
+    try {
+      // only logged in users on routes with courseId can be authorized
+      if (!req.isAuthenticated() || !req.params.courseId) {
+        res.redirect("/login");
+      } else {
+        const id = req.params.courseId;
+        res.locals.courseInfo = await Course.findOne({_id: id});
+        const member = 
+          await CourseMember.findOne(
+              {studentId: req.user._id, 
+                courseId: res.locals.courseInfo._id});
+         
+        res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
+        if (!member){
+            // these should all be false for new courses
+            // but we want to be backward compatible so ...
+            res.locals.isOwner = 
+                res.locals.isAdmin 
+                || res.locals.courseInfo.ownerId == req.user._id+"";
+            res.locals.isMgaStudent = false;
+            res.locals.isEnrolled = false;
+            res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+        } else {
+            res.locals.isOwner 
+              = member.role=='owner' 
+                || res.locals.isAdmin 
+                || res.locals.courseInfo.ownerId == req.user._id+"";
+            res.locals.isEnrolled = member.role=='student';         
+            res.locals.isTA = member.role=='ta';
+            res.locals.isMgaStudent = res.locals.courseInfo.nonGrading; 
+        }
+
+        res.locals.hasCourseAccess 
+            = res.locals.isEnrolled 
+              || res.locals.isTA 
+              || res.locals.isOwner;
+        res.locals.isStaff 
+            = res.locals.isTA 
+              || res.locals.isOwner;
+
+        // give Admin access to all courses ...
+        //res.locals.isOwner ||= res.locals.isAdmin;
+        console.log('after authorize');
+        console.dir(res.locals);
         next()
       }
     } catch (e) {
@@ -99,6 +164,7 @@ const isLoggedIn = (req, res, next) => {
   const hasStaffAccess = async (req, res, next) => {
     // Teaching Staff and Owners have access to the course route
     try {
+      console.log(`isTA=${res.locals.isTA} isOwner=${res.locals.isOwner}`);
       if (res.locals.isOwner || res.locals.isTA) {
         next();
       } else {

@@ -11,11 +11,17 @@
       <% if (courseInfo.mathCourseId) { %>
         Linked to 
                 <a href="/mathgrades/showCourse/<%= courseInfo.mathCourseId %>">
-                  an MGA courses
+                  an MGA course
                 </a>
       <% } %>
       <hr>
-      <b>Problem Sets</b> 
+      <h2>Problem Sets
+        <% if (isOwner) { %>
+      <a href="/addProblemSet/<%= courseInfo._id %>">
+        <i class='fas fa-plus' style='font-size:24px'></i> 
+      </a>
+      <% } %>
+      </h2>
       <ul>
         <% for(i = 0; i<= problemSets.length-1; i++){ %>
         <%
@@ -50,63 +56,19 @@
       </ul>
 
       <hr>
-
-
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-      <a href="/addProblemSet/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Add Problem Set
-      </a>
-
-      <a href="/addSkill/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Add a Skill
-      </a>
-
-
-
-      <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show Summarized Student Info
-      </a>
-
-      <a class="btn btn-sm btn-info" href="/showRoster/<%= courseInfo._id %>">
-        Show Roster
-      </a>
-
-      <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
-        Show Mastery
-      </a>
-      <% } else { %>
-        <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
-          show all problems and responses
-        </a>
-  
-        <%} %>
-      <hr>
-     
-
-      Number of reviews I've made: <%= myReviews.length %>
-      with <%= thumbsUp %> thumbs up and
-      <%= thumbsDown %> thumb downs
-      <hr>
-      <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show TAs
-      </a>
-      <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Show Skills
-      </a>
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-      <a href="/importSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
-        Import Skills from another course
-      </a>
-      <% } %>
-      <br>
-      <hr>
-      <h2>Skills Mastery Evidence</h2>
+      <h2>Skills
+        <% if (isOwner) { %>
+          <a href="/addSkill/<%= courseInfo._id %>">
+            <i class='fas fa-plus' style='font-size:24px'></i> 
+          </a>
+          <% } %>
+      </h2>
       <ul>
         <% for(i = 0; i< skills.length; i++){  %>
         <li>
 
           <a href="/showSkill/<%= courseInfo._id%>/<%= skills[i]._id %>">
-            <%= skills[i].name %>
+            <%= skills[i].shortName %>: </skills><%= skills[i].name %>
           </a>
           <span style="color:red">
             times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
@@ -122,21 +84,73 @@
          if (skillIds.includes(allSkills[i].id)) continue; %>
         <li>
           <a href="/showSkill/<%=courseInfo._id%>/<%= allSkills[i]._id %>">
-            <%= allSkills[i].name %>
+            <%= allSkills[i].shortName %>: <%= allSkills[i].name %>
           </a>
           mastery not yet demonstrated
         </li>
         <% } %>
       </ul>
-      <hr>
-
-      <% if (isTA || user._id.equals(courseInfo.ownerId)) { %>
-      <a href="/showRegradeRequests/<%= courseInfo.id %>">
-        <%= regradeRequests.length %> regrade requests outstanding
+ 
+      <% if (isOwner) { %>
+        <a href="/showSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+          Edit Skills
+        </a>
+      <a href="/importSkills/<%= courseInfo._id %>" class="btn btn-sm btn-danger">
+        Import Skills from another course
       </a>
       <% } %>
       <hr>
+
+      <% if (isTA || isOwner) { %>
+      <h2>Students</h2>
+
+
+      <a href="/showStudentInfo/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+        Show Summarized Student Info
+      </a>
+
+      <a class="btn btn-sm btn-info" href="/showRoster/<%= courseInfo._id %>">
+        Show Roster
+      </a>
+
+      <a class="btn btn-sm btn-info" href="/mastery2/<%= courseInfo._id %>">
+        Show Mastery
+      </a>
+      <% } else { %>
+        <h3>My Activity</h3>
+        <a href="/showOneStudentInfo/<%= courseInfo._id %>/<%= user._id %>">
+          show all problems and responses
+        </a>
+        <br>
+      
+      Number of reviews I've made: <%= myReviews.length %>
+      with <%= thumbsUp %> thumbs up and
+      <%= thumbsDown %> thumb downs
+  
+        <%} %>
+     
+
+      
+      <hr>
+      <h2>Teaching Assistants</h2>
+      <a href="/showTAs/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+        Show TAs
+      </a>
+      
+
+      <% if (isTA || isOwner) { %>
+        <hr>
+        <h2>Grading</h2>
+      <a 
+         href="/showRegradeRequests/<%= courseInfo.id %>"
+         class="btn btn-sm btn-info">
+         Show Regrade requests (<%= regradeRequests.length %> outstanding)
+      </a>
+
+      <% } %>
+      <hr>
       <% if ( user._id.equals(courseInfo.ownerId)) { %>
+        <h2>Settings</h2>
         <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
            <input type="text" name="newName" value="<%= courseInfo.name %>">
            course name 
@@ -148,11 +162,36 @@
             <input type="text" name="stopDate" value="<%= courseInfo.stopDate %>">
             stopDate
             <br>
-            <input type="checkbox" 
-                    name="nonGrading" 
-                    value="true"
-                    <%= courseInfo.nonGrading?"checked":"" %>
-              >
+            <select name="courseType">
+              <option value="exam_reporting" 
+                      <%= courseInfo.courseType=="exam_reporting"?"selected":"" %>
+                >
+                Grade Reporting only
+              </option>
+              <option value="exam_generation" 
+                      <%= courseInfo.courseType=="exam_generation"?"selected":"" %>
+                >
+                Exam Generation and Reporting
+              </option>
+              <option value="exam_grading" 
+                      <%= courseInfo.courseType=="exam_grading"?"selected":"" %>
+                >
+                Exam Grading, Generation, and Reporting
+              </option>
+              <option value="online_quizzes" 
+                      <%= courseInfo.courseType=="online_quizzes"?"selected":"" %>
+                >
+                Online Quizzes
+              </option>
+              <option value="unrestricted" 
+                      <%= courseInfo.courseType=="unrestricted"?"selected":"" %>
+                >
+                Unrestricted
+              </option>
+            </select>
+            <br><br><br>
+            
+            <%= courseInfo.nonGrading?"enabled":"disabled" %>:
             non-Grading mode - student work will be graded externally and uploaded to the course.
             Students will not be able to see the problems or the answers. Uncheck this box
             if you will grade the students' work in the course using this App.
@@ -175,6 +214,7 @@
 
     </div>
   </div>
+<pre><%= JSON.stringify(courseInfo,null,5) %></pre>
 </div>
 
 <%- include('bootfooter') -%>

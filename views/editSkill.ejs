@@ -13,6 +13,26 @@
           <label for="name" class="form-label">Skill Name</label>
           <input required class="form-control" type="text" name="name" value="<%= skill.name %>">
         </div>
+
+        <div class="mb-3">
+
+        </div>
+          Short Name (3 to 6 characters): 
+          <input required 
+                minlength="3" maxlength="6"  size="8"
+                value="<%= skill.shortName %>"
+                type="text" name="shortName">
+        </div>
+
+        <div class="mb-3">
+          <label for="level" class="form-label">Skill Level</label>
+          <select required class="form-control" type="text" name="level">
+            <option value="F" <%= skill.level=="F"?'selected':'' %>
+              >fundamental</option>
+            <option value="G" <%= skill.level=="G"?'selected':'' %>
+              >general</option>
+          </select>
+        </div>
         <div class="mb-3">
 
           <label for="description" class="form-label">Skill Description</label>

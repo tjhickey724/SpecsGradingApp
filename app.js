@@ -214,11 +214,15 @@ app.use(session(
 // TJH - I don't think we are sending flash messages  
 app.use(flash());
 
+app.use('/fontawesome', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(auth);
 app.use(similarity);
 app.use(updates);
+
+
 
 
 
@@ -229,6 +233,8 @@ we have access to
   - the Math Grades App
   - the Mastery Learning App 
 */
+
+
 
 app.get('/', (req, res) => {
   res.render('newmain');
@@ -249,25 +255,6 @@ app.use('/mathgrades',mathgrades);
 */
 
 
-
-// this stores the times that a user has logged in to their user object
-// we may want to store this in a separate collection in the future
-app.get("/lrec", isLoggedIn, 
- async (req, res, next) => {
-  try {
-
-    let loginer = await User.findOne({_id: req.user._id});
-    if (loginer) {
-      loginer.logintime = loginer.logintime || [];
-      loginer.logintime.push(new Date());
-      loginer.markModified("logintime");
-      await loginer.save();
-    }
-    res.redirect("/");
-  } catch (e) {
-    next(e);
-  }
-});
 
 app.get("/mla_home", isLoggedIn, (req,res) => {
   res.redirect("/mla_home/showCurrent");
@@ -355,7 +342,6 @@ app.get("/stats", isLoggedIn,
 app.get("/createCourse", isLoggedIn,
   (req, res) => {
     if (instructors.includes(req.user.googleemail)){
-      res.locals.routeName = " createCourse";
       res.render("createCourse");
     } else {
       res.send("You must be an instructor to create a course. Contact tjhickey@brandeis.edu to be on the MLA instructors list.");
@@ -363,6 +349,13 @@ app.get("/createCourse", isLoggedIn,
 });
 
 // rename this to /createCourse and update the ejs form
+/*
+  This creates a new course and if it is a nonGrading course,
+  then it also creates the corresponding Math course and links them
+  together. The /showCourse route checks to see what the courseType is
+  and if it is an exam_generation or exam_reporting course, then it
+  will redirect to the MathCourse route.
+*/
 app.post("/createNewCourse", isLoggedIn,
   async (req, res, next) => {
 
@@ -381,19 +374,38 @@ app.post("/createNewCourse", isLoggedIn,
       ownerId: req.user._id,
       startDate: new Date(req.body.startDate),
       stopDate: new Date(req.body.stopDate),
-      nonGrading: req.body.nonGrading,
+      courseType: req.body.courseType,
+      nonGrading: ["exam_reporting", "exam_generation"].includes(req.body.courseType),
       coursePin: coursePin,
       createdAt: new Date(),
     });
 
-    newCourse
-      .save()
-      .then((a) => {
-        res.redirect("/mla_home");
-      })
-      .catch((error) => {
-        res.send(error);
+
+    let theCourse = await newCourse.save();
+    // create a courseMember entry for the owner
+    let registration = {
+      studentId: req.user._id,
+      courseId: theCourse._id,
+      role: "owner",
+      createdAt: new Date(),
+    };
+    let cm = new CourseMember(registration);
+    await cm.save();
+
+    if (theCourse.nonGrading){
+      // create an MGA course and link it to this course.
+      let newMathCourse = new MathCourse({
+        name: req.body.courseName,
+        ownerId: req.user._id,
+        coursePinMLA: theCourse.coursePin,
+        courseId: theCourse._id,
+        createdAt: new Date(),
       });
+      let theMathCourse = await newMathCourse.save();
+      newCourse.mathCourseId = theMathCourse._id;
+      await newCourse.save();
+      }
+    res.redirect("/mla_home");
   } catch (e) {
     next(e);
   }
@@ -441,10 +453,14 @@ app.get("/showRoster/:courseId", authorize, hasStaffAccess,
     const id = req.params.courseId;
     res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
 
-    const memberList = await CourseMember.find({courseId: res.locals.courseInfo._id});
-    const memberIds = memberList.map((x) => x.studentId);
+    const memberList = 
+        await CourseMember
+              .find({courseId: res.locals.courseInfo._id})
+              .populate('studentId');
+    const members = memberList.map((x) => x.studentId);
 
-    res.locals.members = await User.find({_id: {$in: memberIds}});
+    res.locals.members = members;//await User.find({_id: {$in: memberIds}});
+    res.locals.memberList = memberList;
 
     res.locals.routeName = " showRoster";
     res.render("showRoster");
@@ -509,6 +525,22 @@ app.post("/addStudents/:courseId", authorize, isOwner,
   and the course skills that the user has mastered
 */
 app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
+  async (req, res, next) => {
+  try {
+    const id = req.params.courseId;
+    const course = await Course.findOne({_id: id});
+    if (course.nonGrading && !res.locals.isStaff) {
+      res.redirect("/mathgrades/showCourse/" + course.mathCourseId);
+    } else {
+      res.redirect("/showMLACourse/" + id);
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+
+app.get("/showMLACourse/:courseId", authorize, hasMGAStudentAccess,
   async (req, res, next) => {
   try {
     const id = req.params.courseId;
@@ -610,7 +642,7 @@ app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
     res.locals.startDate = startDate;
     res.locals.stopDate = stopDate;  
     
-
+    console.dir(res.locals);
     if (res.locals.hasCourseAccess) {
       res.render("showCourse");
     } else if (res.locals.isMgaStudent) {
@@ -656,6 +688,7 @@ app.post("/joinCourse", isLoggedIn,
         studentId: userId,
         courseId: course._id,
         createdAt: new Date(),
+        role: "student",
       };
       const newCourseMember = new CourseMember(registration);
       await newCourseMember.save();
@@ -708,6 +741,8 @@ app.post("/addSkill/:courseId",  authorize, isOwner,
       const newSkill = new Skill({
         name: req.body.name,
         description: req.body.description,
+        shortName:req.body.shortName,
+        level: req.body.level,
         createdAt: new Date(),
         courseId: courseId,
       });
@@ -783,6 +818,8 @@ app.post("/editSkill/:courseId/:skillId", authorize, isOwner,
     const skill = await Skill.findOne({_id: req.params.skillId});
     const courseId = req.params.courseId;
     skill.name = req.body.name;
+    skill.shortName = req.body.shortName;
+    skill.level = req.body.level;
     skill.description = req.body.description;
     skill.createdAt = new Date();
 
@@ -886,6 +923,7 @@ app.post("/saveProblemSet/:courseId", authorize, isOwner,
       name: req.body.name,
       courseId: id,
       createdAt: new Date(),
+      visible: true,
       pendingReviews: [],
     });
 
@@ -985,6 +1023,26 @@ const getStudentSkills = async (courseId,studentId) => {
     throw e;
   }
 };
+
+
+app.get("/uploadProblems/:courseId/:psetId", authorize, hasCourseAccess,
+  async (req, res, next) => {
+
+  const psetId = req.params.psetId;
+  const courseId = req.params.courseId;
+  const userId = req.user._id;
+
+  res.locals.psetId = psetId;
+  res.locals.courseId = courseId;
+  
+  res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
+  res.locals.problems = await Problem.find({psetId: psetId}).sort({description:1});
+  res.locals.skills = await Skill.find({courseId: courseId});
+
+  res.render("uploadProblems");
+  }
+);
+
 
 app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   async (req, res, next) => {
@@ -1367,8 +1425,8 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
         // }
         let skillIdMap = {}
         for (let skillName in skillCounts) {
-          let skill = await Skill.findOne({courseId:courseId,name: skillName});
-          skillIdMap[skillName] = skill._id+"";
+          let skill = await Skill.findOne({courseId:courseId,shortName: skillName});
+          if (skill) skillIdMap[skillName] = skill._id+"";
         }
 
         let skillIdsMastered = {}
@@ -1410,13 +1468,15 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
        */
 
        let studentsWhoCanTakeExam = enrolledStudents;
+       let tookExamEmails=[];
        if (pset.makeupOf) { 
          const makeupOf = pset.makeupOf; // the id of the MathExam that this exam is a makeup for
-         const skippedExamEmails
+         tookExamEmails
              = (await MathGrades
-                      .find({examId: makeupOf,'grades.Status':'Missing'}))
-                .map((x) => x.email);
-         studentsWhoCanTakeExam = skippedExamEmails;
+                      .find({examId: makeupOf}))
+                      .map((x) => x.email);
+         studentsWhoCanTakeExam 
+            = enrolledStudents.filter(x => !(tookExamEmails.includes(x)));
         }
       
         /*
@@ -1432,7 +1492,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
              the problems for skills that s has not yet mastered,
              as determined by the skillList.
           */
-         console.log(`\n*** studentEmail=${studentEmail}\n`);
          
          let studentSkills = 
              skillIdsMastered[studentEmail];
@@ -2294,12 +2353,9 @@ app.get("/showOneStudentInfo/:courseId/:studentId", authorize, hasCourseAccess,
     res.locals.courseInfo = courseInfo;
     res.locals.studentInfo = studentInfo;
 
-
-    const isTA = res.hasStaffAccess;
-    const isOwner = res.isOwner;
     const isTheStudent = req.user._id.equals(studentId);
 
-    if (!isOwner && !isTA && !isTheStudent) {
+    if (!res.locals.isOwner && !res.locals.isTA && !isTheStudent) {
       res.send("only the course owner and TAs and the student themselves can see this page");
     } else {
 
@@ -2345,6 +2401,15 @@ app.post("/addTA/:courseId", authorize, isOwner,
 
       await ta.save();
     }
+    // add the TA to the CourseMember collection with role TA
+    let courseMember = new CourseMember({
+      courseId: req.params.courseId,
+      studentId: ta._id,
+      role: "ta",
+      createdAt: new Date(),
+    });
+    await courseMember.save();
+
     res.redirect("/showTAs/" + req.params.courseId);
   } catch (e) {
     next(e);
@@ -2356,11 +2421,14 @@ app.post("/removeTAs/:courseId", authorize, isOwner,
   try {
 
     if (req.body.ta == null) {
+      // do nothing
     } else if (typeof req.body.ta == "string") {
       await User.update({_id: req.body.ta}, {$set: {taFor: []}});
+      await CourseMember.deleteOne({courseId: req.params.courseId, studentId: req.body.ta});
     } else {
       req.body.ta.forEach(async (x) => {
         await User.update({_id: x}, {$set: {taFor: []}});
+        await CourseMember.deleteOne({courseId: req.params.courseId, studentId: x});
       });
     }
 

@@ -76,7 +76,6 @@
               action="/mathgrades/uploadGrades/<%= course._id %>" 
               enctype="multipart/form-data">
 
-            <input class="btn btn-sm btn-primary" type="submit" value="upload grades file (csv)">
             
             
           
@@ -92,6 +91,8 @@
             placeholder="Exam Name">
 
             <input required class="mb-3" type="file" name="grades" >
+            <input class="btn btn-sm btn-primary" type="submit" value="upload grades file (csv)">
+
         </form>
 
       </div>
@@ -99,21 +100,23 @@
         <form method="post" 
           action="/mathgrades/uploadSectionData/<%= course._id %>" 
           enctype="multipart/form-data">
-          <input class="btn btn-sm btn-primary" type="submit" value="upload section data file">
         <input required  class="mb-3"
               type="file" name="sections" >
+        <input class="btn btn-sm btn-primary" type="submit" value="upload section data file">
+
         </form>
       </div>
 
       <div>
         <form method="post" action="/mathgrades/renameCourse/<%= course._id %>">
-          <input class="btn btn-sm btn-primary" type="submit" value="update course name">
   
           <input  
                   type="text" 
                   value="<%= course.name %>"
                   name="courseName"
                   size="60">
+          <input class="btn btn-sm btn-primary" type="submit" value="update course name">
+
         </form>
       </div>
 

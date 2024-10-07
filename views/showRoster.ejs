@@ -21,6 +21,7 @@
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Section</th>
             <th>LastUpdate</th>
           </tr>
         </thead>
@@ -36,6 +37,9 @@
             
             <td>
               <%= memberList[i].role %>
+            </td>
+            <td>
+              <%= memberList[i].section %>
             </td>
             <td>
               <%= memberList[i].createdAt.toISOString().slice(0,10) %>

@@ -1,0 +1,45 @@
+<%- include('../bootheader') -%>
+<%- include('./menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      Roster </h1>
+
+    <div class="p-2">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Section</th>
+                    <th>LastUpdate</th>
+                </tr>
+
+            </thead>
+            <tbody>
+                <% for(i=0; i< memberList.length; i++){ %>
+                <tr>
+                    <td>
+                    <%= memberList[i].name%>
+                    </td>
+                    <td>
+                    <%= memberList[i].email %>
+                    </td>
+                    
+                    <td>
+                    <%= memberList[i].section %>
+                    </td>
+                    <td>
+                    <%= memberList[i].createdAt.toISOString().slice(0,10) %>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    
+    </div>
+  </div>
+</div>
+
+<%- include('../bootfooter') -%>
+<%- include('../htmlfoot') -%>

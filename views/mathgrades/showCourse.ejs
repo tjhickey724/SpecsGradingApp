@@ -10,6 +10,8 @@
         <br>
         Created at <%= course.createdAt %>
         <br>
+        <a href="/mathgrades/showRoster/<%= course._id%>">Show Roster</a>
+        <br>
         <%if (mlaCourse) {%>
           Linked to MLA Course: 
           <a href="/showMLACourse/<%= mlaCourse._id %>">
@@ -19,6 +21,9 @@
           No MLA Course linked
         <% } %>
 
+    </div>
+    <div>
+      <%= JSON.stringify(roster,null,5); %>
     </div>
       <div class="p-2">
         <a href="/mathgrades/deleteCourse/<%= course._id %>">Delete Course</a>
@@ -68,6 +73,7 @@
             <% } %>
         </ul>
       </div>
+
 <hr>
       <h2>Data Uploading</h2>
       <div>

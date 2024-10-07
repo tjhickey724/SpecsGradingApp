@@ -15,11 +15,13 @@ const MathSection = require("../models/MathSection");
 const MathGrades = require("../models/MathGrades");
 const Course = require("../models/Course");
 const CourseMember = require("../models/CourseMember");
+const User = require("../models/User");
 
 const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
 const instructors 
   = admins.concat(
   [ "timhickey@me.com",
+    "tjhickey@brandeis.edu",
     "rocklykleining@brandeis.edu",
     "mkrumpak@brandeis.edu",
     "sreshtav@brandeis.edu",
@@ -45,8 +47,9 @@ const isLoggedIn = (req, res, next) => {
   res.locals.loggedIn = false;
   if (req.isAuthenticated()) {
     res.locals.loggedIn = true;
-    req.isAdmin = admins.includes(req.user.googleemail);
-    req.isInstructor = instructors.includes(req.user.googleemail);
+    res.locals.isAdmin = admins.includes(req.user.googleemail);
+    res.locals.isInstructor = instructors.includes(req.user.googleemail);
+    console.dir(['in isLoggedIn',req.user.googleemail,res.locals.isAdmin,res.locals.isInstructor]);
     return next();
   } else {
     res.redirect("/login");
@@ -79,14 +82,13 @@ router.use(isLoggedIn);
 router.get("/", isLoggedIn,
  async function (req, res, next) {
   let courses = [];
-  if (req.isAdmin || req.isInstructor) {
+  if (res.locals.isAdmin || res.locals.isInstructor) {
     courses = await MathCourse.find({});
   } else {
     studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
     courses = await MathCourse.find({_id:{$in:studentCourses}});
   }
   res.locals.courses = courses;
-  res.locals.isAdmin = req.isAdmin;
   res.render("mathgrades/mathindex");
 });
 
@@ -98,7 +100,7 @@ router.get("/", isLoggedIn,
 router.get("/showCourse/:courseId",isLoggedIn,
  async (req,res,next) => {
   const courseId = req.params.courseId;
-  if (!req.isInstructor) {
+  if (!res.locals.isInstructor) {
     res.redirect("/mathgrades/showStudentCourse/"+ courseId );
   }else {
     const course = await MathCourse.findOne({_id:courseId})
@@ -109,16 +111,28 @@ router.get("/showCourse/:courseId",isLoggedIn,
 
     const exams = await MathExam.find({courseId:courseId}).sort({name:1});
     res.locals.exams = exams;
-    res.locals.isAdmin = req.isAdmin;
     if (course.coursePinMLA) {
       const mlaCourse = await Course.findOne({coursePin:course.coursePinMLA});
       res.locals.mlaCourse = mlaCourse;
     }
+    res.locals.roster= await MathSection.find({courseId:courseId});
+    console.dir(['in showCourse',res.locals.roster]);
     //res.json(course);
     res.render('mathgrades/showCourse');
   }
 
 });
+
+router.get("/showRoster/:courseId",isLoggedIn,
+  async (req,res,next) => {
+    const courseId = req.params.courseId;
+    const roster = await MathSection.find({courseId:courseId});
+    res.locals.memberList = roster;
+    res.locals.roster= await MathSection.find({courseId:courseId});
+    console.dir(['in showRoster',res.locals.roster]);
+    res.render('mathgrades/showRoster');
+  }
+);
 
 /* any logged in user can access their student view of a course */
 
@@ -131,7 +145,6 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
   res.locals.results = [];
   const exams = await MathExam.find({courseId:courseId});
   res.locals.exams = exams;
-  res.locals.isAdmin = req.isAdmin;
   if (exams.length == 0) {
     res.json({message:"no exams for this course yet"});
   } else {
@@ -139,6 +152,8 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
     const courseId = exams[0].courseId;
     const grades = await MathGrades.find({email:req.user.googleemail,
                                          courseId:courseId});
+    res.locals.roster="";
+
     if (grades.length != 0) {
       const gradeId = grades[0]._id;
       res.redirect(`/mathgrades/showStudent/${courseId}/${examId}/${gradeId}`);
@@ -270,7 +285,7 @@ router.use(hasStaffAccess);
 
 
 
-router.get("/showCourse/:courseId", hasAdminAccess,
+router.get("/showCourse2/:courseId", hasAdminAccess,
  async (req,res,next) => {
     const courseId = req.params.courseId;
     const course = await MathCourse.findOne({_id:courseId})
@@ -279,6 +294,8 @@ router.get("/showCourse/:courseId", hasAdminAccess,
     const exams = await MathExam.find({courseId:courseId});
     res.locals.exams = exams;
     //res.json(course);
+    res.locals.roster = await MathSection.find({courseId:courseId});
+    console.dir(res.locals.roster);
     res.render('mathgrades/showCourse');
 });
 
@@ -630,14 +647,15 @@ const updateCourseMembers = async (mathSectionDocuments) => {
     in the class.
   */
   let userIds = [];
+  let mathCourse = {}; // will be the MathCourse object from the section docs
   for (let sectionMember of mathSectionDocuments) {
     // update section data for existing students
     // and add new students to the CourseMember collection
     const email = sectionMember.email;
     const mathCourseId = sectionMember.courseId;
-    const mathCourse = await MathCourse.findOne({_id:mathCourseId});
+    mathCourse = await MathCourse.findOne({_id:mathCourseId});
     const mlaCourse = await Course.findOne({_id:mathCourse.courseId});
-    const user = await User.findOne({googleemail:email});
+    let user = await User.findOne({googleemail:email});
     if (!user) {
       // create a new user with the email as the googleemail
       const userJSON = {
@@ -649,14 +667,15 @@ const updateCourseMembers = async (mathSectionDocuments) => {
       user = await user.save();
     }
     userIds.push(user._id);
-    const courseMember 
+    let courseMember 
         = await CourseMember.findOne(
                   {studentId:user._id,
                     courseId:mlaCourse._id});
     if (courseMember) {
-      // update their section if they are in the class
+      // update their section and role if they are in the class
       courseMember.section = sectionMember.section;
-      await courseMember.save();
+      courseMember.role = 'student';
+      courseMember = await courseMember.save();
     } else {
       // add them to the class
       const courseMemberJSON = {
@@ -667,7 +686,7 @@ const updateCourseMembers = async (mathSectionDocuments) => {
         createdAt: new Date(),
       }
       courseMember = new CourseMember(courseMemberJSON);
-      await courseMember.save();
+      courseMember = await courseMember.save();
     }
   }
     
@@ -675,7 +694,7 @@ const updateCourseMembers = async (mathSectionDocuments) => {
   // change their role to "dropped"
   const courseMembers = 
     await CourseMember.updateMany(
-      {courseId:mlaCourse._id,studentId:{$nin:userIds},role:"student"},
+      {courseId:mathCourse.courseId,studentId:{$nin:userIds},role:"student"},
     {$set:{role:"dropped"}});
 
 

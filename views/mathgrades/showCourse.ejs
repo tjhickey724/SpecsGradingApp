@@ -68,9 +68,10 @@
             <% } %>
         </ul>
       </div>
+<hr>
       <h2>Data Uploading</h2>
       <div>
-        
+          <b>Upload Exam Grades:</b>        
         
             <form method="post" 
               action="/mathgrades/uploadGrades/<%= course._id %>" 
@@ -96,7 +97,9 @@
         </form>
 
       </div>
+<hr>
       <div>
+        <b>Upload Section Data:</b>
         <form method="post" 
           action="/mathgrades/uploadSectionData/<%= course._id %>" 
           enctype="multipart/form-data">
@@ -106,8 +109,9 @@
 
         </form>
       </div>
-
+<hr>
       <div>
+        <b>Update Course Name:</b>
         <form method="post" action="/mathgrades/renameCourse/<%= course._id %>">
   
           <input  

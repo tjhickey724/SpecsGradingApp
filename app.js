@@ -237,7 +237,7 @@ we have access to
 
 
 app.get('/', (req, res) => {
-  res.render('newmain');
+  res.redirect('/mla_home');
 });
 
 app.get('/mga_home', (req, res) => {
@@ -274,11 +274,15 @@ app.get("/mla_home/:show", isLoggedIn,
   const userId = req.user._id;
   const coursesOwned = await Course.find({ownerId: userId});
 
-  const registrations = await CourseMember.find({studentId: userId}, "courseId");
+  const registrations = await CourseMember.find({studentId: userId,role:'student'}, "courseId");
   const registeredCourses = registrations.map((x) => x.courseId);
   const coursesTaken = await Course.find({_id: {$in: registeredCourses}});
   
-  const coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
+  const taRegistrations = await CourseMember.find({studentId: userId,role:'ta'}, "courseId");
+  const taRegisteredCourses = taRegistrations.map((x) => x.courseId);
+  const coursesTAing = await Course.find({_id: {$in: taRegisteredCourses}});
+
+  //const coursesTAing = await Course.find({_id: {$in: req.user.taFor}});
   const title = "PRA";
   const routeName = " index";
   const show = (req.params.show=="showAll")?'showAll':'currentOnly';
@@ -2442,8 +2446,11 @@ app.get("/showTAs/:courseId", authorize, hasCourseAccess,
   async (req, res, next) => {
   try {
     res.locals.courseInfo = await Course.findOne({_id: req.params.courseId}, "name ownerId coursePin");
-    res.locals.tas = await User.find({taFor: req.params.courseId});
-    res.locals.routeName = " showTAs";
+    const taMembers 
+      = await CourseMember
+              .find({courseId: req.params.courseId,role:'ta'})
+    const taIds = taMembers.map((x) => x.studentId);
+    res.locals.tas = await User.find({_id:taIds});
 
     res.render("showTAs");
   } catch (e) {

@@ -14,6 +14,7 @@ const MathExam = require("../models/MathExam");
 const MathSection = require("../models/MathSection");
 const MathGrades = require("../models/MathGrades");
 const Course = require("../models/Course");
+const CourseMember = require("../models/CourseMember");
 
 const admins = ["tjhickey@brandeis.edu","rtorrey@brandeis.edu","merrill2@brandeis.edu"]
 const instructors 
@@ -616,6 +617,70 @@ router.post("/linkMLACourse/:courseId", hasStaffAccess,
     res.redirect(`/mathgrades/showCourse/${courseId}`);
  });
 
+const updateCourseMembers = async (mathSectionDocuments) => {
+  /*
+    for each student in the section, update the courseMember collection.
+    First lookup their user id in the User collection, then 
+    use the mathcourseId to lookup their MLA courseId in the Course collection.
+    Then update the courseMember collection with the new section and role.
+    and generate a list of their userIds. 
+    Finally, change the role of all students in the course
+    who are not in the section to "dropped".
+    When the sectionData is uploaded this is the official list of students
+    in the class.
+  */
+  let userIds = [];
+  for (let sectionMember of mathSectionDocuments) {
+    // update section data for existing students
+    // and add new students to the CourseMember collection
+    const email = sectionMember.email;
+    const mathCourseId = sectionMember.courseId;
+    const mathCourse = await MathCourse.findOne({_id:mathCourseId});
+    const mlaCourse = await Course.findOne({_id:mathCourse.courseId});
+    const user = await User.findOne({googleemail:email});
+    if (!user) {
+      // create a new user with the email as the googleemail
+      const userJSON = {
+        googleemail:email,
+        googlename:sectionMember.name,
+        createdAt: new Date(),
+      }
+      user = new User(userJSON);
+      user = await user.save();
+    }
+    userIds.push(user._id);
+    const courseMember 
+        = await CourseMember.findOne(
+                  {studentId:user._id,
+                    courseId:mlaCourse._id});
+    if (courseMember) {
+      // update their section if they are in the class
+      courseMember.section = sectionMember.section;
+      await courseMember.save();
+    } else {
+      // add them to the class
+      const courseMemberJSON = {
+        studentId:user._id,
+        courseId:mlaCourse._id,
+        section:sectionMember.section,
+        role:"student",
+        createdAt: new Date(),
+      }
+      courseMember = new CourseMember(courseMemberJSON);
+      await courseMember.save();
+    }
+  }
+    
+  // for all users in the course who are not in the section, 
+  // change their role to "dropped"
+  const courseMembers = 
+    await CourseMember.updateMany(
+      {courseId:mlaCourse._id,studentId:{$nin:userIds},role:"student"},
+    {$set:{role:"dropped"}});
+
+
+}
+
 router.post("/uploadSectionData/:courseId", hasStaffAccess,
   upload.single('sections'),
  async (req, res, next) => {
@@ -663,6 +728,7 @@ router.post("/uploadSectionData/:courseId", hasStaffAccess,
         });
         await MathSection.deleteMany({courseId:courseId});
         await MathSection.insertMany(documents); 
+        await updateCourseMembers(documents); // use section Data to update CourseMembers
         //res.json({ rowCount, dataFromRows });
       } catch (error) {
         console.log(error);

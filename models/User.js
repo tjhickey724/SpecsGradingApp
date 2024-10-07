@@ -15,7 +15,7 @@ var userSchema = Schema({
   googleemail: String,
   // password: String,
   // localpw: String,
-  taFor: [Schema.Types.ObjectId],
+  // taFor: [Schema.Types.ObjectId],
   // logintime: [Date]
 });
 

@@ -69,9 +69,15 @@
           
         %>
       <li>
-        <a href="/showCourse/<%= coursesTaken[i]._id %>">
-          <%= coursesTaken[i].name %>
-        </a>
+        <% if (coursesTaken[i].mathCourseId) {%>
+          <a href="/mathgrades/showCourse/<%= coursesTaken[i].mathCourseId %>">
+            <%= coursesTaken[i].name %>
+          </a>
+        <% } else { %>
+          <a href="/showCourse/<%= coursesTaken[i]._id %>">
+            <%= coursesTaken[i].name %>
+          </a>
+        <% } %>
       </li>
       <% } %>
     </ul>

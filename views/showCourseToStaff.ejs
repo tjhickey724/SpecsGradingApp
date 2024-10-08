@@ -1,0 +1,165 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= courseInfo.name %>
+    </h1>
+    <div class="p-2">
+      studentPin: <%= courseInfo.coursePin %>
+      <br>
+      <% if (courseInfo.mathCourseId) { %>
+        Linked to 
+                <a href="/mathgrades/showCourse/<%= courseInfo.mathCourseId %>">
+                  an MGA course
+                </a>
+      <% } %>
+      <hr>
+      <h2>Problem Sets
+        <% if (isOwner) { %>
+      <a href="/addProblemSet/<%= courseInfo._id %>">
+        <i class='fas fa-plus' style='font-size:24px'></i> 
+      </a>
+      <% } %>
+      </h2>
+      <ul>
+        <% for(i = 0; i<= problemSets.length-1; i++){ %>
+        <%
+             if (!problemSets[i].visible && !(courseInfo.ownerId==user.id)) continue
+             else if (courseInfo.ownerId==user.id && !problemSets[i].visible) {
+                 %> <li> HIDDEN
+          <% } else { %>
+        <li>
+          <%}%>
+
+
+            <a href="/showProblemSet/<%= courseInfo._id%>/<%= problemSets[i]._id %>">
+                <%= problemSets[i].name.trim() || "problem set" %>
+            </a>
+
+
+        </li>
+        <% } %>
+      </ul>
+
+      <hr>
+      <h2>Skills
+        <% if (isOwner) { %>
+          <a href="/addSkill/<%= courseInfo._id %>">
+            <i class='fas fa-plus' style='font-size:24px'></i> 
+          </a>
+          <a href="/showSkills/<%= courseInfo._id %>" >
+            <i class='fas fa-pen' style='font-size:24px'></i> 
+          </a>
+          <% } %>
+      </h2>
+      <ul>
+ 
+        <% for(i = 0; i< allSkills.length; i++){%>
+        <li>
+          <a href="/showSkill/<%=courseInfo._id%>/<%= allSkills[i]._id %>">
+            <%= allSkills[i].shortName %>: <%= allSkills[i].name %>
+          </a>
+        </li>
+        <% } %>
+      </ul>
+ 
+      <hr>
+
+      <% if (isTA || isOwner) { %>
+      <h2>Students</h2>
+        <ul><li>
+      <a  href="/showRoster/<%= courseInfo._id %>">
+        Show Roster
+      </a>
+    </li><li>
+      <a  href="/mastery2/<%= courseInfo._id %>">
+        Show Mastery
+      </a>
+    </li></ul>
+    <%} %>
+     
+
+      
+      <hr>
+      <h2>Teaching Assistants</h2>
+      <ul><li>
+      <a href="/showTAs/<%= courseInfo._id %>" >
+        Show TAs
+      </a>
+      </li></ul>
+
+      <% if (isTA || isOwner) { %>
+        <hr>
+        <h2>Grading</h2>
+        <ul><li>
+      <a 
+         href="/showRegradeRequests/<%= courseInfo.id %>"
+         >
+         Show Regrade requests (<%= regradeRequests.length %> outstanding)
+      </a>
+      </li></ul>  
+
+      <% } %>
+      <hr>
+      <% if ( user._id.equals(courseInfo.ownerId)) { %>
+        <h2>Settings</h2>
+        <form method="post" action ="/changeCourseName/<%= courseInfo._id %>">
+           <input type="text" name="newName" value="<%= courseInfo.name %>">
+           course name 
+           <br>
+           <input type="text" name="startDate" 
+             value="<%= startDate.toISOString().slice(0,10) %>">
+            startDate
+            <br>
+            <input type="text" name="stopDate" 
+              value="<%= courseInfo.stopDate.toISOString().slice(0,10) %>">
+            stopDate
+            <br>
+            <select name="courseType">
+              <option value="mla0" 
+                      <%= courseInfo.courseType=="mla0"?"selected":"" %>
+                >
+                Exam Generation and Reporting
+              </option>
+              <option value="mla1" 
+                      <%= courseInfo.courseType=="mla1"?"selected":"" %>
+                >
+                Exam Grading, Generation, and Reporting
+              </option>
+              <option value="sga" 
+                      <%= courseInfo.courseType=="sga"?"selected":"" %>
+                >
+                Online Quizzes
+              </option>
+              <option value="pra" 
+                      <%= courseInfo.courseType=="pra"?"selected":"" %>
+                >
+                Peer Reviewed InClass Questions
+              </option>
+            </select> type of the course
+            <br><br><br>
+            
+            
+           <button type="submit" class="btn btn-sm btn-danger">Update Course Info</button>
+       <% } %>
+       <hr>
+       
+
+      <br>
+
+
+
+      <a href="/" class="btn btn-sm btn-danger">
+        Back to Home
+      </a>
+
+
+
+    </div>
+  </div>
+
+</div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

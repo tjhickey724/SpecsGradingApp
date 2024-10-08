@@ -10,7 +10,15 @@ var courseSchema = Schema( {
   createdAt: Date,
   startDate: Date,
   stopDate: Date,
-  courseType: String, // exam_reporting, exam_generation, exam_grading, online_quizzes
+  courseType: {
+    type: String,
+    enum: ['mla0',  // skill-based exam generation on paper
+           'mla1',  // and with grading in the app
+           'sga',   // specs grading, with online quizzes
+           'pra',   // peer review assignment of in-class questions
+          ],
+    default: 'mla0'
+    },
   nonGrading: Boolean, // if true, grading will be done in an external app 
   mathCourseId: {type:ObjectId,index:true,ref:"MathCourse"},
 } );

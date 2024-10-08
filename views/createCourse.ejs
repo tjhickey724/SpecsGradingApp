@@ -33,44 +33,49 @@
          <br>
          <br>
         <h3>Type of Course</h3>
-        <h4>Proctored Paper Exam Assessment</h4>
-          <input type="radio" name="courseType" value="exam_reporting">
-          <b>Grade Reporting only</b>
+        <h4>Mastery Learning Assessment (MLA):Proctored Skill-based Paper Exams</h4>
+          <input type="radio" name="courseType" value="mla0">
+          <b>Exam Generation and Grade Reporting (MLA0)</b>
             You will give exams in class and grade them yourself.
             Each exam question will test a particular skill or concept.
             You will grade the exams and upload the grades to the app.
             with a 1 for a correct answer and a 0 for an incorrect answer
             The app will calculate the student's grade and report it to you 
             and to the students.
-            <br>
-            <input type="radio"  checked
-                  name="courseType" value="exam_generation">
-            <b>and Exam Generation</b>
-            In addition to reporting the grades, the app will give you allow you
+            The app will give you allow you
             to import skills from a "Master Course" and let you generate exams for 
             selected sets of skills using a large library of skill-based problems.
             We currently have master courses for PreCalculus, Differential Calculus,
             and Integral Calculus.  
             <br>
-            <input type="radio" name="courseType" value="exam_grading">
-            <b>and also Exam Grading</b>
+            <input type="radio" name="courseType" value="mla1">
+            <b>Exam Generation, Grade Reporting, and Exam Grading (MLA)</b>
             In addition to generating exams, the app will provide an interface to allow
             students to upload photos of their exams to the app, and an interface for 
-            graders to grade the exams with binary grading. 
+            graders to grade the exams with binary grading; and for students to see the feedback
+            the graders have provided.
             <br>
-            <h4>Online Assessment</h4>
-            <input type="radio" name="courseType" value="online_quizzes">
-            <b>Online Quizzes</b>
+            <h4>Online Specification Grading Assessment</h4>
+            <input type="radio" name="courseType" value="sga">
+            <b>Online Assessment (SGA)</b>
             The app will allow you to create questions 
             on the fly (or in advance) using markdown (or plain text)
             and display them to the students in class. 
+            Each question will test a particular skill or concept.
+            The students will be able to answer the questions using the app
+            and graders will be able to grade the answers using the app.
+            <br>
+            <h4>Online Peer Review Assessment (PRA)</h4>
+            <input type="radio" name="courseType" value="pra">
+            <b>Online in-class questions</b>
+            The app will allow you to create questions
+            on the fly (or in advance) using markdown (or plain text)
+            and display them to the students in class.
             The students will be able to answer the questions using the app
             and to anonymously peer grade the answers of their classmates.
             The grading is by "Good Faith Effort" and the students will be able to
             see the answers and the grades of their classmates after the grading is done.
-            <br>
-            <input type="radio" name="courseType" value="unrestricted">
-            <b>Unrestricted</b> full access to all STEMMLA features
+
 <br>
          <hr>
 

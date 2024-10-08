@@ -5,6 +5,11 @@
     <h1 class="pb-2 border-bottom">
       Add Skill</h1>
     <div class="p-2">
+      <a href="/importSkills/<%= courseId %>" class="btn btn-sm btn-danger">
+        Import Skills from another course
+      </a>
+      <hr> OR <hr>
+      <h2>Enter Skill Information for a new Skill</h2>
 
       <form method="POST" action="/addSkill/<%= courseId %>">
 

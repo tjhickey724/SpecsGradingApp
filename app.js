@@ -528,23 +528,153 @@ app.post("/addStudents/:courseId", authorize, isOwner,
   it shows the course information, the sets, 
   and the course skills that the user has mastered
 */
-app.get("/showCourse/:courseId", authorize, hasMGAStudentAccess,
+
+app.get("/showCourse/:courseId", authorize, hasCourseAccess,
+  // redirect to student view or staff view, depending on user role
   async (req, res, next) => {
   try {
-    const id = req.params.courseId;
-    const course = await Course.findOne({_id: id});
-    if (course.nonGrading && !res.locals.isStaff) {
-      res.redirect("/mathgrades/showCourse/" + course.mathCourseId);
+    const courseId = req.params.courseId;
+    const studentId = req.user._id;
+    const courseMember 
+        = await CourseMember
+               .findOne({studentId, courseId});
+    const role = courseMember.role;
+    if (["student","guest","audit"].includes(role)) {
+      res.redirect("/showCourseToStudent/" + courseId);
+    } else if (["ta","instructor","owner"].includes(role)) {
+      res.redirect("/showCourseToStaff/" + courseId);
     } else {
-      res.redirect("/showMLACourse/" + id);
+      res.send("You do not have access to this course.");
     }
+
   } catch (e) {
     next(e);
   }
 });
 
 
-app.get("/showMLACourse/:courseId", authorize, hasMGAStudentAccess,
+
+
+app.get("/showCourseToStaff/:courseId", authorize, hasStaffAccess,
+  async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const courseId = req.params.courseId;
+    const course = await Course.findOne({_id: courseId});
+
+    res.locals.courseInfo = course;
+    res.locals.courseId = courseId;
+
+    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    res.locals.isEnrolled = memberList.length > 0;
+
+    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
+    // next we create maps to find the number of problems and user's answers
+    // in each problem set so the user will know if they have finished a problemset
+    let problems = await Problem.find({courseId: res.locals.courseInfo._id});
+    //let myAnswers = await Answer.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
+
+    //let problemMap = new Map(); // counts the number or problems in each problemset
+    //let answerMap = new Map(); // counts the number of the user's answers to problems in each problemset 
+    // for (let problem of problems) {
+    //   let count = problemMap.get(problem.psetId.toString());
+    //   if (count) {
+    //     problemMap.set(problem.psetId.toString(), count + 1);
+    //   } else {
+    //     problemMap.set(problem.psetId.toString(), 1);
+    //   }
+    // }
+    // for (let answer of myAnswers) {
+    //   let count = answerMap.get(answer.psetId.toString());
+    //   if (count) {
+    //     answerMap.set(answer.psetId.toString(), count + 1);
+    //   } else {
+    //     answerMap.set(answer.psetId.toString(), 1);
+    //   }
+    // }
+    // res.locals.problemMap = problemMap;
+    // res.locals.answerMap = answerMap;
+
+    // Count the number of thumbs up and thumbs down for the user's reviews
+    // and send the user's reviews to the page
+    // let myReviews = await Review.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
+    // res.locals.myReviews = myReviews;
+    // let thumbsUp = 0;
+    // let thumbsDown = 0;
+    // for (let r of myReviews) {
+    //   thumbsUp += r.upvoters.length;
+    //   thumbsDown += r.downvoters.length;
+    // }
+    // res.locals.thumbsUp = thumbsUp;
+    // res.locals.thumbsDown = thumbsDown;
+
+    // check to see if the user is a TA for this course
+    // and send it to the page
+    //res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
+
+
+    /* 
+       Find the number of times, skillCount[s] 
+       that the user has mastered each skill s
+       in the course...
+    */
+
+    // get the list of the student's answers for this course
+    //let usersAnswers = await Answer.find({studentId: req.user._id, courseId: courseId});
+    // get the ides of all of the students answers for this course
+    // let answerIds = usersAnswers.map((x) => x._id);
+    // get the ids of the TAs for this course
+    //let taIds = (await User.find({taFor: id})).map((x) => x._id);
+    // get the reviews of the students answers that have been reviewed by TAs
+    //let reviews = await Review.find({answerId: {$in: answers}, reviewerId: {$in: taIds}});
+
+    // get the lists of skill ids for all problems the student mastered
+    // let skillLists = usersAnswers.map((x) => x.skills);
+    // let skillCount = {};
+    // for (slist of skillLists) {
+    //   if (!slist) continue;
+    //   for (s of slist) {
+    //     skillCount[s] = (skillCount[s] || 0) + 1;
+    //   }
+    // }
+    // res.locals.skillCount = skillCount;
+
+    //let skillIds = Array.from(new Set(flatten(skillLists)));
+    //res.locals.skills = await Skill.find({_id: {$in: skillIds}});
+    let courseSkills = await CourseSkill.find({courseId}).populate('skillId');
+    res.locals.allSkills = courseSkills.map((x) => x.skillId);
+    //res.locals.allSkills = await Skill.find({courseId: id});
+    res.locals.skills = res.locals.courseSkills;
+    res.locals.skillIds = res.locals.allSkills; 
+    // skillIds is a list of the ids of the skills the student has mastered
+
+    res.locals.regradeRequests = await RegradeRequest.find({courseId, completed: false});
+
+
+    let startDate = res.locals.courseInfo.createdAt
+    let stopDate = new Date(startDate.getTime() + 1000*3600*24*120);
+    if (res.locals.courseInfo.startDate) {
+      startDate = res.locals.courseInfo.startDate;
+    }
+    if (res.locals.courseInfo.stopDate) {
+      stopDate = res.locals.courseInfo.stopDate;
+    }
+    res.locals.startDate = startDate;
+    res.locals.stopDate = stopDate;  
+    
+    console.dir(res.locals);
+    if (res.locals.hasCourseAccess) {
+      //res.json(res.locals);
+      res.render("showCourseToStaff");
+    } else {
+      res.send("You do not have access to this course.");
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.get("/showCourseToStudent/:courseId", authorize, hasCourseAccess,
   async (req, res, next) => {
   try {
     const id = req.params.courseId;

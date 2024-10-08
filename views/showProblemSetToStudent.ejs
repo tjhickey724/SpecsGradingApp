@@ -1,0 +1,143 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= problemSet.name.trim() || "Problem Set" %>
+    </h1>
+    <div class="p-2">
+      <h2>Problems
+        <% if (isOwner){%> 
+        <a href="/addProblem/<%= courseId%>/<%= psetId %>">
+          <i class='fas fa-plus' style='font-size:24px'></i> 
+        </a>
+        <% } %>
+      </h2>
+      <ul>
+        <% for(i=0; i<problems.length; i++){ 
+          if (!problems[i].visible && !isOwner ) { %>
+          <li>Problem Hidden </li>
+          <% } else {%>
+          <li>
+
+
+          <% // find the problem skills that have not yet been mastered
+             // in this problem...
+             const numSkillsToMaster=
+                problems[i].skills
+                .filter( 
+                        (skill)=>
+                           !skillsMastered.includes(skill.toString())
+                       ).length
+                                        %>
+          <% // consider first the case where all skills have been mastered
+             if (numSkillsToMaster==0){ %>
+                <% // the owner can remove the problem from the problem set
+                   if (isOwner){ %>
+                    <a href="/removeProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+                      <span style="color:red"> X</span>
+                    </a>
+                <% } %>
+         
+                <a href="/showProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+                  <span style="color:green">
+                    <%= problems[i].description || "no name" %>
+                    all skills in this problem have been mastered
+                  </span>
+                </a>
+
+          <% } else { %>
+            <% // process problems that have not been fully mastered
+              if (isOwner){ %>
+                <a href="/removeProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+                    <span style="color:red"> X</span>
+                </a>
+            <% } %>
+
+          <a href="/showProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+            <%= problems[i].description || "no name" %>
+          </a>
+
+          <%= numSkillsToMaster %>/<%= problems[i].skills.length %> 
+              skills left to master<br>
+          <% } %>
+        </li>
+        <% }} %>
+      </ul>
+
+
+      <hr>
+      <% if (isOwner){ %>
+        <a class="btn btn-sm btn-warning"
+        href="/editProblemSet/<%=courseId%>/<%= psetId %>" >
+        Edit Problem Set
+     </a>
+     
+      <a class="btn btn-sm btn-success" 
+         href="/addProblem/<%= courseId%>/<%= psetId %>">Create New Problem</a>
+      <a class="btn btn-sm btn-success" 
+         href="/showProblemLibrary/<%= courseId%>/<%= psetId %>">
+           Add Problem from Library
+      </a>
+
+      <a class="btn btn-sm btn-success" 
+      href="/uploadProblems/<%= courseId%>/<%= psetId %>">Upload Problems from a Folder</a>
+
+      
+
+
+      <a href="/downloadAsTexFile/<%=courseId%>/<%= psetId %>" 
+        class="btn btn-sm btn-info">
+        Download as .tex file
+      </a>
+
+      <a href="/downloadPersonalizedExamsAsTexFileMGA/<%=courseId%>/<%= psetId %>" 
+        class="btn btn-sm btn-info">
+        Download personalized exams
+      </a>
+<br>
+<br>
+<form method="post" action="/setAsMakeup/<%=courseId%>/<%= psetId %>">
+  If this is a makeup of another problem set, select the problem set here:
+  <select name="makeupSet">
+    <% for (let i=0; i<makeupSets.length; i++){ %>
+      <option 
+        <%= (makeupSets[i]._id == problemSet.makeupOf) ? "selected" : "" %>
+        value="<%= makeupSets[i]._id %>">
+        <%= makeupSets[i].name %>
+      </option>
+    <% } %>
+    </select>
+    
+  <input type="submit" value="Set as Makeup" class="btn btn-sm btn-info">
+</form>
+<br>
+
+<br>
+      <% }  // close if(is_owner) ...%>
+
+
+      <% if (isStaff) { %>
+         
+          <a class="btn btn-sm btn-danger" 
+            href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>">
+            Grade Problem Set
+          </a>
+
+          <a class="btn btn-sm btn-danger" 
+            href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>/json">
+            show JSON grades
+          </a>
+
+      <% } %>
+          
+          <a href="/showCourse/<%= courseId %>" 
+            class="btn btn-sm btn-primary">
+            Back to List of Problem Sets</a>
+    </div>
+  </div>
+</div>
+
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

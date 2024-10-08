@@ -104,7 +104,7 @@ const Skill = require("./models/Skill");
 const RegradeRequest = require("./models/RegradeRequest");
 const MathCourse = require("./models/MathCourse");
 const MathExam = require("./models/MathExam");
-const MathGrades = require("./models/MathGrades");
+const PostedGrades = require("./models/PostedGrades.js");
 const MathSection = require("./models/MathSection");
 const ejsLint = require("ejs-lint");
 
@@ -1177,8 +1177,67 @@ app.get("/uploadProblems/:courseId/:psetId", authorize, hasCourseAccess,
   }
 );
 
-
 app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
+  async (req, res, next) => {
+    try {
+      const studentId = req.user._id;
+      const courseId = req.params.courseId;
+      const member = await CourseMember.findOne({studentId, courseId});
+      const role = member?member.role:"none";
+      if (['student','audit','guest'].includes(role)) {
+        res.redirect("/showProblemSetToStudent/"+req.params.courseId+"/"+req.params.psetId);
+      } else if (['ta','instructor','owner'].includes(role)) {
+        res.redirect("/showProblemSetToStaff/"+req.params.courseId+"/"+req.params.psetId);
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
+
+app.get("/showProblemSetToStaff/:courseId/:psetId", authorize, hasStaffAccess,
+  async (req, res, next) => {
+
+  const psetId = req.params.psetId;
+  const courseId = req.params.courseId;
+  const userId = req.user._id;
+
+  res.locals.psetId = psetId;
+  res.locals.courseId = courseId;
+  
+  res.locals.problemSet = await ProblemSet.findOne({_id: psetId});
+  res.locals.problems = await Problem.find({psetId: psetId}).sort({description:1});
+
+  res.locals.courseInfo = await Course.findOne({_id: courseId}, "ownerId");
+ 
+  //const allPsets = await ProblemSet.find({courseId: courseId});
+  //res.locals.makeupSets = allPsets.filter((x) => x._id!=psetId).concat({name: "None", _id: null});  
+  
+  /*
+  if the course is associated to a mathCourse,
+  then we can use the mathCourse to get the exams
+  of that course and pass them to the view
+  as makeupSets
+  */
+  // const course = await Course.findOne({_id: courseId});
+  // if (course.mathCourseId) {
+  //   const mathCourse = await MathCourse({_id: course.mathCourseId});
+  //   const exams = await MathExam.find({courseId: mathCourse._id});
+  //   res.locals.makeupSets = exams.concat({name: "None", _id: null});
+  // }else {
+  //   res.locals.makeupSets = [];
+  // }
+  // res.locals.skillsMastered = await getStudentSkills(courseId,req.user._id);
+
+  res.locals.skills = await Skill.find({courseId: courseId});
+  
+  res.render("showProblemSetToStaff");
+});
+
+
+
+app.get("/showProblemSetToStudent/:courseId/:psetId", authorize, hasCourseAccess,
   async (req, res, next) => {
 
   const psetId = req.params.psetId;
@@ -1223,7 +1282,7 @@ app.get("/showProblemSet/:courseId/:psetId", authorize, hasCourseAccess,
   res.locals.skills = await Skill.find({courseId: courseId});
   console.dir(JSON.stringify(res.locals.skills));
   
-  res.render("showProblemSet");
+  res.render("showProblemSetToStudent");
 });
 
 app.post("/setAsMakeup/:courseId/:psetId", authorize, isOwner,
@@ -1440,7 +1499,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
   const getSkillsMastered = async (mathCourseId) => {
     //console.log("in getClassMastery")
     const courseId = mathCourseId;
-    const grades = await MathGrades.find({courseId:courseId});
+    const grades = await PostedGrades.find({courseId:courseId});
     const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
     const enrolledStudents = sections.map(section => section.email);
     // console.log(`num enrolledStudents:${enrolledStudents.length}`);
@@ -1606,7 +1665,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
        if (pset.makeupOf) { 
          const makeupOf = pset.makeupOf; // the id of the MathExam that this exam is a makeup for
          tookExamEmails
-             = (await MathGrades
+             = (await PostedGrades
                       .find({examId: makeupOf}))
                       .map((x) => x.email);
          studentsWhoCanTakeExam 

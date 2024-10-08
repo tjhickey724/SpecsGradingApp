@@ -1,0 +1,118 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+    <h1 class="pb-2 border-bottom">
+      <%= problemSet.name.trim() || "Problem Set" %>
+    </h1>
+    <div class="p-2">
+      <h2>Problems
+        <% if (isOwner){%> 
+        <a href="/addProblem/<%= courseId%>/<%= psetId %>">
+          <i class='fas fa-plus' style='font-size:24px'></i> 
+        </a>
+        <% } %>
+      </h2>
+      <ul>
+        <% for(i=0; i<problems.length; i++){ 
+          if (!problems[i].visible && !isOwner ) { %>
+          <li>Problem Hidden </li>
+          <% } else {%>
+          <li>
+
+
+
+
+         
+                <a href="/showProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+                    <%= problems[i].description || "no name" %>
+                </a>
+                <% // the owner can remove the problem from the problem set
+                if (isOwner){ %>
+                 <a href="/removeProblem/<%= courseId%>/<%= psetId %>/<%= problems[i]._id %>">
+                   <i class='fas fa-xmark' style='font-size:24px'></i> 
+                 </a>
+
+                 <a 
+                 href="/editProblemSet/<%=courseId%>/<%= psetId %>" >
+                 <i class='fas fa-pen' style='font-size:24px'></i> 
+              </a>
+             <% } %>
+
+
+
+          <% } %>
+        </li>
+        <% } %>
+      </ul>
+
+
+      <hr>
+      <% if (isOwner){ %>
+
+     
+
+
+      <a href="/downloadAsTexFile/<%=courseId%>/<%= psetId %>" 
+        class="btn btn-sm btn-info">
+        Download as .tex file
+      </a>
+
+      <a href="/downloadPersonalizedExamsAsTexFileMGA/<%=courseId%>/<%= psetId %>" 
+        class="btn btn-sm btn-info">
+        Download personalized exams
+      </a>
+<br>
+<hr>
+<br>
+      <% }  // close if(is_owner) ...%>
+
+
+      <% if (isStaff) { %>
+         
+          <a class="btn btn-sm btn-danger" 
+            href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>">
+            Grade Problem Set
+          </a>
+
+          <a class="btn btn-sm btn-danger" 
+            href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>/json">
+            show JSON grades
+          </a>
+          <br>
+          <b>Upload Exam Grades:</b>        
+        
+          <form method="post" 
+            action="/mathgrades/uploadGrades/<%= courseId %>" 
+            enctype="multipart/form-data">
+
+          
+          
+        
+          
+          
+
+          <%= problemSet.name.trim() || "Problem Set" %>
+          <input type="text" 
+                 name="psetId" 
+                 value="<%= problemSet._id %>"
+                 readonly                 
+                 >
+
+          <input required class="mb-3" type="file" name="grades" >
+          <input class="btn btn-sm btn-primary" type="submit" value="upload grades file (csv)">
+
+      </form>
+<hr>
+      <% } %>
+          
+          <a href="/showCourse/<%= courseId %>" 
+            class="btn btn-sm btn-primary">
+            Back to List of Problem Sets</a>
+    </div>
+  </div>
+</div>
+
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

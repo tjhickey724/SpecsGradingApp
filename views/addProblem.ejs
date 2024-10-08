@@ -5,6 +5,16 @@
     <h1 class="pb-2 border-bottom">
       Add Problem
     </h1>
+    <a class="btn btn-sm btn-success" 
+    href="/showProblemLibrary/<%= courseId%>/<%= psetId %>">
+      Add Problem from Library
+ </a>
+<hr>OR<hr>
+ <a class="btn btn-sm btn-success" 
+ href="/uploadProblems/<%= courseId%>/<%= psetId %>">Upload Problems from a Folder</a>
+
+ <hr>OR<hr>
+   <h2>Create New Problem</h2>
     <div class="p-2">
       <form method="post" action="/saveProblem/<%= courseId%>/<%= psetId %>">
         <div class="form-check">

@@ -15,4 +15,4 @@ var gradeSchema = Schema( {
 //  gradesUpdateTime: Date
 } );
 
-module.exports = mongoose.model( 'MathGrades', gradeSchema );
+module.exports = mongoose.model( 'PostedGrades', gradeSchema );

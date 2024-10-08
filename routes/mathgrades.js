@@ -12,7 +12,7 @@ const ejs = require('ejs');
 const MathCourse = require("../models/MathCourse");
 const MathExam = require("../models/MathExam");
 const MathSection = require("../models/MathSection");
-const MathGrades = require("../models/MathGrades");
+const PostedGrades = require("../models/PostedGrades");
 const Course = require("../models/Course");
 const CourseMember = require("../models/CourseMember");
 const User = require("../models/User");
@@ -96,7 +96,7 @@ router.get("/", isLoggedIn,
   if (res.locals.isAdmin || res.locals.isInstructor) {
     courses = await MathCourse.find({});
   } else {
-    studentCourses = await MathGrades.find({email:req.user.googleemail}).distinct('courseId');
+    studentCourses = await PostedGrades.find({email:req.user.googleemail}).distinct('courseId');
     courses = await MathCourse.find({_id:{$in:studentCourses}});
   }
   res.locals.courses = courses;
@@ -161,7 +161,7 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
   } else {
     const examId = exams[0]._id;
     const courseId = exams[0].courseId;
-    const grades = await MathGrades.find({email:req.user.googleemail,
+    const grades = await PostedGrades.find({email:req.user.googleemail,
                                          courseId:courseId});
     res.locals.roster="";
 
@@ -187,7 +187,7 @@ the number of students who have been graded for the course.
 const getClassGrades = async (req,res,next) => {
   const courseId = req.params.courseId;
   // const examId = req.params.examId;
-  const grades = await MathGrades.find({courseId:courseId});
+  const grades = await PostedGrades.find({courseId:courseId});
   const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
   const enrolledStudents = sections.map(section => section.email);
 
@@ -245,9 +245,9 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   const examId = req.params.examId;
   const exam = await MathExam.findOne({_id:examId});
   const gradesId = req.params.gradesId;
-  const grade = await MathGrades.findOne({_id:gradesId});
-  const grades = 
-    await MathGrades.find({email:grade.email,
+  const grade = await PostedGrades.findOne({_id:gradesId});
+  const grades =  
+    await PostedGrades.find({email:grade.email,
                            courseId:courseId})
                     .populate('examId');
   // find all students in the course by section
@@ -296,7 +296,7 @@ router.get("/showExamToStudent/:courseId/:examId", isLoggedIn, hasCourseAccess,
      const exam = await MathExam.findOne({_id:examId});
      res.locals.course = course;
      res.locals.exam = exam;
-     const grades = await MathGrades.find({examId:examId,studentId:studentId});
+     const grades = await PostedGrades.find({examId:examId,studentId:studentId});
      res.locals.grades = grades;
      res.json(grades);
      //res.render('mathgrades/showExam');
@@ -421,7 +421,7 @@ router.get("/showMastery/:courseId", hasStaffAccess, getClassGrades,
   const course = await MathCourse.findOne({_id:courseId});
   const csv = req.query.csv;
   res.locals.course = course;
-  const grades = await MathGrades.find({courseId:courseId});
+  const grades = await PostedGrades.find({courseId:courseId});
   const sections = await MathSection.find({courseId:courseId});
   const sectionDict = {};
   for (let section of sections) {
@@ -451,7 +451,7 @@ router.get("/showMakeupMastery/:courseId/:examId", hasStaffAccess, getClassGrade
     const csv = req.query.csv;
 
     const grades = 
-      await MathGrades
+      await PostedGrades
           .find({examId:examId,skillsMastered:[],skillsSkipped:[]}); 
     const course = await MathCourse.findOne({_id:courseId});
     const exam = await MathExam.findOne({_id:examId});
@@ -485,7 +485,7 @@ router.get("/showExam/:courseId/:examId", hasStaffAccess,
     const exam = await MathExam.findOne({_id:examId});
     res.locals.course = course;
     res.locals.exam = exam;
-    const grades = await MathGrades.find({examId:examId});
+    const grades = await PostedGrades.find({examId:examId});
     res.locals.grades = grades;
     res.render('mathgrades/showExam');
 })
@@ -506,7 +506,7 @@ router.get("/deleteExam/:courseId/:examId", hasAdminAccess,
     const courseId = req.params.courseId;
     const examId = req.params.examId;
     const exam = await MathExam.findOne({_id:examId});
-    await MathGrades.deleteMany({examId:examId});
+    await PostedGrades.deleteMany({examId:examId});
     await exam.remove();
     res.redirect(`/mathgrades/showCourse/${courseId}`);
 });
@@ -619,7 +619,7 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
 
             const {skillsMastered,skillsSkipped} = processSkills(row);
 
-            // create new MathGrades object
+            // create new PostedGrades object
             const gradeJSON = {              
                 name: name,
                 email: email,   
@@ -634,7 +634,7 @@ router.post("/uploadGrades/:courseId", hasStaffAccess,
  
 
         });
-        await MathGrades.insertMany(documents); 
+        await PostedGrades.insertMany(documents); 
         //res.json({ rowCount, dataFromRows });
       } catch (error) {
         console.log(error);
@@ -760,7 +760,7 @@ router.post("/uploadSectionData/:courseId", hasStaffAccess,
             const name = row.name;
             const section = row.section;
 
-            // create new MathGrades object
+            // create new PostedGrades object
             const sectionJSON = {              
                 name: name,
                 email: email,  

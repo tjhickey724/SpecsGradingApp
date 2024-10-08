@@ -43,25 +43,27 @@ const isLoggedIn = (req, res, next) => {
         res.redirect("/login");
       } else {
         const id = req.params.courseId;
-        res.locals.courseInfo = await Course.findOne({_id: id});
+        const course = await Course.findOne({_id: id});
+        res.locals.courseInfo = course;
         const memberList = 
-          await CourseMember.find(
+          await CourseMember.findOne(
               {studentId: req.user._id, 
-                courseId: res.locals.courseInfo._id});
+                courseId: course._id});
+        const member = memberList.length>0?memberList[0]:{};
                 
-        res.locals.isOwner = res.locals.courseInfo.ownerId == req.user._id+"";
+        res.locals.isOwner = course.ownerId == req.user._id+"";
     
         res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
 
 
-        res.locals.isMgaStudent = 
-            (memberList.length>0 && res.locals.courseInfo.nonGrading);
+        res.locals.isMgaStudent = member.role=='student'
+                                  && course.nonGrading;
         
-        res.locals.isEnrolled = 
-            (memberList.length > 0 && !res.locals.courseInfo.nonGrading);
+        res.locals.isEnrolled = member.role=='student';
+            //(memberList.length > 0 && !res.locals.courseInfo.nonGrading);
         
-        res.locals.isTA = 
-            (req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id));
+        res.locals.isTA = memberList.role.includes('ta');
+            //(req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id));
 
 
 

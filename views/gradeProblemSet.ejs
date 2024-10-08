@@ -129,11 +129,11 @@
 
 
       <hr>
-      <% if (courseInfo.ownerId.equals(user._id)){ %>
+      <% if (isOwner){ %>
       <a class="btn btn-sm btn-success" href="/addProblem/<%= problemSet.courseId %>/<%= psetId %>">Add Problem</a>
       <% } %>
       <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
-      <% if ((user.taFor).indexOf(problemSet.courseId)>=0) { %>
+      <% if (isTA) { %>
       <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet.courseId%>/<%= problemSet._id %>">Grade Problem Set </a>
       <% } %>
 

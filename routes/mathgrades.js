@@ -56,6 +56,17 @@ const isLoggedIn = (req, res, next) => {
   }
 }
 
+const hasCourseAccess = (req, res, next) => {
+  const studentId = req.user._id;
+  const courseId = req.params.courseId;
+  const member = CourseMember.findOne({studentId,courseId});
+  console.dir(['hasCourseAccess',member]);
+  if (member) {
+    next()
+  } else {
+    res.json({message:"you do not have access to this course"});
+  }
+}
 
 const hasStaffAccess = (req, res, next) => {
   if (instructors.includes(req.user.googleemail)) {
@@ -276,7 +287,21 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   res.json({message:"you are not authorized to view this page"});
 }})
 
-
+router.get("/showExamToStudent/:courseId/:examId", isLoggedIn, hasCourseAccess,
+  async (req,res,next) => {
+     const studentId = req.user._id;
+     const courseId = req.params.courseId;
+     const course = await MathCourse.findOne({_id:courseId});
+     const examId = req.params.examId;
+     const exam = await MathExam.findOne({_id:examId});
+     res.locals.course = course;
+     res.locals.exam = exam;
+     const grades = await MathGrades.find({examId:examId,studentId:studentId});
+     res.locals.grades = grades;
+     res.json(grades);
+     //res.render('mathgrades/showExam');
+ })
+ 
 
 /* ********************************************************** */
 // only admins and instructors can access the remaining routes
@@ -464,6 +489,8 @@ router.get("/showExam/:courseId/:examId", hasStaffAccess,
     res.locals.grades = grades;
     res.render('mathgrades/showExam');
 })
+
+
 
 
 

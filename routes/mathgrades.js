@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var multer = require("multer");
 const storage = multer.memoryStorage()
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storage });
 const csv = require('csv-parser')
 const fs = require('fs')
 const streamifier = require("streamifier");
@@ -152,9 +152,10 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
   /* shows link to the student's page for this course */
   const courseId = req.params.courseId;
   const course = await MathCourse.findOne({_id:courseId})
+  const mlaCourseId = course.mlaCourseId;
   res.locals.course = course;
   res.locals.results = [];
-  const exams = await MathExam.find({courseId:courseId});
+  const exams = await ProblemSet.find({courseId:mlaCourseId});
   res.locals.exams = exams;
   if (exams.length == 0) {
     res.json({message:"no exams for this course yet"});
@@ -162,12 +163,13 @@ router.get("/showStudentCourse/:courseId",isLoggedIn,
     const examId = exams[0]._id;
     const courseId = exams[0].courseId;
     const grades = await PostedGrades.find({email:req.user.googleemail,
-                                         courseId:courseId});
+                                         courseId:mlaCourseId});
     res.locals.roster="";
 
     if (grades.length != 0) {
       const gradeId = grades[0]._id;
-      res.redirect(`/mathgrades/showStudent/${courseId}/${examId}/${gradeId}`);
+      res.json([grades]);
+      //res.redirect(`/mathgrades/showStudent/${courseId}/${examId}/${gradeId}`);
     }
     else {
       res.json({message:"no grades for this course yet"});
@@ -245,8 +247,11 @@ router.get("/showStudent/:courseId/:examId/:gradesId", isLoggedIn,
   const examId = req.params.examId;
   const exam = await MathExam.findOne({_id:examId});
   const gradesId = req.params.gradesId;
-  const grade = await PostedGrades.findOne({_id:gradesId});
-  const grades =  
+  let grade = await PostedGrades.findOne({_id:gradesId});
+  if (!grade) {
+    grade={};
+  }
+  const grades = 
     await PostedGrades.find({email:grade.email,
                            courseId:courseId})
                     .populate('examId');

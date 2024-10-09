@@ -11,6 +11,10 @@
         <a href="/addProblem/<%= courseId%>/<%= psetId %>">
           <i class='fas fa-plus' style='font-size:24px'></i> 
         </a>
+        <a 
+        href="/editProblemSet/<%=courseId%>/<%= psetId %>" >
+        <i class='fas fa-pen' style='font-size:24px'></i> 
+     </a>
         <% } %>
       </h2>
       <ul>
@@ -33,10 +37,7 @@
                    <i class='fas fa-xmark' style='font-size:24px'></i> 
                  </a>
 
-                 <a 
-                 href="/editProblemSet/<%=courseId%>/<%= psetId %>" >
-                 <i class='fas fa-pen' style='font-size:24px'></i> 
-              </a>
+
              <% } %>
 
 
@@ -83,7 +84,7 @@
           <b>Upload Exam Grades:</b>        
         
           <form method="post" 
-            action="/mathgrades/uploadGrades/<%= courseId %>" 
+            action="/uploadGrades/<%= courseId %>" 
             enctype="multipart/form-data">
 
           

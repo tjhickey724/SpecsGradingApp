@@ -14,10 +14,13 @@ const logger = require("morgan");
 const showdown  = require('showdown');
 const converter = new showdown.Converter();
 const multer = require("multer");
+const csv = require('csv-parser')
+const streamifier = require("streamifier");
 
 const aws = require('aws-sdk'); //"^2.2.41"
 const multerS3 = require("multer-s3");
 const cors = require("cors")();
+const ejs = require('ejs');
 
 require("dotenv").config();
 
@@ -454,12 +457,15 @@ app.post("/changeCourseName/:courseId", authorize, isOwner,
 app.get("/showRoster/:courseId", authorize, hasStaffAccess, 
   async (req, res, next) => {
   try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id}, "name coursePin ownerId");
+    const courseId = req.params.courseId;
+    res.locals.courseInfo 
+       = await Course.findOne(
+                {_id: courseId}, 
+                "name coursePin ownerId");
 
     const memberList = 
         await CourseMember
-              .find({courseId: res.locals.courseInfo._id})
+              .find({courseId})
               .populate('studentId');
     const members = memberList.map((x) => x.studentId);
 
@@ -520,6 +526,140 @@ app.post("/addStudents/:courseId", authorize, isOwner,
   }
 });
 
+
+const updateCourseMembers = async (sectionDocuments) => {
+  /*
+    for each student in the section, update the courseMember collection.
+    First lookup their user id in the User collection, then 
+    use the mathcourseId to lookup their MLA courseId in the Course collection.
+    Then update the courseMember collection with the new section and role.
+    and generate a list of their userIds. 
+    Finally, change the role of all students in the course
+    who are not in the section to "dropped".
+    When the sectionData is uploaded this is the official list of students
+    in the class.
+  */
+  console.dir(['in updateCourseMembers',sectionDocuments]);
+  let userIds = [];
+  let course = {}; // will be the Course object from the section docs
+  for (let sectionMember of sectionDocuments) {
+    // update section data for existing students
+    // and add new students to the CourseMember collection
+    const email = sectionMember.email;
+    const courseId = sectionMember.courseId;
+    course = await Course.findOne({_id:courseId});
+    let user = await User.findOne({googleemail:email});
+    if (!user) {
+      // create a new user with the email as the googleemail
+      const userJSON = {
+        googleemail:email,
+        googlename:sectionMember.name,
+        createdAt: new Date(),
+      }
+      user = new User(userJSON);
+      user = await user.save();
+    }
+    userIds.push(user._id);
+    let courseMember 
+        = await CourseMember.findOne(
+                  {studentId:user._id,
+                    courseId:course._id});
+    if (courseMember) {
+      // update their section and role if they changed
+      if ((courseMember.section != sectionMember.section) 
+            ||
+          (courseMember.role != "student"))
+        {
+        courseMember.section = sectionMember.section;
+        courseMember.role = 'student';
+        courseMember = await courseMember.save();
+      }
+    } else {
+      // add them to the class
+      const courseMemberJSON = {
+        studentId:user._id,
+        courseId:course._id,
+        section:sectionMember.section,
+        role:"student",
+        createdAt: new Date(),
+      }
+      courseMember = new CourseMember(courseMemberJSON);
+      courseMember = await courseMember.save();
+    }
+  }
+
+  console.dir(['in updateCourseMembers',JSON.stringify(userIds,null,5)]);
+  console.log(JSON.stringify([course._id,userIds],null,5));
+  // for all users in the course who are not in the section, 
+  // change their role to "dropped"
+  const courseMembers = 
+    await CourseMember.updateMany(
+      {courseId:course._id,studentId:{$nin:userIds},role:"student"},
+    {$set:{role:"dropped"}});
+
+
+}
+
+app.post("/uploadRoster/:courseId", 
+  authorize, hasStaffAccess,
+  memoryUpload.single('sections'),
+ async (req, res, next) => {
+
+    const courseId = req.params.courseId;
+    const course = await Course.findOne({_id:courseId})
+    res.locals.course = course;
+
+
+    /*
+    read the uploaded csv file and update the grades
+    */
+
+    const { buffer, originalname } = req.file;
+
+  const dataFromRows = [];
+
+  streamifier
+    .createReadStream(buffer)
+    .pipe(csv()) //.parse({ headers: true, ignoreEmpty: true })) // <== this is @fast-csv/parse!!
+    .on("data", (row) => {
+      dataFromRows .push(row);
+    })
+    .on("end", async (rowCount) => {
+      try {
+
+        // read section data
+        let documents = []
+        dataFromRows.forEach(async (row) => {
+            const email = row.email;
+            const name = row.name;
+            const section = row.section;
+
+            // create new PostedGrades object
+            const sectionJSON = {              
+                name: name,
+                email: email,  
+                section: section,
+                courseId: courseId,
+                createdAt: new Date(),
+            }
+            documents.push(sectionJSON);
+
+
+        });
+        //await MathSection.deleteMany({courseId:courseId});
+        //await MathSection.insertMany(documents); 
+        await updateCourseMembers(documents); // use section Data to update CourseMembers
+        //res.json({ rowCount, dataFromRows });
+        res.redirect(`/showRoster/${courseId}`);
+      } catch (error) {
+        console.log(error);
+        //res.json({ error});
+      }
+    });
+
+ //res.json({message:"grades uploaded"});
+ //res.redirect(`/showRoster/${courseId}`);
+});
 
 /*
   showCourse is the main page for a course
@@ -674,116 +814,125 @@ app.get("/showCourseToStaff/:courseId", authorize, hasStaffAccess,
   }
 });
 
-app.get("/showCourseToStudent/:courseId", authorize, hasCourseAccess,
+
+/*
+This middleware creates res.locals.skillCounts, which is a dictionary
+indexed by skill name, whose values are the number of students who have
+mastered that skill. It also creates res.locals.studentCount, which is
+the number of students who have been graded for the course.
+*/
+const getClassGrades = async (req,res,next) => {
+  const courseId = req.params.courseId;
+  // const examId = req.params.examId;
+  const grades = await PostedGrades.find({courseId:courseId});
+  //const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
+  //const enrolledStudents = sections.map(section => section.email);
+
+  /*
+    create a dictionary which gives the number of students
+    who have mastered each skill, indexed by skill name
+  */
+  const skillCounts = {};
+  const skillMastery = {};  // list of students who have mastered each skill
+  let studentCount = 0;
+  let studentEmails = [];
+  for (let grade of grades) {
+    //if (!enrolledStudents.includes(grade.email)) {
+    //  continue;}
+    // count all students who have been graded for this course
+    if (!studentEmails.includes(grade.email)) {
+        studentEmails.push(grade.email);
+        studentCount += 1;
+      }
+
+    for (let skill of grade.skillsMastered) {
+      
+      if (skillCounts[skill]) {
+        if (!skillMastery[skill].includes(grade.email)) {
+          skillMastery[skill].push(grade.email);
+          skillCounts[skill] += 1;
+        }
+        
+      } else {
+        skillMastery[skill] = [grade.email];
+        skillCounts[skill] = 1;
+      }
+    }
+  }
+  res.locals.skillCounts = skillCounts;
+  res.locals.studentCount = studentCount;
+  console.dir(['in getClassGrades',skillCounts,studentCount,skillMastery])
+
+
+  next()
+}
+
+
+app.get("/showCourseToStudent/:courseId", 
+  authorize, hasCourseAccess,
+  getClassGrades,
   async (req, res, next) => {
   try {
-    const id = req.params.courseId;
-    res.locals.courseInfo = await Course.findOne({_id: id});
-
-    const memberList = await CourseMember.find({studentId: req.user._id, courseId: res.locals.courseInfo._id});
+    console.log('in showCourseToStudent')
+    const courseId = req.params.courseId;
+    const course =  await Course.findOne({_id: courseId});
+    res.locals.courseInfo = course;
+    const memberList = await CourseMember.find({studentId: req.user._id, courseId});
     res.locals.isEnrolled = memberList.length > 0;
 
-    res.locals.problemSets = await ProblemSet.find({courseId: res.locals.courseInfo._id});
+    res.locals.problemSets = await ProblemSet.find({courseId});
     // next we create maps to find the number of problems and user's answers
     // in each problem set so the user will know if they have finished a problemset
-    let problems = await Problem.find({courseId: res.locals.courseInfo._id});
-    let myAnswers = await Answer.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
-
-    let problemMap = new Map(); // counts the number or problems in each problemset
-    let answerMap = new Map(); // counts the number of the user's answers to problems in each problemset 
-    for (let problem of problems) {
-      let count = problemMap.get(problem.psetId.toString());
-      if (count) {
-        problemMap.set(problem.psetId.toString(), count + 1);
-      } else {
-        problemMap.set(problem.psetId.toString(), 1);
-      }
-    }
-    for (let answer of myAnswers) {
-      let count = answerMap.get(answer.psetId.toString());
-      if (count) {
-        answerMap.set(answer.psetId.toString(), count + 1);
-      } else {
-        answerMap.set(answer.psetId.toString(), 1);
-      }
-    }
-    res.locals.problemMap = problemMap;
-    res.locals.answerMap = answerMap;
-
-    // Count the number of thumbs up and thumbs down for the user's reviews
-    // and send the user's reviews to the page
-    let myReviews = await Review.find({courseId: res.locals.courseInfo._id, studentId: req.user._id});
-    res.locals.myReviews = myReviews;
-    let thumbsUp = 0;
-    let thumbsDown = 0;
-    for (let r of myReviews) {
-      thumbsUp += r.upvoters.length;
-      thumbsDown += r.downvoters.length;
-    }
-    res.locals.thumbsUp = thumbsUp;
-    res.locals.thumbsDown = thumbsDown;
-
-    // check to see if the user is a TA for this course
-    // and send it to the page
-    res.locals.isTA = req.user.taFor && req.user.taFor.includes(res.locals.courseInfo._id);
-
-
-    /* 
-       Find the number of times, skillCount[s] 
-       that the user has mastered each skill s
-       in the course...
-    */
-
-    // get the list of the student's answers for this course
-    let usersAnswers = await Answer.find({studentId: req.user._id, courseId: id});
-    // get the ides of all of the students answers for this course
-    // let answerIds = usersAnswers.map((x) => x._id);
-    // get the ids of the TAs for this course
-    //let taIds = (await User.find({taFor: id})).map((x) => x._id);
-    // get the reviews of the students answers that have been reviewed by TAs
-    //let reviews = await Review.find({answerId: {$in: answers}, reviewerId: {$in: taIds}});
-
-    // get the lists of skill ids for all problems the student mastered
-    let skillLists = usersAnswers.map((x) => x.skills);
-    let skillCount = {};
-    for (slist of skillLists) {
-      if (!slist) continue;
-      for (s of slist) {
-        skillCount[s] = (skillCount[s] || 0) + 1;
-      }
-    }
-    res.locals.skillCount = skillCount;
-
-    let skillIds = Array.from(new Set(flatten(skillLists)));
-    res.locals.skills = await Skill.find({_id: {$in: skillIds}});
-    let courseSkills = await CourseSkill.find({courseId: id}).populate('skillId');
-    res.locals.allSkills = courseSkills.map((x) => x.skillId);
-    //res.locals.allSkills = await Skill.find({courseId: id});
-    res.locals.skillIds = skillIds; 
-    // skillIds is a list of the ids of the skills the student has mastered
-
-    res.locals.regradeRequests = await RegradeRequest.find({courseId: id, completed: false});
-
-
-    let startDate = res.locals.courseInfo.createdAt
-    let stopDate = new Date(startDate.getTime() + 1000*3600*24*120);
-    if (res.locals.courseInfo.startDate) {
-      startDate = res.locals.courseInfo.startDate;
-    }
-    if (res.locals.courseInfo.stopDate) {
-      stopDate = res.locals.courseInfo.stopDate;
-    }
-    res.locals.startDate = startDate;
-    res.locals.stopDate = stopDate;  
     
-    console.dir(res.locals);
-    if (res.locals.hasCourseAccess) {
-      res.render("showCourse");
-    } else if (res.locals.isMgaStudent) {
-      res.render("showCourseMGA");
-    } else {
-      res.send("You do not have access to this course.");
+    let grade = await PostedGrades.findOne({email:req.user.googleemail,courseId});
+    if (!grade) {
+      grade={};
     }
+
+    let grades = await PostedGrades.find({courseId,email:req.user.googleemail});
+    //res.json(grades);
+
+    if ((req.user.googleemail == grade.email) || (instructors.includes(req.user.googleemail))) {
+      res.locals.course = course;
+      //res.locals.exam = exam;
+      //res.locals.grade = grade;
+      res.locals.name = grade.name;
+      res.locals.email = grade.email;
+      res.locals.grades = grades;
+      let skillsMastered = [];
+      let allSkills = [];
+      let numFskills = 0;
+      let numGskills = 0;
+      for (let grade of grades) {
+        skillsMastered = skillsMastered.concat(grade.skillsMastered);
+        allSkills = allSkills.concat(grade.skillsMastered).concat(grade.skillsSkipped);       
+      }
+      allSkills = [...new Set(allSkills)]; //.sort(compareExams);
+      res.locals.allSkills = allSkills;
+
+      res.locals.skillsMastered = 
+        [...new Set(skillsMastered)];//.sort(compareExams);
+      res.locals.numFskills = res.locals.skillsMastered.filter(skill => skill[0] == "F").length;
+      res.locals.numGskills = res.locals.skillsMastered.filter(skill => skill[0] == "G").length;
+    
+      res.locals.course = course;
+      res.locals.name=req.user.googlename;
+      res.locals.email=req.user.googleemail;
+
+      
+    } else {
+      res.locals.course = course;
+      res.locals.name=req.user.googlename;
+      res.locals.email=req.user.googleemail;
+      res.locals.grade = grade;
+      res.locals.skillsMastered = [];
+      res.locals.numFskills = 0;
+      res.locals.numGskills = 0;
+      res.locals.allSkills = [];
+      res.locals.grades = [];
+
+    }
+    res.render("mathgrades/showStudent");
   } catch (e) {
     next(e);
   }
@@ -1305,6 +1454,120 @@ app.post("/setAsMakeup/:courseId/:psetId", authorize, isOwner,
 });
 
 
+
+
+const trimSkillString = (skill) => {
+  /* The name of the	skill is of the	form:
+ "2: F1 (1.0 pts)": "0.0",
+ so we can extrat the string from the first ":" to the first "("
+ and then trim it to get	the skill name.
+*/
+  let firstColon = skill.indexOf(":");
+  let firstParen = skill.indexOf("(");
+  if (firstParen == -1) firstParen=skill.length;
+
+  const skillName = skill.substring(firstColon+1,firstParen).trim();
+  if (skillName == ''){
+    console.log(`empty skill name for skill:${skill}`);
+  }
+  return skillName;
+}
+
+const processSkills = (grades) => {
+    const skillsMastered = [];
+    const skillsSkipped = [];
+    for (let key in grades) {
+        if (
+                 (grades[key] === "1.0")  
+              && (!key.includes("points"))
+              && (!key.includes("Honor Pledge"))
+              && (!key.includes("Total Score"))
+              && (!key.includes("Max Points"))
+              && (!key.includes("Count"))
+            ) {
+            skillsMastered.push(trimSkillString(key));
+        } else if ((grades[key] === "0.0") 
+                  && trimSkillString(key) != "" 
+                  && (!key.includes("Honor Pledge")) 
+                  && (!key.includes("Total Score"))) {
+            skillsSkipped.push(trimSkillString(key));
+        }
+    }
+    return {skillsMastered,skillsSkipped};
+}
+
+            
+app.post("/uploadGrades/:courseId", authorize, hasStaffAccess,
+  (req,res,next) => {console.log("in uploadGrades");next();},
+  memoryUpload.single('grades'),
+ async (req, res, next) => {
+
+    const courseId = req.params.courseId;
+    const course = await Course.findOne({_id:courseId})
+    res.locals.course = course;
+
+
+    const examname = req.body.examname;
+    const psetId = req.body.psetId;
+    const problemSet = await ProblemSet.findOne({_id:psetId});
+    res.locals.problemSet = problemSet;
+
+    /*
+    read the uploaded csv file and update the grades
+    */
+
+    const { buffer, originalname } = req.file;
+
+  const dataFromRows = [];
+
+  streamifier
+    .createReadStream(buffer)
+    .pipe(csv()) //.parse({ headers: true, ignoreEmpty: true })) // <== this is @fast-csv/parse!!
+    .on("data", (row) => {
+      dataFromRows .push(row);
+    })
+    .on("end", async (rowCount) => {
+      try {
+
+        let documents = []
+        dataFromRows.forEach(async (row) => {
+            if (!row.Name) return; // skip empty rows
+
+            const email = row.Email;
+            const name = row.Name;
+
+
+            const {skillsMastered,skillsSkipped} = processSkills(row);
+
+            // create new PostedGrades object
+            const gradeJSON = {              
+                name: name,
+                email: email,   
+                courseId: courseId,
+                examId: psetId,
+                skillsMastered: skillsMastered,
+                skillsSkipped: skillsSkipped,
+                createdAt: new Date(),
+                grades: row
+            }
+            documents.push(gradeJSON);
+ 
+
+        });
+        await PostedGrades.insertMany(documents); 
+        //res.json({ rowCount, dataFromRows });
+        problemSet.status = "graded";
+        await problemSet.save();
+      } catch (error) {
+        console.log(error);
+        //res.json({ error});
+      }
+    });
+
+ //res.json({message:"grades uploaded"});
+ res.redirect(`/showCourse/${courseId}`);
+});
+
 app.get("/gradeProblemSet/:courseId/:psetId", authorize, hasStaffAccess,
   async (req, res, next) => {
   const psetId = req.params.psetId;
@@ -1385,6 +1648,8 @@ const generateTex = (problems) => {
   return tex;
 };
 
+
+
 app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasStaffAccess,
   /* this route will generate a large latex file with a personalized exam
      for the specified problemset in the specified course with one exam for
@@ -1399,15 +1664,15 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
 
   */
   async (req, res, next) => {
-    const courseid = req.params.courseId;
+    const courseId = req.params.courseId;
     const psetId = req.params.psetId;
     //const problemSet = await ProblemSet.findOne({_id: psetId});
     const problems = await Problem.find({psetId: psetId});
 
-    const courseMembers = await CourseMember.find({courseId: coursr}).populate('studentId');
+    const courseMembers = await CourseMember.find({courseId}).populate('studentId');
     const studentIds = courseMembers.map((x) => x.studentId._id);
     const mastery = 
-      await Answer.find({courseId: courseid, studentId: {$in: studentIds}});
+      await Answer.find({courseId, studentId: {$in: studentIds}});
 
 
 
@@ -1500,8 +1765,10 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
     //console.log("in getClassMastery")
     const courseId = mathCourseId;
     const grades = await PostedGrades.find({courseId:courseId});
-    const sections = await MathSection.find({courseId:courseId,section:{$ne:""}});
-    const enrolledStudents = sections.map(section => section.email);
+    const sections 
+      = await CourseMember.find({courseId,role:'student'}).populate('studentId');
+    const enrolledStudents 
+        = sections.map(section => section.studentId.googleemail);
     // console.log(`num enrolledStudents:${enrolledStudents.length}`);
     // console.log(`enrolledStudents:${JSON.stringify(enrolledStudents)}`);
     /*
@@ -1513,9 +1780,9 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
     let studentCount = 0;
     let studentEmails = [];
     for (let grade of grades) {
-      //console.log(`grade:${JSON.stringify(grade.email)}`);
+      console.log(`grade:${JSON.stringify(grade.email)}`);
       if (!enrolledStudents.includes(grade.email)) {
-        //console.log('skipping');
+        console.log(`skipping ${grade.email}`);
         continue;
       }
       // count all students who have been graded for this course
@@ -2232,6 +2499,9 @@ app.post("/saveAnswer/:courseId/:psetId/:probId",
   });
 
 
+
+
+
 const addImageFilePath = (req,res,next) => {
   // this adds a filepath to the request object
   // and is used to upload images in the storage system
@@ -2648,6 +2918,167 @@ app.get("/showTAs/:courseId", authorize, hasCourseAccess,
 });
 
 
+
+const compareSkills = (a,b) => {
+  if (a[0] < b[0]) {
+    return -1;
+  } else if (a[0] > b[0]) {
+    return 1;
+  } else {
+    let n1 = parseInt(a.slice(1));
+    let n2 = parseInt(b.slice(1));
+    if (n1 < n2) {
+      return -1;
+    } else if (n1 > n2) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+} 
+
+
+const calculateMastery = (grades) => {
+  /* 
+  for each student, calculate the set of skills mastered.
+  return a dictionary indexed by student emails, 
+  whose values are dictionaries of skills mastered by that student,
+  indexed by skill name whose values are 1.0 if it was mastered and 0.0
+  if it was not mastered
+  */
+  const mastery = {};
+  let skillSet = new Set();
+  for (let grade of grades) {
+      const email = grade.email;
+
+      
+
+      if (!mastery[email]){
+        mastery[email] = {name:grade.name};
+      }
+      (grade.skillsMastered).forEach(skill => {
+        skillSet.add(skill);
+        mastery[email][skill] = 1.0;
+      }
+      );
+      (grade.skillsSkipped).forEach(skill => {
+        if (!mastery[email][skill]) {
+          mastery[email][skill] = 0.0;
+        }
+      });
+  }
+  for (let email in mastery) {
+    /* calculate number of F skills and G skills and
+       add these as keys to the mastery dictionary */
+    mastery[email]["Fskills"] = 0;
+    mastery[email]["Gskills"] = 0;
+    for (let skill in mastery[email]) {
+      if ((skill[0] == "F") 
+          && (skill != "Fskills")
+          && (mastery[email][skill] == 1.0)) {
+        mastery[email]["Fskills"] += 1;
+      }
+      if ((skill[0] == "G")
+          && (skill != "Gskills")
+          && (mastery[email][skill] == 1.0)) {
+        mastery[email]["Gskills"] += 1;
+      }
+    }
+  }
+  skillSet = [...skillSet];
+  skillSet = skillSet.sort(compareSkills);
+  return [skillSet,mastery];
+}
+
+const masteryCSVtemplate =
+`name,email,section,Fskills,Gskills,<% for (let skill in skillSet) { %><%= 
+    skillSet[skill] %>,<% } %>
+<% for (let email in mastery) { %><%= 
+    mastery[email]['name'] %>,<%= 
+    email %>,<%= 
+    sectionDict[email] %>,<%=
+    mastery[email]['Fskills'] %>,<%= 
+    mastery[email]['Gskills'] %>,<% 
+    for (let skill of skillSet) { 
+                        let m =mastery[email][skill];
+                        if (m === undefined) {
+                            m = 0;
+                        }
+                        %><%= 
+        m %>, <% } %>
+<% } %>
+`;
+
+
+app.get("/showMastery/:courseId", 
+  authorize, hasStaffAccess, 
+  getClassGrades,
+ async (req,res,next) => {
+  console.log('in showMastery');
+  const courseId = req.params.courseId;
+  const course = await Course.findOne({_id:courseId});
+  const csv = req.query.csv;
+  res.locals.course = course;
+  const grades = await PostedGrades.find({courseId});
+  const sections = await CourseMember.find({courseId,role:'student'}).populate('studentId');
+  const sectionDict = {};
+  for (let section of sections) {
+    sectionDict[section.studentId.googleemail] = section.section;
+  }
+  res.locals.sectionDict = sectionDict;
+  res.locals.grades = grades;
+  [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
+  console.dir(['showMastery',res.locals.skillSet,res.locals.mastery]);
+  if (csv){ 
+    res.set('Content-Type', 'text/csv');
+    res.send(ejs.render(masteryCSVtemplate,res.locals));
+  } else {
+    //res.json([res.locals.skillSet,res.locals.mastery])
+    res.render('showMastery'); 
+  }
+})
+
+/*
+this shows the mastery table but restricted to those students who didn't
+take the specified exam.
+*/
+app.get("/showMakeupMastery/:courseId/:examId", 
+  authorize, hasStaffAccess, 
+  getClassGrades,
+  async (req,res,next) => {
+    const courseId = req.params.courseId;
+    const examId = req.params.examId;
+    const csv = req.query.csv;
+
+    const grades = 
+      await PostedGrades
+          .find({examId:examId,skillsMastered:[],skillsSkipped:[]}); 
+    const course = await MathCourse.findOne({_id:courseId});
+    const exam = await MathExam.findOne({_id:examId});
+      
+    const sections = await MathSection.find({courseId:courseId});
+    const sectionDict = {};
+    for (let section of sections) {
+      sectionDict[section.email] = section.section;
+    }
+    res.locals.course = course;
+    res.locals.exam = exam;
+    res.locals.grades = grades;
+    res.locals.sectionDict = sectionDict;
+    [res.locals.skillSet,res.locals.mastery] = calculateMastery(grades); 
+    
+    if (csv){ 
+      res.set('Content-Type', 'text/csv');
+      res.send(ejs.render(masteryCSVtemplate,res.locals));
+    } else {
+      //res.json(grades);
+      res.render('showMastery');
+    }
+ })
+
+ 
+
+
 const ObjectId = mongoose.Types.ObjectId;
 
 const masteryAgg = (courseId) => [
@@ -2776,6 +3207,14 @@ app.use(function (req, res, next) {
   next(createError(404));
 });
 
+
+
+
+      
+
+
+
+
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -2838,6 +3277,4 @@ function createGradeSheet(students, problems, answers, reviews) {
 }
 
 
-
-      
 module.exports = app;

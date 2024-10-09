@@ -1650,7 +1650,8 @@ const generateTex = (problems) => {
 
 
 
-app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasStaffAccess,
+app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", 
+  authorize, hasStaffAccess,
   /* this route will generate a large latex file with a personalized exam
      for the specified problemset in the specified course with one exam for
      each student in the course. Also each exam has questions only for those skills
@@ -1860,32 +1861,30 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
     async (req, res, next) => {
       const courseId = req.params.courseId;
       const course = await Course.findOne({_id: courseId});
-      if (!course.mathCourseId) {
-        res.send("This course does not have an associated math course.");
-      } else {
-
         /*
         First we calculate the set of skills that each student has mastered
         and some other things we don't need yet!
         */
-        const mathCourseId = course.mathCourseId;
         const {skillsMastered,skillCounts,enrolledStudents} 
-           = await getSkillsMastered(mathCourseId);
-        
+           = await getSkillsMastered(courseId);
+        console.dir(`skillsMastered:${JSON.stringify(skillsMastered)}`);
+        console.dir(`skillCounts:${JSON.stringify(skillCounts)}`);
+        console.dir(`enrolledStudents:${JSON.stringify(enrolledStudents)}`);
+
 
         /*
         Now we create a dictionary skillIdsMastered: studentEmail -> [skillId]
         which maps each student to a list of skillIds that the student has mastered
         We will use this to create the personalized exams.
         */
-        let allSkills = await Skill.find({courseId:courseId});
+        let allSkills = await Skill.find({courseId});
         // for (let skill of allSkills) {
         //   console.dir([skill._id+"",skill.name]);
         //   console.log(JSON.stringify(skill));
         // }
         let skillIdMap = {}
         for (let skillName in skillCounts) {
-          let skill = await Skill.findOne({courseId:courseId,shortName: skillName});
+          let skill = await Skill.findOne({courseId,shortName: skillName});
           if (skill) skillIdMap[skillName] = skill._id+"";
         }
 
@@ -1934,6 +1933,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
          tookExamEmails
              = (await PostedGrades
                       .find({examId: makeupOf}))
+                      .sort({email:1})
                       .map((x) => x.email);
          studentsWhoCanTakeExam 
             = enrolledStudents.filter(x => !(tookExamEmails.includes(x)));
@@ -1952,6 +1952,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
              the problems for skills that s has not yet mastered,
              as determined by the skillList.
           */
+         console.log(`gen exam for studentEmail:${studentEmail}`);
          
          let studentSkills = 
              skillIdsMastered[studentEmail];
@@ -1959,6 +1960,7 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
            studentSkills = [];
          }
     
+         console.dir(`studentSkills:${JSON.stringify(studentSkills)}`);
          let testProblems = [];
          for (let p of problems){
           if (studentSkills.includes(p.skills[0]+"")) {
@@ -1994,7 +1996,6 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId", authorize, hasS
 
         res.setHeader('Content-type', 'text/plain');
         res.send(startTex+result+fullMasteryReport + endTex);
-      }
     });
 
 app.get('/downloadAsTexFile/:courseId/:psetId', authorize, hasStaffAccess,

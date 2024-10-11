@@ -35,6 +35,7 @@ if (process.env.UPLOAD_TO == "AWS") {
   aws.config.update(aws_config);
 
   const s3 = new aws.S3();
+  
   const storageAWS = multerS3({
     s3: s3,
     //acl: 'public-read',
@@ -1720,7 +1721,8 @@ app.get("/downloadPersonalizedExamsAsTexFile/:courseId/:psetId",
     const courseId = req.params.courseId;
     const psetId = req.params.psetId;
     const problemSet = await ProblemSet.findOne({_id: psetId });
-    const problems = await Problem.find({psetId: psetId});
+    const problems 
+        = await Problem.find({psetId: psetId});
 
     const courseMembers = await CourseMember.find({courseId}).populate('studentId');
     const studentIds = courseMembers.map((x) => x.studentId._id);

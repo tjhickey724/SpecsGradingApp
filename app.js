@@ -24,6 +24,7 @@ const ejs = require('ejs');
 
 require("dotenv").config();
 
+let storageAWS = null;
 
 if (process.env.UPLOAD_TO == "AWS") {
   const aws_config = {
@@ -35,8 +36,8 @@ if (process.env.UPLOAD_TO == "AWS") {
   aws.config.update(aws_config);
 
   const s3 = new aws.S3();
-  
-  const storageAWS = multerS3({
+
+  storageAWS = multerS3({
     s3: s3,
     //acl: 'public-read',
     bucket: process.env.AWS_BUCKET_NAME,

@@ -3094,6 +3094,74 @@ const masteryCSVtemplate =
         m %>, <% } %>
 <% } %>
 `;
+app.get("/postGrades/:courseId/:psetId", authorize, hasStaffAccess,
+  async (req, res, next) => {
+  try {
+    const courseId = req.params.courseId;
+    const psetId = req.params.psetId;
+    const course = await Course.findOne({_id: courseId});
+    const problemSet = await ProblemSet.findOne({_id: psetId});
+    const answers 
+      = await Answer
+          .find({courseId: courseId, psetId: psetId})
+          .populate('skills')
+          .populate('studentId');
+    
+    /*
+    First delete all of the PostedGrades for this course and pset.
+    Then,for each answer, create a new PostedGrades object which will
+    show the skills mastered by each student for the exam.
+    We need to iterate through all of the answers and create a dictionary
+    of skills mastered by each student.
+    We will create a grades object for each student which is a dictionary
+    showing for each skill whether it was mastered or not, 
+    with 1.0 for mastered and 0.0 for not mastered. The only reason to do this
+    is the possibly handle the case where each skill could be mastered
+    multiple times by a student on an exam... Once we have this grades object
+    we can easily create the PostedGrades object.
+    */
+   console.dir(['answers',answers]);
+   let gradesDict = {};
+   let studentDict = {}
+    for (let answer of answers) {
+      if (!gradesDict[answer.studentId._id]) {
+        studentDict[answer.studentId._id] = answer.studentId;
+        gradesDict[answer.studentId._id] = {skillsMastered:[],skillsSkipped:[]};
+      }
+      for (let skill of answer.skills) {
+        gradesDict[answer.studentId._id].skillsMastered.push(skill);
+      }
+    }
+    console.dir(['studentDict',studentDict]);
+    console.dir(['gradesDict',gradesDict]);
+    /*
+    for each student in the gradesDict, we create a PostedGrades document
+    once we have all of the PostedGrades documents, we insert them into the
+    database.
+    */
+    let postedGrades = [];
+    for (let id in gradesDict) {
+      let pg = {
+        courseId: courseId,
+        name: studentDict[id].name,
+        email: studentDict[id].googleemail,
+        examId: psetId,
+        skillsMastered: 
+            gradesDict[id].skillsMastered.map(x => x.shortName),
+        skillsSkipped: 
+            gradesDict[id].skillsSkipped.map(x => x.shortName),
+      };
+      postedGrades.push(pg);
+    }
+    console.dir(['postedGrades',postedGrades]);
+    await PostedGrades.deleteMany({courseId,examId:psetId});
+    await PostedGrades.insertMany(postedGrades);
+    //res.json([answers,gradesDict,postedGrades])
+    res.redirect("/showMastery/" + courseId);
+  } catch (e) {
+    next(e);
+  }
+});
 
 
 app.get("/showMastery/:courseId", 

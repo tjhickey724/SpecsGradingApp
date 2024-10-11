@@ -117,25 +117,31 @@
 
       </table>
       <hr>
+
+      <% if (isOwner) { %>
+        <a href="/postGrades/<%= problemSet.courseId %>/<%= problemSet._id %>" 
+           class="btn btn-sm btn-warning">
+              Post Grades
+        </a>
+        <% } %>
+  <hr>
+  
       <pre><%  jsonGrades.sort((row1,row2)=>
       row1.grades[row1.grades.length-1] - row2.grades[row2.grades.length-1])
     for (let i=0; i<jsonGrades.length; i++){
             let row = jsonGrades[i]
             let gs = row.grades
-%><%= row.email %>, <%= row.name %> <% for(let j=0; j<gs.length; j++){ %>, <%= gs[j] %> <% } %><% } %></pre>
+%><%= row.email %>, <%= row.name %> <% for(let j=0; j<gs.length; j++){ %>, <%= gs[j] %> <% } %>
+<% } %>
+</pre>
 
-      <%= JSON.stringify(jsonGrades) %>
 
 
 
       <hr>
-      <% if (isOwner){ %>
-      <a class="btn btn-sm btn-success" href="/addProblem/<%= problemSet.courseId %>/<%= psetId %>">Add Problem</a>
-      <% } %>
-      <a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
-      <% if (isTA) { %>
-      <a class="btn btn-sm btn-warning" href="/gradeProblemSet/<%= problemSet.courseId%>/<%= problemSet._id %>">Grade Problem Set </a>
-      <% } %>
+
+
+<a href="/showCourse/<%= problemSet.courseId %>" class="btn btn-sm btn-primary">Back to List of Problem Sets</a>
 
 
     </div>

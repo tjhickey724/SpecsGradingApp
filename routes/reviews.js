@@ -518,6 +518,9 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
           = await Review
                   .findOne({_id: answer.officialReviewId})
                   .populate('skills');
+        if (!res.locals.review) {
+          res.locals.review = {review: "no review yet!", points: 0, skills: []};
+        }
         res.render("showReviewsOfAnswerToStudent");
       }
     } catch (e) {

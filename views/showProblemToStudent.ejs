@@ -8,45 +8,7 @@
     </h3>
     <div class="p-2">
 
-      <% //The owner sees all the details for the problem
-         if (isOwner) {        
-      %>
-            Status: <%= status %><br>
-            Visible: <%= problem.visible %><br>
-            Answerable: <%= problem.answerable %> <br>
-            Submitable: <%= problem.submitable %> <br>
-            Peer Reviewable: <%= problem.peerReviewable %>
-            <hr>
-            <a href="/uploadGrades/<%= problem._id %>">upload grades</a>
-            <hr>
-            <div class="row">
-              <div class="col-md">
-                mimeType=|<%= problem.mimeType %>|
-                answerMimeType=|<%= problem.answerMimeType %>|
-              </div>
-
-              <div class="col-md">
-                Answers: <%= answerCount %>
-              </div>
-              <div class="col-md">
-                Reviews: <%= reviewCount %>
-              </div>
-              <div class="col-md">
-                Average Review: <% if (Math.round(100*averageReview/problem.points) == NaN) { %>
-
-                <%= Math.round(100*averageReview/problem.points)
-                                    %>%
-                = <%= averageReview.toFixed(2) %>/<%= problem.points %><% } else { %><span class="text-muted fst-italic">No reviews yet!</span>
-                <% } %>
-              </div>
-              <div class="col-md text-right">
-                <a href="/editProblem/<%= problem.courseId%>/<%= problem._id %>" class="btn btn-sm btn-info">
-                  Edit
-                </a>
-              </div>
-            </div>
-    <% } %>
-
+      
 
       <% if (!course.courseType.startsWith("mla") || isOwner) {
                 // show the problem text 
@@ -66,13 +28,7 @@
 
       <hr>
       <h3>Plagiarism detection:on</h3>
-      <% // the owner can download the answers to check for similarity
-        if (isOwner) { %>
-        <a href="/downloadAnswers/<%= courseId%>/<%= problem.id %>">
-          download answers
-        </a>
-        <br>
-      <% } %>
+     
 
 
 
@@ -97,15 +53,6 @@
         
       <% } %>
 
-      <% // if the user has answered the question, 
-         // and the problem is peer-reviewable, then they can review others.
-         // Also if they are staff, they can review others, without having answered the question
-         if ( usersAnswers.length>0 && problem.peerReviewable || isStaff) { %>
-        
-            <a href="/reviewAnswers/<%= courseId%>/<%= psetId%>/<%= probId %>" 
-              class="btn btn-small btn-warning">
-              Review others answers</a>
-      <% } %>
 
       <% // a user can see the reviews of their answer, 
          // if they answered the question
@@ -116,20 +63,7 @@
           Reviews of your answer</a>
       <% } %>
 
-      <% // staff or users who have answered the question 
-         // can see the reviews of other answers
-         // if the problem is peer reviewable
-        if ( usersAnswers.length>0 && problem.peerReviewable || isStaff) {
-      %>
-          <a href="/showReviewsByUser/<%= courseId%>/<%= psetId%>/<%= problem._id %>" 
-             class="btn btn-small btn-info">
-             Your Reviews of other's answers</a>
-
-          <a href="/showAllAnswers/<%= courseId %>/<%= problem._id %>" 
-              class="btn btn-small btn-danger">
-              Show all answers</a>
-
-       <% } %>
+    
 
           <a href="/showProblemSet/<%= courseId%>/<%= psetId %>" 
              class="btn btn-small btn-primary">
@@ -139,24 +73,7 @@
         
 
 
-      <% // the staff can start or stop problems
-         // this just toggles the allowAnswers field of the problem
-         if (isStaff)
-						{ if (problem.allowAnswers){ %>
-                <a href="/stopProblem/<%= problem.courseId %>/<%= problem._id %>" 
-                  class="btn btn-small btn-secondary">
-                  Stop Problem</a>
-             <% } else { %>
-                <a href="/startProblem/<%= problem.courseId%>/<%= problem._id %>" 
-                  class="btn btn-small btn-secondary">
-                  Start Problem</a>
-            <% } %>
-
-      <% } 
-        else if (!problem.allowAnswers){ %>
-            <h4>This question has been closed.</h4>
-      <% } %>
-
+ 
 
       <% if ((status=='closed')  && !isStaff){%>
       <h1>You may not submit answers at this time

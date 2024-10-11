@@ -345,7 +345,7 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
           answerId: req.params.answerId,
           studentId: answer.studentId,
           review: req.body.review,
-          points: req.body.points,
+          points: skills.length, //req.body.points,
           skills: skills,
           upvoters: [],
           downvoters: [],
@@ -461,9 +461,9 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
       //res.send("just updating answer ...")
       res.redirect(
         "/showReviewsOfAnswer/"
-        +"<%= answer.courseId %>/"
-        +"<%= answer.psetId %>/"
-        +"<%= answerId%>");
+        +answer.courseId +"/"
+        +answer.psetId +"/"
+        +answerId);
   
     } catch (e) {
       next(e);
@@ -511,7 +511,15 @@ app.get("/gradeProblemWithoutAnswer/:courseId/:psetId/:probId/:studentId", autho
       res.locals.regradeRequests = await RegradeRequest.find({answerId: answerId});
   
       res.locals.routeName = " showReviewsOfAnswer";
-      res.render("showReviewsOfAnswer");
+      if (res.locals.isStaff) {
+        res.render("showReviewsOfAnswer");
+      } else {
+        res.locals.review 
+          = await Review
+                  .findOne({_id: answer.officialReviewId})
+                  .populate('skills');
+        res.render("showReviewsOfAnswerToStudent");
+      }
     } catch (e) {
       next(e);
     }

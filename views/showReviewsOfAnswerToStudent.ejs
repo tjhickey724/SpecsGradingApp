@@ -1,0 +1,144 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+        <div class="p-3 mb-4 bg-light">
+            <div class="container-fluid ">
+                <div class="p-2">
+<script type="text/javascript" src="/js/clickThumb.js"></script>
+    <hr>
+   
+    <h1>Problem</h1>
+    <h3><%= problem.description %></h3>
+    <b>The Question</b>
+    <div class="bg-default" style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+    ><% if (problem.mimeType != 'tex'){ %><%= problem.problemText %><%
+    } else { %>Tex answers are hidden.   <%} %></div>
+
+    <b>Their Answer</b>
+    <small>Submission time and date:<%= answer.createdAt %> </small>
+    <% if (!answer.imageFilePath) {%>
+        TEXT ANSWER:<br>
+    <pre class="bg-warning"
+         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+         ><%= answer.answer %></pre>
+    <% } else { %>
+        <br>
+        IMAGE ANSWER:<br>
+    <img src="<%= answer.imageFilePath %>" width="50%">
+        <% } %>
+
+
+     <h1>Review for the Grade!</h1>
+
+
+
+            
+  
+
+            Skills Mastered:
+            <% let fullskills = review.skills ; 
+               if (fullskills.length==0) {%>
+                <ul>
+                    <li class="text-danger p-3 mb-1">
+                        <b>no skills mastered</b>
+                    </li>
+                </ul>
+            <%}else {%>
+
+            <ul>
+            <% fullskills.map((x) => {%>
+                <li>
+                    <span  style="padding:5px;color:red">
+                        <%= x['name']%>
+                    </span>
+                </li>
+             <%}) %>
+             </ul>
+            <% }%>
+
+
+            <div class="bg-info mb-3 p-4" >
+                <%= review.review %>
+             </div>
+        <hr>
+
+            <h3>Regrade Requests</h3>
+            If you think the grading is incorrect, then you can Submit
+            a regrade request. The request will be reviewed by the staff.
+            <% if (answer.studentId==user.id) {%>
+                <form method="post" action="/requestRegrade/<%= answer.courseId%>/<%= answer.reviewId %>">
+                    Regrade request:
+                    Reason:<br>
+                    <textarea name="reason" style="width:100%"></textarea>
+                    <hr>
+
+
+                    <input type="submit" value="request regrade">
+                </form>
+            <% } %>
+
+        </li>
+
+    </ul>
+    <hr>
+
+
+
+    
+    <h4 style="margin-top:20px;border-top:thick solid black">
+        Outstanding Regrade Requests</h4>
+    <ul>
+    <% let outstanding = 0;
+       for(let i=0; i<regradeRequests.length; i++){
+          rr = regradeRequests[i];
+          if (rr.completed) continue;%>
+          outstanding += 1;
+          <li>
+              reason:<br>
+<pre class="bg-warning"
+         style="border:thin solid black; white-space: pre-wrap; font-family:monospace; padding:10px"
+><%= rr.reason %>
+          </pre><br>
+              createAt:<%= rr.createdAt %><br>
+      
+       <hr>
+       </li>
+    <% }%>
+    <% if (outstanding==0) {%> 
+        <li>
+            No outstanding regrade requests
+        </li>
+    <% } %>
+    </ul>
+    <h4> Completed regrade requests </h4>
+    <ul>
+    <% let completed = 0;
+        for(let i=0; i<regradeRequests.length; i++){
+          rr = regradeRequests[i];
+          if (!rr.completed) continue;
+          completed += 1; %>
+          <li>
+
+               <div style="padding:5px;background-color:yellow">
+                   reason:<%= rr.reason %></div>
+               <div style="padding:5px;background-color:lightgreen">reply:
+                   <%= rr.reply %></div>
+               <hr>
+
+       </li>
+    <% }%>
+    <% if (completed==0) {%> 
+        <li>
+            No completed regrade requests
+        </li>  
+    <% } %> 
+
+    </ul>
+    <hr>
+    <a href="/showProblem/<%= courseId %>/<%= psetId%>/<%= problem._id %>" class="btn btn-small btn-danger">Back to the Problem</a>
+    <a href="/showProblemSet/<%= courseId %>/<%= psetId %>" class="btn btn-small btn-primary">Back to the Problem Set</a>
+
+
+</div></div></div>
+
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

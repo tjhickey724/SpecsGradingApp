@@ -14,6 +14,7 @@ var problemSetSchema = Schema( {
   status:{type:String,
           enum:['in-prep','active','completed','graded'],
           default:'in-prep'},
+  makeup: {type:ObjectId, ref:'ProblemSet'}, // if this has a makeup, this is its id; else it is null
   makeupOf: {type: ObjectId, ref:'ProblemSet' } // if this is a makeup, this is the original pset; else it is null
 } );
 

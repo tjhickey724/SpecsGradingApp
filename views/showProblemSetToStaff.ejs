@@ -63,14 +63,38 @@
         class="btn btn-sm btn-info">
         Download personalized exams
       </a>
-<br>
+
+  
+      <% if (problemSet.makeup)  { %>
+        <hr>
+        <a href="/showProblemSet/<%=courseId%>/<%=problemSet.makeup%>" 
+          class="btn btn-sm btn-warning">
+          Show Makeup Exam
+          </a>
+        <% } else  if (problemSet.makeupOf) { %>
+          <hr>
+          <a href="/showProblemSet/<%=courseId%>/<%=problemSet.makeupOf%>" 
+            class="btn btn-sm btn-warning">
+            Show Original Exam
+            </a>
+          <% } else { %>
+      <br><hr>
+      <form method="post"
+          action="/saveProblemSet/<%=courseId%>">
+        <input type="hidden" name="psetId" value="<%=psetId%>">
+        <input type="hidden" name="makeupOf" value="<%=psetId%>">
+        <input type="hidden" name="name" value="Makeup For <%=problemSet.name%>">
+        <input type="submit" value="Create Makeup Exam">
+      </form>
+      <% } %>
 <hr>
 <br>
       <% }  // close if(is_owner) ...%>
 
 
       <% if (isStaff) { %>
-         
+        <h2>Grading</h2>
+        <% if (course.courseType!="mla0") {%>
           <a class="btn btn-sm btn-danger" 
             href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>">
             Grade Problem Set
@@ -80,8 +104,13 @@
             href="/gradeProblemSet/<%= courseId%>/<%= problemSet._id %>/json">
             show JSON grades
           </a>
+        <% } %>
           <br>
-          <b>Upload Exam Grades:</b>        
+          <b>Upload Exam Grades:</b> 
+          <p>select a CSV file with columns name,email,S1,S2,...,Sk       
+          <br>where the S1,...,Sk are the short names of the skills tested
+            in this problem set.
+          </p>
         
           <form method="post" 
             action="/uploadGrades/<%= courseId %>" 
@@ -93,11 +122,10 @@
           
           
 
-          <%= problemSet.name.trim() || "Problem Set" %>
-          <input type="text" 
+          Grades for <%= problemSet.name.trim() || "Problem Set" %>
+          <input type="hidden" 
                  name="psetId" 
-                 value="<%= problemSet._id %>"
-                 readonly                 
+                 value="<%= problemSet._id %>"             
                  >
 
           <input required class="mb-3" type="file" name="grades" >

@@ -14,13 +14,18 @@
 <div class="p-3 mb-4 bg-light">
   <div class="container-fluid ">
     <h1 class="pb-2 border-bottom">
-      Show Math Course <%= course.name %></h1>
-    <div class="p-2">
+     Mastery Summary for <%= course.name %></h1>
+    <div>
         <%= course.description %>
         <br>
         Created at <%= course.createdAt %>
+        
     </div>
-      <h1>Mastery Summary</h1>
+    
+
+        <a href="?csv=1">Download as CSV file</a>
+        <br>
+        Students who have not mastered any skills are highlighted.
       <table class="table table-bordered table-striped js-sort-table">
         <thead style="position: sticky;top: 0" >
             <tr>
@@ -54,7 +59,7 @@
               %>
                 <tr>
                     <td><%= mastery[email]['name'] %></td>
-                    <td class="<%= email.endsWith("@brandeis.edu")?"":
+                    <td class="<%= !email.endsWith("@brandeis.edu")?"":
                     "bg-warning" %>"
 
                         ><%= email %></td>
@@ -71,13 +76,11 @@
                     <% } %>
                 </tr>
             <% } %>
-            <tr><td colspan="100%"> 
-                Students with no grades so far in the course.
-            </td></tr>
+
             <% for (let email in sectionDict) {
                 if (mastery[email] === undefined) {
                     %>
-                    <tr>
+                    <tr class="bg-warning">
                         <td> ... </td>
                         <td><%= email %></td>
                         <td><%= sectionDict[email] %></td>

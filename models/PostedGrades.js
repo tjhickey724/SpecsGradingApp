@@ -7,7 +7,7 @@ var gradeSchema = Schema( {
   name: String,
   email: String,
   courseId: {type:ObjectId,index:true},
-  examId: {type:ObjectId,index:true,ref:'MathExam'},
+  examId: {type:ObjectId,index:true,ref:'ProblemSet'},
   createdAt: Date,
   skillsMastered: [String],
   skillsSkipped: [String],

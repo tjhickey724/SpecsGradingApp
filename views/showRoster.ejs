@@ -7,17 +7,26 @@
     <div class="p-2">
 
       studentPin: <%= courseInfo.coursePin %>
+      Current Time: <%= new Date().toISOString().slice(0, 19).replace('T', ' ') %>
+      <a href="/showCourse/<%= courseInfo._id %>" class="btn btn-sm btn-info">
+        Back to Course
+      </a>
       <br>
 
       <hr>
 
-      <a href="/showCourse/<%= courseInfo._id %>" class="btn btn-sm btn-info">
-        Back to Course
-      </a>
+      
       <hr>
-      Current Time: <%= new Date().toISOString().slice(0, 19).replace('T', ' ') %>
       <div>
-        <b>Upload Roster</b>
+        <h3>(Re)Upload Student Roster</h3>
+        <p>Upload a csv file with the following columns: name, email, section</p>
+        <p>This will add them to the class if they are not already in the class,
+          and update their section and role if they are already in the class.
+          Students who are not in the csv file will be given the "dropped" role.
+          Each person can have only one role (student, ta, instructor, dropped) 
+          and at most one section.
+        </p>
+
         <form method="post" 
           action="/uploadRoster/<%= courseInfo._id %>" 
           enctype="multipart/form-data">
@@ -25,7 +34,7 @@
               type="file" name="sections" >
         <input class="btn btn-sm btn-primary" 
               type="submit" 
-              value="upload section data file">
+              value="upload roster csv file">
         </form>
       </div>
 
@@ -66,7 +75,7 @@
 
 
       <hr>
-      <% if (user._id.equals(courseInfo.ownerId)) { %>
+      <% if (false && user._id.equals(courseInfo.ownerId)) { %>
       <span class="lead">You are the owner</span>
       <form method="post" action="/addStudents/<%= courseInfo._id %>">
         <div class="mb-3">
@@ -75,9 +84,7 @@
         </div>
         <input class="btn btn-lg btn-outline-dark" type="submit">
       </form>
-      <% } else { %>
-      You are not the owner
-      <%} %>
+      <% }  %>
       <br>
 
     </div>

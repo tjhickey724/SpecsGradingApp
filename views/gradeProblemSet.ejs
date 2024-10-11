@@ -13,7 +13,7 @@
             <th>Student</th>
             <% for(i = 0; i<= problems.length-1; i++){  %>
             <th> <a href="/showProblem/<%= courseId%>/<%= psetId%>/<%= problems[i]._id %>">
-                P<%= i %><br> <%= problems[i].points %>
+                P<%= i %><br> <%= problems[i].skills.length %>
 
               </a></th>
             <% } %>

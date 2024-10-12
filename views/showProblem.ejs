@@ -53,7 +53,7 @@
                 if (problem.mimeType=='markdown') { 
             %><div class="bg-default border border-dark rounded border-2 p-3"><%- 
                   markdownText
-            %></div><% } else {
+            %></div><% } else if (problem.mimeType!='tex') {
             %><div class="bg-default border border-dark rounded border-2" 
             style="white-space: pre-wrap; font-family:monospace; padding:10px"
             ><%= 

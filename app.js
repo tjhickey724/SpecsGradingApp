@@ -157,6 +157,7 @@ const instructors = [
   "jamespetullo@brandeis.edu",
   "rtorrey@brandeis.edu",
   "merrill2@brandeis.edu",
+  "ellatuson@brandeis.edu",
 ];
 
 var app = express();

@@ -5,45 +5,21 @@
 
 <div class="p-lg-5 p-4 mb-lg-3 mb-0 bg-light border">
   <div class="container-fluid">
-    <h1 class="bg-danger">THIS APP IS UNDER CONSTRUCTION!!</h1>
-    <h3 class="bg-danger">If you want to use it for your course, send email to tjhickey@brandeis.edu
-    </h3>
+
     <h1>Mastery Learning/Specs Grading/Peer Review App</h1>
     <span class="lead fs-2">Promoting Effective and Engaged Learning</span>
-    
+
     
     <% if (loggedIn){ %>
       <hr>
 
       
-    <form method="post" action="/joinCourse">
-      <div class="mx-lg-3 mx-2 my-1 row g-lg-3 g-2 align-items-center">
-        <div class="col-auto">
-          <label for="inputPassword6" class="col-form-label"> Enroll in a course
-          </label>
-        </div>
-        <div class="col-auto">
-          <div class="input-group">
-            <input required type="input" name="coursePin" class="form-control" aria-describedby="ccInline" placeholder="7 digit pin">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-box-arrow-in-right"></i>
-            </button>
-          </div>
-        </div>
-        <div class="col-auto">
-          <span id="ccInline" class="form-text">(or
-            <a href="/createCourse" class="text-decoration-none">create a new
-              course</a>,
-            or
-            <a href="/stats" class="text-decoration-none">view usage
-              statistics</a>)</span>
-
-          </div>
-      </div>
-    </form>
+ 
+        
+    
     <% } %>
 
-  </div>
-</div>
+
 <% if (!loggedIn){ %>
 <h2>You must login through Brandeis to use the Peer Review App:
   <a class="btn btn-lg btn-danger" href="/auth/google"> Login</a>
@@ -56,10 +32,16 @@
   <% } else { %>
     <a href="/mla_home">Show Current Courses Only</a>
   <% } %>
+
 <hr>
 <div class="card-group">
-  <div class="card text-bg-warning">
+  <div class="card text-bg-warning p-2">
     <div class="card-header">Courses I'm taking</div>
+    <% if (coursesTaken.length==0) { %>
+      <div class="card-body">
+        <p class="card-text">You are not taking any courses.</p>
+      </div>
+    <% } else { %>
     <ul class="pt-1 mb-2">
       <% for(i=0; i<=coursesTaken.length-1; i++){ 
            if (show=='currentOnly' 
@@ -75,8 +57,19 @@
       </li>
       <% } %>
     </ul>
+    <% } %>
+    <form method="post" action="/joinCourse">
+      <input required type="input" 
+            name="coursePin" 
+            placeholder="Enter 7 digit pin">
+      <input  class="btn btn-primary" 
+              type="submit"
+              value="Enroll in the course">
+    </form>
   </div>
-  <div class="card bg-primary">
+
+  <% if (isTA) { %>
+  <div class="card bg-primary p-2">
     <div class="card-header">Courses I'm TAing</div>
     <ul class="pt-1 mb-2">
       <% for(i=0; i<=coursesTAing.length-1; i++){
@@ -91,11 +84,15 @@
       </li>
       <% } %>
     </ul>
+    </div>
 
-  </div>
-  <div class="card bg-danger">
+  <% } %> 
+
+  <% if (isInstructor) { %> 
+  <div class="card bg-danger p-2">
     <div class="card-header">Courses I'm Teaching</div>
-    <ul class="pt-1 mb-2">
+
+    <ul>
       <% for(i=0; i<=coursesOwned.length-1; i++){ 
         if (show=='currentOnly' 
         && (!coursesOwned[i].stopDate 
@@ -108,16 +105,38 @@
       </li>
       <% } %>
     </ul>
-    <pre>
 
-</pre>
+    <div class="row p-2">
+      
+        
+          <div class="col">
+            <a href="/createCourse" class="btn btn-sm btn-info">
+              Create a new course
+            </a>
+          </div>
+       
+       
+        <% if (isAdmin) { %>
+          <div class="col">
+            <a href="/instructors" class="btn btn-sm btn-warning">
+              Manage Instructors
+            </a> 
+          </div>    
+        <% } %>
+       
+    </div>
+    <% } %>
+    
   </div>
 </div>
 
 
 
-<%} %>
-<br>
 
+<%} %>
+
+
+</div>
+</div>
 <%- include('bootfooter') -%>
 <%- include('htmlfoot') -%>

@@ -12,19 +12,20 @@ const configPassport = require("../config/passport");
 configPassport(passport);
 
 const User = require("../models/User");
+const Instructor = require("../models/Instructor");
 
 // here are the authentication routes
 app.use(passport.initialize());
 app.use(passport.session());
 
 // here is where we check on their logged in status
-app.use((req, res, next) => {
-    res.locals.title = "Peer Review App";
+app.use(async (req, res, next) => {
     res.locals.loggedIn = false;
-    res.locals.isRealOwner = false; // default value, reset in authorize middleware
     if (req.isAuthenticated()) {
       res.locals.user = req.user;
       res.locals.loggedIn = true;
+
+
     } else {
       res.locals.user={};
       res.locals.loggedIn = false;

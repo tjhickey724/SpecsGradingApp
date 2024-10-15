@@ -1,0 +1,62 @@
+<%- include('bootheader') -%>
+<%- include('menubar') -%>
+<div class="p-3 mb-4 bg-light">
+  <div class="container-fluid ">
+   
+
+
+    <div class="p-2">
+      <h6 class="pb-2 border-bottom fw-bold"> Instructors
+      </h6>
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Remove</th>
+            <th>Approve</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(let instructor of instructors){ %>
+          <tr>
+            <td><%= instructor.userId.googleemail %></td>
+            <td>
+              <% if (!instructor.userId.googlename) { %>
+              <span class="text-danger">user has not logged in yet</span>
+              <% } else { %>
+              <span class="text-primary"><%= instructor.userId.googlename %></span>
+              <% } %>
+            </td>
+            <td><%= instructor.status %></td>
+            <td>
+              <a href="/removeInstructor/<%= instructor.userId._id %>">
+                <i class='fas fa-trash-can' style='font-size:12px'></i>
+              </a>
+            </td>
+            <td>
+              <a href="/approveInstructor/<%= instructor.userId._id %>">
+                <i class='fas fa-plus' style='font-size:12px'></i>
+              </a>
+            </td>
+          </tr>
+          <% } %>
+      
+      </tbody>
+      </table>
+      <hr>
+    </div>
+    <div>
+      <form method="post" action="/addInstructor">
+        <div class="input-group">
+          <label for="" class="input-group-text">Instructor Email</label>
+          <input type="text" name="email" class="form-control"><br>
+          <input class="btn btn-primary" type="submit" value="Add Instructor">
+        </div>
+    </div>
+    </div>
+  </div>
+</div>
+<%- include('bootfooter') -%>
+<%- include('htmlfoot') -%>

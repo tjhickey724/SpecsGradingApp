@@ -12,13 +12,21 @@ the user must be logged in to access any of route except "/login"
 
 const Course = require("../models/Course");
 const CourseMember = require("../models/CourseMember");
+const Instructor = require("../models/Instructor");
+const adminEmail = "tjhickey@brandeis.edu"; // the admin email
 
 
 // route middleware to make sure a user is logged in
-const isLoggedIn = (req, res, next) => {
+const isLoggedIn = async (req, res, next) => {
     res.locals.loggedIn = false;
     if (req.isAuthenticated()) {
       res.locals.loggedIn = true;
+      let instructor = await Instructor.findOne({userId: req.user._id});
+      res.locals.isInstructor = (instructor && instructor.status == "active")
+      res.locals.isAdmin = req.user.googleemail == adminEmail;
+      let courseTaMember 
+        = await CourseMember.findOne({studentId: req.user._id, role: "ta"});
+      res.locals.isTA = courseTaMember != null;
       return next();
     } else {
       res.redirect("/login");
@@ -57,7 +65,7 @@ const isLoggedIn = (req, res, next) => {
               {studentId: req.user._id, 
                 courseId: res.locals.courseInfo._id});
          
-        res.locals.isAdmin = req.user.googleemail == "tjhickey@brandeis.edu";
+        res.locals.isAdmin = req.user.googleemail == adminEmail;
         if (!member){
             // these should all be false for new courses
             // but we want to be backward compatible so ...
@@ -136,7 +144,29 @@ const isLoggedIn = (req, res, next) => {
       next(e);
     }
   }
-  
+
+  const isInstructor = async (req, res, next) => {
+    try {
+      if (!req.user) {
+        res.redirect("/login"); 
+      } else {
+        // only instructors have access to this route
+        // if the user is not an instructor, they will be redirected to the home page
+        // if they are an instructor, they will be able to access the route
+        // and the next() function will be called
+        const instructor 
+          = await Instructor.findOne({userId: req.user._id, status: "active"});
+        if (instructor) {
+          next();
+        } else {
+          res.send("Only the instructors have access to this page.");
+        }
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+
   const isOwner = async (req, res, next) => {
     try {
       if (res.locals.isOwner) {
@@ -152,7 +182,7 @@ const isLoggedIn = (req, res, next) => {
   
   const isAdmin = async (req, res, next) => {
     try {
-      if (req.user.googleemail == "tjhickey@brandeis.edu"){
+      if (req.user.googleemail == adminEmail){
         res.locals.isAdmin = true;
         next()
       } else {
@@ -170,5 +200,7 @@ const isLoggedIn = (req, res, next) => {
         hasCourseAccess,
         hasStaffAccess,
         isOwner,
+        isInstructor,
         isAdmin,
     };
+

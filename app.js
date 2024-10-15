@@ -111,6 +111,7 @@ const MathCourse = require("./models/MathCourse");
 const MathExam = require("./models/MathExam");
 const PostedGrades = require("./models/PostedGrades.js");
 const MathSection = require("./models/MathSection");
+const Instructor = require("./models/Instructor");
 const ejsLint = require("ejs-lint");
 
 
@@ -188,7 +189,7 @@ Every route that requires authentication for access to a course
 should start with the authorize middleware and then will have those
 functions available in res.locals.
 */
-const {isLoggedIn, hasMGAStudentAccess, hasCourseAccess, hasStaffAccess, isOwner, isAdmin, authorize} = require('./routes/authFunctions.js');
+const {isLoggedIn, hasMGAStudentAccess, hasCourseAccess, hasStaffAccess, isOwner, isInstructor, isAdmin, authorize} = require('./routes/authFunctions.js');
 
 
 // view engine setup
@@ -247,6 +248,73 @@ we have access to
 app.get('/', (req, res) => {
   res.redirect('/mla_home');
 });
+
+app.get("/instructors", isAdmin,
+  async (req, res, next) => {
+    res.locals.instructors 
+       = await Instructor
+              .find({})
+              .populate('userId');
+    res.render("showInstructors");
+  }
+);
+
+app.get("/removeInstructor/:userId", isAdmin,
+  async (req, res, next) => {
+    try {
+      const userId = req.params.userId;
+      const instructor 
+        = await Instructor
+              .findOneAndUpdate(
+                {userId},
+                {$set:{status:"inactive"}},
+                {new:true});
+        res.redirect("/instructors");
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
+app.get("/approveInstructor/:userId", isAdmin,
+  async (req, res, next) => {
+    try {
+      const userId = req.params.userId;
+      const instructor 
+        = await Instructor
+              .findOneAndUpdate(
+                {userId},
+                {$set:{status:"active"}},
+                {new:true});
+      res.redirect("/instructors");
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
+app.post("/addInstructor", isAdmin,
+  async (req, res, next) => {
+    try {
+      const email = req.body.email;
+      let user = await User.findOne({googleemail:email});
+      if (!user) {
+        // create a new user with the email as the googleemail
+        const userJSON = {
+          googleemail:email,
+          createdAt: new Date(),
+        }
+        user = new User(userJSON);
+        user = await user.save();
+      }
+      const instructor = new Instructor({userId:user._id});
+      await instructor.save();
+      res.redirect("/instructors");
+    } catch (e) {
+      next(e);
+    }
+  }
+)
 
 app.get('/mga_home', (req, res) => {
   res.redirect('/mathgrades');
@@ -351,13 +419,9 @@ app.get("/stats", isLoggedIn,
 
 
 
-app.get("/createCourse", isLoggedIn,
+app.get("/createCourse", isLoggedIn, isInstructor,
   (req, res) => {
-    if (instructors.includes(req.user.googleemail)){
-      res.render("createCourse");
-    } else {
-      res.send("You must be an instructor to create a course. Contact tjhickey@brandeis.edu to be on the MLA instructors list.");
-    }
+    res.render('createCourse');
 });
 
 // rename this to /createCourse and update the ejs form
@@ -3358,18 +3422,14 @@ app.get("/mastery2/:courseId", authorize, isOwner,
   //res.json({data,mastery,studentIds,students,studentSkillCounts,skillIds,skillmap,skills})
 });
 
+
+
+
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
-
-
-
-
-      
-
-
-
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -3383,54 +3443,6 @@ app.use(function (err, req, res, next) {
   res.locals.user= req.user||{}
   res.render("error");
 });
-
-function createGradeSheet(students, problems, answers, reviews) {
-  let gradeSheet = {};
-  let problemList = {};
-  let answerList = {};
-  for (let s in students) {
-    let student = students[s];
-    gradeSheet[student._id] = {student: student, answers: {}};
-  }
-  for (let p in problems) {
-    let problem = problems[p];
-    problemList[problem._id] = problem;
-  }
-  for (let a in answers) {
-    let answer = answers[a];
-    try {
-      answerList[answer._id] = answer;
-     
-      // it is possible that a TA will not be a student
-      // so we need to create a
-      gradeSheet[answer.studentId] = gradeSheet[answer.studentId] || {status: "non-student", student: "non-student", answers: {}};
-      gradeSheet[answer.studentId]["answers"][answer._id] = {answer: answer, reviews: []};
-    } catch (error) {
-      console.log("Error in createGradeSheet: " + error.message + " " + error);
-      console.log(error);
-    }
-  }
-
-  for (let r in reviews) {
-    let review = reviews[r];
-    try {
-      // the problem is that review.answerId might correspond to an answer
-      // that I deleted!  but there is another duplicate with the same
-      // review.studentId and same review.problemId, so I may need to redesign.
-      // I could create an updateReviews route that would update all
-      // review.answerIds based on the studentId and problemId
-      let z = gradeSheet[answerList[review.answerId].studentId]["answers"][review.answerId];
-      //z['reviews'] = z['reviews']||[]
-      z["reviews"].push(review);
-    } catch (error) {
-      console.log("Error in createGradeSheet-2s: " + error.message + " " + error);
-      console.log("error.lineNumber = " + error.linenNumber);
-      console.log("stack: " + error.stack);
-    } 
-  }
-
-  return {grades: gradeSheet, problems: problemList, answers: answerList};
-}
 
 
 module.exports = app;

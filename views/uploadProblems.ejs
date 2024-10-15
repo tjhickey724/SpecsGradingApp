@@ -19,7 +19,7 @@
       <select name="skill">
         <% for (let i=0; i<skills.length; i++){ %>
           <option value="<%= skills[i]._id %>">
-            <%= skills[i].name %>
+            <%= skills[i].shortName %> ::  <%= skills[i].name %>
           </option>
         <% } %>
       </select>

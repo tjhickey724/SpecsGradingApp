@@ -1084,7 +1084,11 @@ app.get("/showSkills/:courseId", authorize, hasCourseAccess,
   async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
-    const skills = await Skill.find({courseId: courseId});
+    const skills 
+       = await Skill.find(
+            {courseId: courseId,
+              original:{$exists:false},
+            });
     const courseSkills = await CourseSkill.find({courseId: courseId}).populate('skillId');
     
     res.locals = {
@@ -1214,7 +1218,11 @@ app.get("/importSkills/:courseId", authorize, isOwner,
     const ownedCourses = await Course.find({ownerId: req.user._id});
     const visibleCourses = taCourses.concat(ownedCourses.map((x) => x._id));
 
-    res.locals.courses = await Course.find({_id:{$in:visibleCourses}}).sort({name: 1});
+    //res.locals.courses = await Course.find({_id:{$in:visibleCourses}}).sort({name: 1});
+    // for now we will let the user see all of the courses..
+    // this is not scalable though!!
+    res.locals.courses = await Course.find({}).sort({name: 1});
+
 
     res.locals.routeName = " importSkills";
     res.render("importSkills");
@@ -2425,11 +2433,13 @@ app.get('/showProblemsBySkill/:courseId/:psetId/:skillId', authorize, hasCourseA
     // and populate the courseId field
     // we use $elemMatch to find problems whose skills list
     // contains any of the variant skills
+
+    // For now we will show any problems based on that skill
     const problems =
         await Problem
               .find(
                 {skills: {$elemMatch:{$in:variantIds}},
-                 courseId: {$in: visibleCourses}
+                 //courseId: {$in: visibleCourses}
                 })
               .populate('courseId')
               .sort({createdAt: -1});

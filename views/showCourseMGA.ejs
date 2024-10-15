@@ -13,7 +13,7 @@
         <li>
 
           <a href="/showSkill/<%= courseInfo._id%>/<%= skills[i]._id %>">
-            <%= skills[i].name %>
+            <%= skills[i].shortName %> :: <%= skills[i].name %>
           </a>
           <span style="color:red">
             times mastery demonstrated: <%= skillCount[skills[i].id]||0 %>
@@ -29,7 +29,7 @@
          if (skillIds.includes(allSkills[i].id)) continue; %>
         <li>
           <a href="/showSkill/<%=courseInfo._id%>/<%= allSkills[i]._id %>">
-            <%= allSkills[i].name %>
+            <%= allSkills[i].shortName %>:: <%= allSkills[i].name %>
           </a>
           mastery not yet demonstrated
         </li>

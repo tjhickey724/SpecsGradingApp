@@ -8,10 +8,24 @@ var problemSchema = Schema( {
   psetId: {type:ObjectId,index:true}, // original pset
   description: String,
   problemText: String,
-  mimeType: String, // type of the problem text (plain, markdown, tex, etc.)
-  answerMimeType: String, // one of (text, image), default is text 
+  mimeType: {
+    type: String,
+    enum: ['plain',  // skill-based exam generation on paper
+           'markdown',  // and with grading in the app
+           'tex',   // specs grading, with online quizzes
+          ],
+    default: 'markdown'
+    },
+  answerMimeType: {
+    type: String,
+    enum: ['text',  
+           'markdown',
+           'image', 
+          ],
+    default: 'markdown'
+    },
   rubric: String,
-  pendingReviews: mongoose.Schema.Types.Mixed, // deprecated ... this needs to be in PsetProblem
+  pendingReviews: mongoose.Schema.Types.Mixed, 
   createdAt: Date, // original creation date
 
   skills:[{type:ObjectId,ref:'Skill'}], 

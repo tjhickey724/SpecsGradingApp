@@ -1,4 +1,4 @@
-// Start/restart this with
+// Start/restart this with 
 // pm2 start bin/www -n mastery -i 3
 // restart with
 // pm2 restart mastery
